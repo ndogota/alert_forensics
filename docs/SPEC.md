@@ -395,7 +395,9 @@ Decisions the pipeline rests on:
   as an `error` of kind `unknown_tool` with source system `none`. The journal never files
   a call under a system it did not reach.
 - Fixture adapters match a request against stubs: an exact value, `$contains`,
-  `$regex` or `$any` per argument. A request no stub answers is an `error` of kind
+  `$regex` or `$any` per argument, or `$all`, a list of those that must every one hold,
+  so a stub can require both the shape of a request and the entity it names in one
+  place a reviewer reads. A request no stub answers is an `error` of kind
   `no_fixture`, never a silent empty result, so a fixture gap shows in the trace
   instead of being read as absence of evidence. **There is no fixture default.** The
   format once allowed one, and five of the nine fixtures declared an empty one, which
@@ -419,6 +421,34 @@ Decisions the pipeline rests on:
   refused too. What the model sees on a gap is the same structured failure any error
   gets, kind `no_fixture` and the arguments it sent, so it can rewrite the request or
   say what it could not obtain; and the trace says the harness, not the world, ran out.
+- **A stub on a free-text request answers only questions about the entities its
+  response holds.** For a query tool, `search_events` and `search_siem`, the match
+  requires the query to name the principal entity of the rows it returns, an account,
+  a device, an indicator, an action type, and not only the table or the index: a table
+  name is a shape, and a shape matches every user. For the runbook, the match requires
+  the query to name the entry's subject, the alert type its title names or a proper
+  entity the entry names, a product, a range, an address, and never a generic
+  infrastructure word such as egress, gateway, proxy or VPN, which every scenario's
+  questions use. The reason is the one thing this project sells. An empty result is
+  visibly nothing; a wrong result is indistinguishable from evidence. A fact built on
+  another user's sign-in rows cites a call whose outcome is `ok`, the validator grounds
+  it, the run completes, and the harness scores a fact about the wrong person as a
+  reached finding, with no mark anywhere in the trace. The widening that replaced the
+  defaults did exactly this on both free-text tools: the sign-in stub keyed on the
+  table name answered a query about `mmartin@contoso.com` with jdoe's rows, and the
+  runbook stub keyed on infrastructure words answered a question about an RMM relay,
+  and one about a Kerberoasting scanner, with the atypical-travel entry at score 0.91.
+  The rule that a stub must constrain at least one argument does not catch it, since
+  the table is an argument. The three entity tools already obey it by construction,
+  because their request is the entity. What is structural and what is not, stated:
+  no default and at least one constraint are held by the loader; this rule is not,
+  because the loader cannot read what a query is about, so it is held on the shipped
+  fixtures by tests that ask each free-text stub about another account and another
+  subject and require `no_fixture`, and every scenario's stubs arrive with those tests.
+  The cost is a narrower hit: a query that names the table and not the account, or
+  the runbook asked about egress points without naming the travel alert or the SASE
+  product, is a visible `no_fixture` error the model can rephrase, and that is the
+  right side to err on.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -986,16 +1016,23 @@ no escalation.
   prefix matched inside the address and `SASE` matched inside the owner name, and a
   fact that only copied the ASN owner was credited with saying the address is a
   gateway. That is the case the whole-word rule above was decided on.
-- The scenario's stubs answer the requests a model plausibly makes, not the phrase the
-  alert happens to be titled with. The runbook stub matches on the terms of the entry
-  it returns, `SASE`, `egress`, `gateway`, `proxy`, `VPN`, as well as the alert's title,
-  because it stands in for retrieval and retrieval answers a query about egress with the
-  entry about egress. The identity stub matches the account name and its UPN, since
-  the alert carries both and the model may ask with either. The sign-in stub matches
-  the three names the sign-in table goes by, `SigninLogs`, `AADSignInEventsBeta` and
-  `IdentityLogonEvents`, since the tool follows the hunting API and a model chooses the
-  table. A request outside these is a `no_fixture` error, visible, as decided under the
-  tool layer.
+- The scenario's stubs answer the requests a model plausibly makes about this
+  scenario's entities, and nothing else, under the free-text rule decided under the
+  tool layer. The sign-in stub requires both a sign-in table, any of `SigninLogs`,
+  `AADSignInEventsBeta` and `IdentityLogonEvents` since the model chooses the table,
+  and the account `jdoe`, since the rows are jdoe's; a sign-in query about another
+  account is a `no_fixture` error, not jdoe's rows. The runbook stub requires the
+  entry's subject: the alert type, `atypical travel` or `impossible travel`, the
+  product `SASE`, or one of the two ranges the entry names; a question about another
+  scenario's subject, an RMM relay or a Kerberoasting scanner, is a `no_fixture` error,
+  not this entry. The cities and the words egress, gateway, proxy and VPN were matched
+  for one commit and are not any more: they are where the gateway sits and what a
+  gateway is, and every scenario's questions use them. The identity stub matches the
+  account name and its UPN, since the alert carries both and the model may ask with
+  either. Checked against the committed recording: its sign-in query names
+  `jdoe@contoso.com`, its runbook query names `SASE`, its identity request names the
+  UPN, and all three still hit; a test replays the three requests from the artifact
+  itself so the check cannot drift from the recording.
 - Expected missing context, two: the gateway or VPN session log that ties the user to
   the gateway at both times, which no tool provides; and the MFA or device compliance
   outcome, which the runbook checklist asks for and the sign-in view does not carry.
