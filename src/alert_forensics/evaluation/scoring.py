@@ -1,8 +1,9 @@
 """One run scored against its ground truth.
 
 Deterministic and legible: a required finding is matched by the tool a fact cites and
-the tokens its statement contains, and a miss names the tokens the closest candidate
-lacked. No model is asked anything. A failed run scores zero on every metric.
+the tokens its statement contains as whole words, and a miss names the tokens the
+closest candidate lacked. No model is asked anything. A failed run scores zero on every
+metric.
 """
 
 from pydantic import Field
@@ -15,26 +16,32 @@ from alert_forensics.evaluation.truth import (
     GroundTruth,
     RequiredFinding,
     Token,
+    words,
 )
 from alert_forensics.grounding import FactGrounding, GroundingReport
 
 
-def normalise(text: str) -> str:
-    return " ".join(text.split()).casefold()
+def _occurs(needle: list[str], haystack: list[str]) -> bool:
+    """Whether ``needle`` is a contiguous run of ``haystack``. A token never matches
+    inside a larger word: ``SASE`` is not in ``EXAMPLE-SASE-NET``, ``203.0.113`` is not
+    in ``203.0.113.7``."""
+    if not needle:
+        return False
+    span = len(needle)
+    return any(haystack[i : i + span] == needle for i in range(len(haystack) - span + 1))
 
 
-def _present(text: str, token: Token) -> bool:
-    if isinstance(token, str):
-        return normalise(token) in text
-    return any(normalise(alternative) in text for alternative in token)
+def _present(haystack: list[str], token: Token) -> bool:
+    alternatives = [token] if isinstance(token, str) else token
+    return any(_occurs(words(alternative), haystack) for alternative in alternatives)
 
 
 def contains_tokens(text: str, tokens: list[Token]) -> list[Token]:
-    """The tokens ``text`` lacks, in order; empty when every token is present. A token
-    that is a list of alternatives is present when any one of them is, and is reported
-    whole when none is."""
-    normalised = normalise(text)
-    return [token for token in tokens if not _present(normalised, token)]
+    """The tokens ``text`` lacks, in order; empty when every token is present as whole
+    words. A token that is a list of alternatives is present when any one of them is,
+    and is reported whole when none is."""
+    haystack = words(text)
+    return [token for token in tokens if not _present(haystack, token)]
 
 
 class FindingMatch(ContractModel):

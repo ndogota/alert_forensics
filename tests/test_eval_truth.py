@@ -149,3 +149,21 @@ def test_the_committed_scenario_one_truth_matches_the_spec_table():
     assert scenario.truth.escalate is False
     assert len(scenario.truth.required_findings) == 3
     assert len(scenario.truth.missing_context) == 2
+
+
+def test_a_token_that_holds_no_word_is_refused():
+    """A token of bare punctuation can never match under the whole-word rule."""
+    for tokens in (["..."], ["a", "- -"], [["(", ")"]], [["gateway", "'"]]):
+        with pytest.raises(ValidationError, match="no word"):
+            GroundTruth.model_validate(
+                {
+                    **TRUTH,
+                    "required_findings": [
+                        {"name": "x", "tools": ["search_events"], "tokens": tokens}
+                    ],
+                }
+            )
+        with pytest.raises(ValidationError, match="no word"):
+            GroundTruth.model_validate(
+                {**TRUTH, "missing_context": [{"name": "x", "tokens": tokens}]}
+            )

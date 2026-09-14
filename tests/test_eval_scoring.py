@@ -108,11 +108,31 @@ def run(script, fixture_set, max_corrections=1):
 
 
 def test_tokens_match_case_insensitively_on_normalised_whitespace():
-    assert (
-        contains_tokens("IP  203.0.113.7\n belongs to EXAMPLE-SASE-NET", ["sase", "203.0.113.7"])
-        == []
-    )
+    text = "IP  203.0.113.7\n belongs to EXAMPLE-SASE-NET"
+    assert contains_tokens(text, ["ip", "203.0.113.7", "example-sase-net"]) == []
+    assert contains_tokens(text, ["Belongs  To"]) == []
     assert contains_tokens("nothing here", ["SASE"]) == ["SASE"]
+
+
+def test_a_token_matches_whole_words_never_inside_a_larger_word():
+    # The case the rule was decided on: the owner name is not the word SASE.
+    assert contains_tokens("belongs to EXAMPLE-SASE-NET", ["SASE"]) == ["SASE"]
+    assert contains_tokens("belongs to (EXAMPLE-SASE-NET).", ["EXAMPLE-SASE-NET"]) == []
+    # Punctuation inside a word is part of it; at its ends it is not.
+    assert contains_tokens("from 203.0.113.7.", ["203.0.113"]) == ["203.0.113"]
+    assert contains_tokens("from 203.0.113.7.", ["203.0.113.7"]) == []
+    assert contains_tokens("in Paris, FR", ["paris"]) == []
+    assert contains_tokens("technique T1078.004 applies", ["T1078"]) == ["T1078"]
+    # A plural, a possessive and a compound are different words, listed as alternatives.
+    assert contains_tokens("the session logs", ["log"]) == ["log"]
+    assert contains_tokens("the session logs", [["log", "logs"]]) == []
+    assert contains_tokens("the gateway's address", ["gateway"]) == ["gateway"]
+    assert contains_tokens("the multi-factor prompt", ["factor"]) == ["factor"]
+    # A multi-word token is a contiguous run of words.
+    assert contains_tokens("device compliance was not checked", ["device compliance"]) == []
+    assert contains_tokens("device was not in compliance", ["device compliance"]) == [
+        "device compliance"
+    ]
 
 
 def test_an_alternatives_group_is_satisfied_by_any_one_and_reported_whole():
@@ -242,7 +262,11 @@ def test_the_recorded_real_run_scores_as_the_spec_says():
     score = score_run(artifact, TRUTH)
     assert score.outcome is RunOutcome.completed
     assert score.verdict_correct is True
-    assert score.findings_reached == 3 and score.findings_required == 3
+    assert score.findings_reached == 2 and score.findings_required == 3
+    gateway = next(f for f in score.findings if f.name == "the_egress_address_is_the_sase_gateway")
+    assert gateway.reached is False and gateway.candidates == 1
+    # The fact named the ASN owner and never said what the address is.
+    assert gateway.missed_tokens == ["SASE", ["gateway", "gateways", "egress", "proxy"]]
     assert score.context_named == 0 and score.context_expected == 2
     assert score.escalation_correct is True
     assert score.ungrounded_facts == 0

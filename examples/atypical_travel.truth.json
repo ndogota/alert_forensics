@@ -17,13 +17,17 @@
     {
       "name": "the_egress_address_is_the_sase_gateway",
       "tools": ["lookup_ioc", "search_runbook"],
-      "tokens": ["203.0.113", "SASE"]
+      "tokens": [
+        ["203.0.113.7", "203.0.113.0/24"],
+        "SASE",
+        ["gateway", "gateways", "egress", "proxy"]
+      ]
     }
   ],
   "missing_context": [
     {
       "name": "gateway_session_log",
-      "tokens": [["SASE", "VPN", "gateway", "proxy"], ["session", "log", "audit"]]
+      "tokens": [["SASE", "VPN", "gateway", "proxy"], ["session", "log", "logs", "audit"]]
     },
     {
       "name": "mfa_or_device_compliance_outcome",

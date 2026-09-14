@@ -19,7 +19,6 @@ from alert_forensics.evaluation.scoring import (
     FindingMatch,
     RunScore,
     contains_tokens,
-    normalise,
     score_run,
 )
 from alert_forensics.evaluation.stats import Z_95, Proportion, wilson
@@ -43,6 +42,7 @@ from alert_forensics.evaluation.truth import (
     load_scenario,
     load_scenarios,
     scenario_name,
+    words,
 )
 
 __all__ = [
@@ -77,7 +77,6 @@ __all__ = [
     "load_scenario",
     "load_scenarios",
     "model_slug",
-    "normalise",
     "render_summary",
     "report",
     "run_suite",
@@ -86,4 +85,5 @@ __all__ = [
     "summarise",
     "unpriced_models",
     "wilson",
+    "words",
 ]

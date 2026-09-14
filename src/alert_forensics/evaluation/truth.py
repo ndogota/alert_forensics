@@ -7,10 +7,11 @@ sits beside refuses to load.
 """
 
 import json
+import re
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import Field, ValidationError, field_validator, model_validator
+from pydantic import AfterValidator, Field, ValidationError, field_validator, model_validator
 
 from alert_forensics.contracts import Alert, Verdict
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr
@@ -18,9 +19,29 @@ from alert_forensics.grounding import NON_EVIDENCE_SYSTEMS
 from alert_forensics.tools.definitions import DEFINITIONS
 
 Token = NonEmptyStr | Annotated[list[NonEmptyStr], Field(min_length=1)]
-"""A string the text must contain, or a list of alternatives of which one must appear."""
+"""A string the text must contain as whole words, or a list of alternatives of which one
+must appear."""
 
-Tokens = Annotated[list[Token], Field(min_length=1)]
+_EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
+
+
+def words(text: str) -> list[str]:
+    """The words of ``text`` as the matcher reads them: split on whitespace, the
+    punctuation at each word's ends stripped, casefolded. Punctuation inside a word is
+    part of it, so ``203.0.113.7`` and ``EXAMPLE-SASE-NET`` are one word each."""
+    stripped = (_EDGE_PUNCTUATION.sub("", raw) for raw in text.casefold().split())
+    return [word for word in stripped if word]
+
+
+def _holds_a_word(tokens: list[Token]) -> list[Token]:
+    for token in tokens:
+        for alternative in [token] if isinstance(token, str) else token:
+            if not words(alternative):
+                raise ValueError(f"token {alternative!r} holds no word and could never match")
+    return tokens
+
+
+Tokens = Annotated[list[Token], Field(min_length=1), AfterValidator(_holds_a_word)]
 
 ALERT_SUFFIX = ".alert.json"
 TRUTH_SUFFIX = ".truth.json"
@@ -43,7 +64,7 @@ class RequiredFinding(ContractModel):
     """The fact must cite a successful call to one of these. One entry is the common
     case; several mean the same fact can be established from more than one system."""
     tokens: Tokens
-    """Every token must appear in the fact's statement, case-insensitively."""
+    """Every token must appear in the fact's statement, as whole words, case-insensitively."""
 
     @field_validator("tools")
     @classmethod
