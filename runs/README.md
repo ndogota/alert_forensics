@@ -8,9 +8,11 @@ Every recording here is a real model run. The artifact states the model (`model`
 the date (`trace.started_at`). The test suite refuses a recording made with the scripted
 client.
 
-None committed yet. The first is scenario 1, atypical travel:
+One is committed: scenario 1, atypical travel, under `runs/atypical_travel/`, a real
+run on `google_genai:gemini-3.5-flash-lite` whose artifact states the model and the
+date. A recording is produced with a command of this shape:
 
 ```
 uv run alert-forensics triage examples/atypical_travel.alert.json \
-    --model anthropic:claude-sonnet-5 -o runs/atypical_travel/run.json
+    --model provider:name -o runs/atypical_travel/run.json
 ```

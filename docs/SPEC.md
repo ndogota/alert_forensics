@@ -150,6 +150,8 @@ RunArtifact
                      how structured output was bound, and the profile values that decided it
   role               the role the tools ran under
   adapters           {tool: fixture | live | recorded | local}, what actually served each tool
+  fixture_labels     the stub labels the fixture adapters were bound to, see the tool layer;
+                     empty when no fixture adapter served the run or on a recording before the rule
   trace              InvestigationTrace: alert, every tool call, usage per model turn
   report             GroundingReport of the final result, or null when no result was produced
   passes             model passes that produced a result: 1 plus the corrections made
@@ -447,6 +449,9 @@ Decisions the pipeline rests on:
   because the loader cannot read what a query is about, so it is held on the shipped
   fixtures by tests that ask each free-text stub about another account and another
   subject and require `no_fixture`, and every scenario's stubs arrive with those tests.
+  Since the binding decided below, the rule governs what a stub answers within its own
+  scenario; it is no longer what stands between one scenario's stub and another
+  scenario's run.
   The cost is a narrower hit: a query that names the table and not the account, or
   the runbook asked about egress points without naming the travel alert or the SASE
   product, is a visible `no_fixture` error the model can rephrase, and that is the
@@ -493,7 +498,53 @@ Decisions the pipeline rests on:
   and a stub that widens later is checked against every question already on file. A
   recording whose directory names no scenario present cannot be attributed and fails
   the check rather than being skipped. This is still best effort, and said so: the
-  questions a future model asks are not on file until it asks them.
+  questions a future model asks are not on file until it asks them. Since the binding
+  decided next, the probe is a second check on the shipped fixtures, not the only one.
+- **A stub is offered only to the run of the scenario it serves.** The entity rule
+  cannot hold on an aggregate. Scenario 2's tenant-wide failure aggregates are keyed on
+  a sign-in table, a failure marker and an aggregation keyword, and nothing else,
+  because their rows are about 137 accounts and 31 addresses the model cannot name
+  before it asks: there is no entity to key on. Verified against the shipped fixtures
+  before this was written: `SigninLogs | where ResultType != 0 | summarize
+  dcount(UserPrincipalName), dcount(IPAddress) by bin(TimeGenerated, 1h)`,
+  `AADSignInEventsBeta | where ErrorCode != 0 | summarize count() by Country` and
+  `index=auth action=failure | stats dc(user) by src_country` were each answered with
+  the spray row, and none names rbennett or belongs to scenario 2. A model
+  investigating scenario 3 that checks whether its three users were sprayed is handed
+  a tenant-wide spray it can cite; the call is `ok`, the validator grounds the fact,
+  and the verdict proceeds from it. That is the silent wrong answer again, in the tool
+  that carries the most findings, and the probe cannot see it until a later
+  scenario's recording contains such a query, which is after that run is paid for. No
+  wording fixes it, so the labels every stub already carries are made load-bearing at
+  run time rather than only in a test. Decided:
+  - The fixture set is bound to the alert under investigation. A stub labelled for a
+    scenario is offered only when the alert is that scenario's; a `shared` stub is
+    always offered; a `test` stub is never offered to a run, since it exists for the
+    suite; a request that matches no offered stub is the `no_fixture` error it already
+    is, with the same message, since the model must not learn that the harness held an
+    answer it withheld. The adapter holds the labels in view and tries no other stub,
+    so the guarantee is the adapter's, not a test's.
+  - The adapter learns the scenario from the alert's id, never from a file name. The
+    fixture directory carries `scenarios.json`, a manifest from scenario label to the
+    id of the alert it serves; the alert's id is the identity the truth contract
+    already pairs on, and a copy of the alert under another name is still that alert.
+    The loader refuses a stub whose label names no scenario in the manifest and is not
+    `shared` or `test`, which is the stale-label check made structural; a test holds
+    the manifest to the scenarios under `examples/`, name for name and id for id.
+  - The artifact records `fixture_labels`, the labels the fixture adapters were bound
+    to, so a `no_fixture` in a trace is read against what was in view. A recording
+    made before this rule shows an empty list, and the committed scenario 1 recording
+    is one: everything was in view when it ran.
+  - What it costs, stated: the fixture set stops being a flat pile of stubs, and
+    `--fixtures DIR` gains a rule, the manifest, without which only `shared` and
+    `test` stubs load. An alert whose id is in no manifest has no scenario in view:
+    only `shared` stubs are offered, every fixture-backed request is `no_fixture`,
+    the console script says so once on stderr before the run, and the artifact's
+    `fixture_labels` holds `shared` alone. That is the right side to err on: a run
+    that cannot say which scenario's evidence it should be handed is handed none,
+    visibly, rather than the union of every scenario's. The test suite binds what a
+    test needs, `test` stubs included; the console script and the harness bind
+    exactly the alert's scenario.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -766,7 +817,10 @@ alert-forensics eval-report results/
   or `--reject REASON` when there is no terminal. A run with neither and no terminal
   stops with that message rather than deciding for the analyst.
 - The nine fixtures ship inside the package, so an installed tool runs without the
-  repository. `--fixtures DIR` points at another set.
+  repository. `--fixtures DIR` points at another set, which carries its own
+  `scenarios.json` manifest, see the tool layer; without one, only `shared` and `test`
+  stubs load, and a run of an alert the manifest does not name is offered `shared`
+  stubs alone and told so on stderr.
 - `get_attack_technique` is live against the public bundle in every mode, `--scripted`
   included: it is live-capable and needs no key, so a fixture there is a gap the
   example would fall into. When the bundle cannot be fetched the adapter falls back to
@@ -1194,12 +1248,17 @@ that names them offline resolves them.
   the sign-in table, a failure marker such as `ErrorCode`, `FailureReason` or
   `failure`, and an aggregate such as `summarize`, `dcount` or `stats`. The account
   stubs precede it in file order, so a failure aggregate that names a known account
-  gets that account's rows. The residual is stated: a failure aggregate naming an
-  account no scenario knows is answered with the tenant aggregate, since the matcher
-  has no negation and the loader cannot read whom a query is about. No stub already
-  labelled `test` belongs to this scenario: the three that exist serve a production
-  server, a workstation's process tree and a redaction case, none of which this
-  scenario names.
+  gets that account's rows. The residual first recorded here, that a failure aggregate
+  naming an account no scenario knows was answered with the tenant aggregate, was
+  wider than the note said: a failure aggregate naming no account at all was answered
+  too, from any scenario's run. It is closed by the binding decided under the tool
+  layer, which offers these two stubs to a run of this alert and to no other; within
+  this scenario they still answer any failure aggregate, which is what they are for.
+  No stub already labelled `test` belongs to this scenario: the three that exist serve
+  a production server, a workstation's process tree and a redaction case, none of
+  which this scenario names. Eleven stubs carry the label: one identity, one related
+  alerts, two indicators, three hunting queries, one runbook entry, three SIEM
+  searches.
 - Expected missing context, two: what was done in the mailbox after the rule, which no
   fixture carries; and whether any of the other sprayed accounts also had a success,
   which the failure aggregate cannot say.
