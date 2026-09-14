@@ -545,6 +545,61 @@ Decisions the pipeline rests on:
     visibly, rather than the union of every scenario's. The test suite binds what a
     test needs, `test` stubs included; the console script and the harness bind
     exactly the alert's scenario.
+- **One guarantee, two checks, and what a scenario author still does.** Three
+  mechanisms now guard one defect, a stub answering a question from another scenario's
+  run: stubs keyed on entities, the collision probe, and the run-time binding. Stated
+  the way the redaction section separates its layers, because a reader who cannot tell
+  which one holds cannot tell what a new scenario costs.
+
+  **Guaranteed by structure: the binding.** The adapter is constructed with the labels
+  in view and tries no stub outside them. A stub of one scenario is not unlikely to
+  answer another scenario's run; it is not offered to it, and nothing the model asks and
+  nothing an author writes in a match changes that. The guarantee is as good as the
+  labels, and the labels are held: the loader refuses a label the manifest does not
+  name, and a test holds the manifest to `examples/` by name and id, so a mislabelled
+  stub fails to load and a stale label fails the suite.
+
+  **Best effort by check: the collision probe.** It puts other alerts' text and other
+  recordings' requests to every stub. Since the binding, the run-time path it guarded is
+  closed. What it still finds is a stub that would answer another scenario's question,
+  which is a stub keyed on a shape rather than an entity, a defect of the fixture and not
+  of any run; such a stub is wrong for its own scenario too, and the probe is the
+  cheapest way to see it. It cannot see a question no alert and no recording carries,
+  and says so.
+
+  **Best effort by test: the entity rule.** The loader cannot read what a query is
+  about, so the free-text rule is held on the shipped fixtures by tests, and it now
+  governs one thing: what a stub answers within its own scenario's run.
+
+  What that means for the author of a scenario, since it decides the size of every
+  remaining one:
+
+  - Stubs need not be keyed on entities across scenarios. Two scenarios may each carry a
+    sign-in stub keyed on the table and nothing else, and neither answers the other's
+    run; the binding makes it so. That is no longer why the entity rule exists.
+  - Looseness within a scenario still costs, and the binding does nothing for it. A run
+    holds every stub of its scenario, first match wins in file order, and a stub keyed
+    on a shape answers every question of that shape inside the run: the one it was
+    written for and the one it was not. Scenario 3's audit stub answers a listing of the
+    tenant's inbox rules, which is what it is for, and it also answers a listing of some
+    other account's inbox rules with three rows about three other accounts, which is the
+    wrong answer to that question. The cost is the one this project exists to avoid, a
+    wrong result indistinguishable from evidence, now confined to one scenario's run. So
+    the rule stands within a scenario: key a stub on the principal entity of its rows
+    wherever the rows have one, an account, a device, an indicator, an address; put the
+    entity-keyed stubs first in file order so a known entity gets its own rows; and
+    where the rows have no entity, an aggregate or a tenant-wide listing, key on the
+    action and say so beside the stub in the scenario's section, as scenarios 2 and 3
+    do. Every scenario's stubs arrive with a test that asks each free-text stub about
+    another account and another subject and requires `no_fixture`; a gap asserted with
+    every label in view says that no scenario's stub answers it, and one asserted under
+    a single scenario's binding says that scenario's stubs do not, which is the weaker
+    claim and is used where a later scenario legitimately holds the subject.
+  - A `test` stub is never offered to a run, so it may be as loose as its test needs. A
+    `shared` stub is exact, so it cannot be loose.
+  - The cost of a scenario is its own: its alert, its truth, its stubs keyed within
+    themselves, and its tests. It does not re-audit the others, because the binding does
+    not let it reach them, and the probe re-checks them on arrival for nothing.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -1254,9 +1309,10 @@ that names them offline resolves them.
   too, from any scenario's run. It is closed by the binding decided under the tool
   layer, which offers these two stubs to a run of this alert and to no other; within
   this scenario they still answer any failure aggregate, which is what they are for.
-  No stub already labelled `test` belongs to this scenario: the three that exist serve
-  a production server, a workstation's process tree and a redaction case, none of
-  which this scenario names. Eleven stubs carry the label: one identity, one related
+  No stub labelled `test` belonged to this scenario: the three that existed when it
+  was written served a production server, a workstation's process tree and a
+  redaction case, none of which this scenario names; scenario 4 has since claimed the
+  first and rewritten the third. Eleven stubs carry the label: one identity, one related
   alerts, two indicators, three hunting queries, one runbook entry, three SIEM
   searches.
 - Expected missing context, two: what was done in the mailbox after the rule, which no
@@ -1266,6 +1322,159 @@ that names them offline resolves them.
   floor the harness measures: every call the script makes hits a stub, so the tool
   calls block shows no `no_fixture`, and the evidence recall is zero because the script
   states no fact in the findings' words. No real model has run it yet.
+
+### Scenario 3, forwarding rule
+
+Checked against the table under "Scenarios". The signal is inbox rules created that
+forward to one external address, filtering on payment terms: what the rule's logic
+measured, and true. The assertion is that mail is being diverted outside the
+organisation, at the granularity of T1114.003 and of the mailboxes it names. It is true:
+three rules on three Accounts Payable mailboxes, each with `ForwardTo` set to the same
+address on a domain registered nine days earlier, each filtered on invoice, IBAN, SWIFT,
+payment and remittance. Intent decides only between `true_positive` and
+`benign_true_positive`, and the rules were not the users' doing: each was created
+minutes after a sign-in from an address none of the three had used, on an unmanaged
+device, and nothing about an external remittance mailbox is sanctioned. Label
+`true_positive`, escalation expected. The intent is payment fraud, and rules that divert
+invoices are its mechanism.
+
+The story the fixtures tell, all synthetic. The three users, `amorel`, `tkowalski` and
+`lferreira`, all `@contoso.com`, are Accounts Payable identities of high priority in
+London. Between 05:02 and 05:19 UTC on 2026-09-14 each signed in from
+`2001:db8:7a3c:1200::1f`, a hosting address in the IPv6 documentation range because the
+three IPv4 documentation ranges are scenarios 1 and 2's, through a browser on an
+unmanaged, non-compliant device, with MFA reported satisfied and conditional access
+reported passed: the shape of a replayed session token, which is what the runbook's
+adversary-in-the-middle entry says it is. Between 05:14 and 05:27 a `New-InboxRule`
+named `..` was created on each mailbox from the same address: `ForwardTo`
+`ap.remittance@contoso-invoices.example`, `SubjectOrBodyContainsWords`
+`invoice;IBAN;SWIFT;payment;remittance`, marked read, stop processing. VirusTotal knows
+the address as a hosting range with a few detections and the domain as nine days old.
+The techniques the alert declares are `T1114.003` and `T1078.004`, both already in the
+packaged excerpt; no follow-on technique is expected of the investigation.
+
+- Required findings, five, each cited from the hunting API or the SIEM, since both
+  readings carry the same words, and held by the projection test. One per rule: the
+  account, as UPN or name, and the destination, `ap.remittance@contoso-invoices.example`
+  with `contoso-invoices.example` as the restatement a model writes when it names the
+  domain rather than the address. Three findings rather than one for "three users", for
+  the reason scenario 1 gave: a fact that names each mailbox with its destination has
+  established the shared destination in a form the tokens can see, and "three" has too
+  many spellings. The filter: the rules' words, and a rule word, one of `New-InboxRule`,
+  `InboxRule`, `rule`, `rules`, `inbox rule`, `forwarding rule`. The words are one token
+  whose first alternative is the whole parameter as every reading carries it,
+  `invoice;IBAN;SWIFT;payment;remittance`, because Exchange joins the words with
+  semicolons and under the whole-word rule that is one word; the other alternatives are
+  the five words a model restates it with, so the fixture carries the token and a model
+  that names any one term is credited. That is scenario 1's range precedent, in the file
+  where a reviewer sees it. The common source: the address the rules were created from,
+  and a rule word, which is what makes three rules one actor. The sign-ins are not a
+  required finding: they explain how, the rules are what the verdict rests on, and the
+  rule rows already carry the address.
+- Stubs, all labelled `forwarding_rule`, keyed on the entities of the rows they return
+  where the rows have one: the three users' sign-ins on any of their names, in the
+  hunting API and the SIEM; their identities, one stub each; their related alerts on
+  the UPN and on the incident; the address and the domain on VirusTotal; the runbook on
+  the alert type, forwarding rules or business email compromise, the destination, or
+  the adversary-in-the-middle entry's subject. One stub in each query tool is keyed more
+  loosely than its rows would allow, and said so here as the tool layer asks: the audit
+  stub matches an audit table with any of the three users, the destination, or an
+  inbox-rule word such as `InboxRule` or `ForwardTo`, because "every inbox rule created
+  in the tenant" is the question a model asks to learn whether other mailboxes were hit,
+  and within this scenario's run its answer is these three rows. The cost within the run
+  is the one stated under the tool layer: a listing of some other account's inbox rules
+  gets three rows about three other accounts. What no stub carries, on purpose: the
+  message trace of what was forwarded, and the phishing message or URL click that
+  preceded the sign-ins. Both are the expected missing context, and a model that asks
+  gets `no_fixture`, which is the harness saying it does not hold the answer. Scenario
+  2's gap test asked the runbook about forwarding invoices and the audit tables about
+  inbox rules as subjects no scenario held; both are this scenario's now, so those two
+  assertions are made under scenario 2's own binding, the weaker claim, and the
+  every-label assertions moved to subjects still absent. Fourteen stubs carry the
+  label: two hunting queries, two SIEM searches, three identities, four related-alert
+  pivots, two indicators, one runbook entry.
+- Expected missing context, two: what was forwarded through the rules before they were
+  found, the message trace, which no fixture carries; and how the sessions were
+  obtained, the phishing message or the click, which no fixture carries.
+- The scripted cell is a plumbing check: every call the script makes hits a stub, so the
+  tool calls block shows no `no_fixture`, and the evidence recall is zero because the
+  script states no fact in the findings' words. No real model has run it yet.
+
+### Scenario 4, encoded PowerShell
+
+Checked against the table under "Scenarios". The signal is `powershell.exe` launched
+with an encoded command on a production server: true. The assertion is that an
+obfuscated command was executed on the server, at the granularity of T1059.001 and
+T1027.010. It is true: the command line carries `-EncodedCommand` and a base64 payload,
+and it ran. Intent decides: the parent is `cfgagent.exe`, the group's configuration
+management agent, from its installed path, as SYSTEM, inside a maintenance window
+declared on a change ticket for that server, and the runbook says that is how the agent
+applies state. The assertion is true and the intent is authorised. Label
+`benign_true_positive`, no escalation. The action the table names for it, document an
+exception on the triplet and do not disable the rule, belongs to `recommended_action`
+and the verdict does not carry it. The triplet, decided here because the table names it
+without saying: the device, the parent image path and the account. It is what the
+runbook entry documents an exception on, and what an encoded command from any other
+parent, any other path or any other account falls outside of.
+
+The story, all synthetic. `srv-prd-app01.contoso.com` is a critical production server in
+the PCI zone owned by platform-ops, the asset the fixtures have carried since slice 2.
+At 02:47:12 UTC on 2026-09-14, `cfgagent.exe`, installed under `C:\Program
+Files\Contoso\ConfigAgent`, running as SYSTEM under the `ContosoConfigAgent` service and
+signed by the bank's internal code-signing CA, launched `powershell.exe -NoProfile
+-NonInteractive -ExecutionPolicy Bypass -EncodedCommand ...`. Decoded, the payload sets
+the recycling time of the PaymentsApi IIS application pool and restarts it, the drift
+correction that change ticket CHG0042117 declares: standard change, approved, window
+02:00 to 04:00 UTC that day. The same rule fired on the same server on 2026-08-31 in
+the previous window and was resolved as expected activity, an exception nobody
+documented, which is why it fired again. VirusTotal has never seen the agent's hash,
+which is a reading, and knows `powershell.exe` as Microsoft's, a reading that does not
+depend on who asks and is therefore `shared`. The techniques the alert declares are
+`T1059.001`, already in the excerpt, and `T1027.010`, added to the packaged excerpt,
+cut verbatim from the same cached bundle on the same day and recorded in
+`tests/recorded/README.md`.
+
+- Required findings, four. The execution: the device, as FQDN, short name or upper
+  case, one of `EncodedCommand` and `encoded`, and one of `powershell.exe` and
+  `PowerShell`, cited from the hunting API, the SIEM or the process tree, since all
+  three readings carry those words. The parent: `cfgagent.exe` and `powershell.exe` in
+  one statement, from the same three tools; a fact that names both names the
+  relationship. Neither `parent` nor `initiating` is a token, because the tabular
+  readings carry them only inside column names, `InitiatingProcessFileName` and
+  `parent_process_name`, which under the whole-word rule are not those words. The
+  sanction: `cfgagent.exe` and one of the runbook's words for what it is, cited from
+  the runbook alone, since only the runbook says the agent is the agent. The window:
+  `CHG0042117` or the window's opening hour, and one of `maintenance`, `window`,
+  `change`, cited from the runbook or from the SIEM's change calendar, both of which
+  carry the ticket. The account is not a required finding: it is the triplet's third
+  element and matters to the exception, and the verdict rests on the parent and the
+  window. The projection test builds the process tree's request from the stub's first
+  row, device and process id, because the tree pivots on a request and the other
+  projections do not.
+- Stubs, all labelled `encoded_powershell` except one. The asset stub for
+  `srv-prd-app01`, labelled `test` since slice 2, is the server's and is relabelled; it
+  gains the server's address as a spelling. The `DeviceEvents` stub labelled `test`, an
+  antivirus detection on no device that existed for the redaction test, is rewritten as
+  the server's `DeviceEvents` reading, keyed on the device, whose `PowerShellCommand`
+  rows carry the decoded commands in `AdditionalFields`, the column the projection
+  drops, so the redaction test keeps its case on a stub that serves a scenario. The
+  rest: `DeviceProcessEvents` on the device, the process tree on the device with any
+  process id, the SIEM's process events and its change calendar on the device or the
+  ticket, the owner's identity, related alerts on the device and on the incident, the
+  agent's hash, and the runbook on the alert type, the server, the agent, the ticket or
+  the maintenance window. The change calendar stub precedes the process stub in file
+  order and requires a change word, so a process search that mentions the window still
+  gets process rows only when it names none of them; that is the within-scenario
+  looseness, stated. What remains `test` after this: the process tree of `ws-fin-0042`,
+  which is scenario 7's workstation, serves the lineage and command-line redaction
+  tests, and is relabelled when scenario 7 arrives. Eleven stubs carry the label and
+  one, `powershell.exe` on VirusTotal, is `shared`.
+- Expected missing context, two: what the encoded command does, decoded, which no view
+  carries in clear, since `AdditionalFields` is dropped and the process tree carries
+  the encoded form; and the agent's own record of the run, the job that tied this
+  execution to the ticket, which no tool reaches.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
+  model has run it yet.
 
 ## Cost discipline
 

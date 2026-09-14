@@ -41,8 +41,8 @@ it could not establish, and is measured against ground truth. The design authori
   by outcome and error kind. Every proportion carries its Wilson 95 percent interval.
   Cost is derived at report time from a price table in the evaluation package; latency
   is the wall clock the harness measured. `alert-forensics eval` keeps one artifact per
-  run and derives the summary; `eval-report` recomputes it. Scenarios 1 and 2 have a
-  ground truth and fixtures; the other six are the next slices, written against this
+  run and derives the summary; `eval-report` recomputes it. Scenarios 1 to 4 have a
+  ground truth and fixtures; the other four are the next slices, written against this
   contract. The replay viewer is also still to come.
 
 ## Tools: which are live, which are fixture-backed
