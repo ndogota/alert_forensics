@@ -4,7 +4,13 @@ from pydantic import Field
 
 from alert_forensics.contracts import SourceSystem
 from alert_forensics.tools.adapter import LiveContract, ToolDefinition, ToolRequest, ToolView
-from alert_forensics.tools.definitions._common import MAX_ROWS, SplunkResultsResponse
+from alert_forensics.tools.definitions._columns import splunk_field_allowed
+from alert_forensics.tools.definitions._common import (
+    MAX_ROWS,
+    Row,
+    SplunkResultsResponse,
+    project_rows,
+)
 
 
 class SearchSiemRequest(ToolRequest):
@@ -16,22 +22,26 @@ class SearchSiemRequest(ToolRequest):
 class SiemView(ToolView):
     sid: str
     fields: list[str]
+    """Fields kept: those on the tool's allowlist, in the search's order."""
     row_count: int
-    rows: list[dict[str, object]]
+    rows: list[Row]
     truncated: bool
+    dropped_columns: int
+    """Distinct fields the search returned that are not on the allowlist, as a count."""
     messages: list[str]
 
 
 def _project(response: SplunkResultsResponse, request: SearchSiemRequest | None) -> SiemView:
-    fields = [f.name for f in response.fields]
-    if not fields and response.results:
-        fields = list(response.results[0])
+    fields, rows, dropped = project_rows(
+        response.results, [f.name for f in response.fields], splunk_field_allowed
+    )
     return SiemView(
         sid=response.sid,
         fields=fields,
         row_count=len(response.results),
-        rows=[dict(row) for row in response.results[:MAX_ROWS]],
+        rows=rows,
         truncated=len(response.results) > MAX_ROWS,
+        dropped_columns=dropped,
         messages=[m.text for m in response.messages],
     )
 
@@ -40,7 +50,8 @@ SEARCH_SIEM = ToolDefinition(
     name="search_siem",
     description=(
         "Run an SPL search in Splunk Enterprise Security over the given time range. "
-        "Returns the search id, the field names and the result rows."
+        "Returns the search id, the field names and the result rows. Only CIM fields and "
+        "aggregates over them are returned; _raw never is. Use | table or | stats."
     ),
     source_system=SourceSystem.splunk,
     required_scope="siem:search",

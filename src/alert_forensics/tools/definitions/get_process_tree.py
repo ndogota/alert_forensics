@@ -8,18 +8,18 @@ row for the requested process carries its parent and grandparent in the
 
 from typing import Literal
 
-from pydantic import Field, JsonValue
+from pydantic import Field
 
 from alert_forensics.contracts import SourceSystem
 from alert_forensics.tools.adapter import LiveContract, ToolDefinition, ToolRequest, ToolView
 from alert_forensics.tools.definitions._common import (
     HuntingResponse,
+    Row,
     optional_int,
     optional_str,
 )
 
 Relation = Literal["grandparent", "parent", "self", "child"]
-Row = dict[str, JsonValue]
 
 
 class GetProcessTreeRequest(ToolRequest):

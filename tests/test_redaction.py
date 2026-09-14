@@ -85,3 +85,66 @@ def test_prose_is_left_alone():
     assert redact(prose) == prose
     assert redact("ssh -p 22 host") == "ssh -p 22 host"
     assert redact(["a", 1, None]) == ["a", 1, None]
+
+
+def test_json_inside_a_string_is_parsed_redacted_and_reserialised():
+    inner = (
+        '{"ServiceName":"cfgmgmt-agent","ServiceAccountPwd":"S3cret!Svc","user":"jdoe",'
+        '"Nested":{"NtlmHash":"aad3b435b51404eeaad3b435b51404ee","AccessToken":"abc"},'
+        f'"raw":"Bearer {JWT}"}}'
+    )
+    out = redact({"AdditionalFields": inner, "list": '[{"phone": "+33 6"}, 1]'})
+    parsed = json.loads(out["AdditionalFields"])
+    assert parsed["ServiceName"] == "cfgmgmt-agent"
+    assert parsed["user"] == "jdoe"
+    assert parsed["ServiceAccountPwd"] == "[REDACTED:ServiceAccountPwd]"
+    assert parsed["Nested"] == {
+        "NtlmHash": "[REDACTED:NtlmHash]",
+        "AccessToken": "[REDACTED:AccessToken]",
+    }
+    assert parsed["raw"] == "Bearer [REDACTED:jwt]"
+    assert json.loads(out["list"]) == [{"phone": "[REDACTED:phone]"}, 1]
+    for leaked in ("S3cret!Svc", "aad3b435", JWT, "+33 6"):
+        assert leaked not in json.dumps(out)
+
+
+def test_strings_that_are_not_json_objects_are_left_alone():
+    for text in ("{not json", "123", '"a string"', "null", "[unclosed", "{}"):
+        assert redact(text) == text
+
+
+def test_secret_bearing_field_names_are_redacted_at_any_depth():
+    out = redact(
+        {
+            "ServiceAccountPwd": "x",
+            "client_secret": "y",
+            "refreshToken": "z",
+            "PasswordHash": "h",
+            "SHA256": "3f5a9c1e",
+            "FileHash": "abc",
+            "tokens_used": 12,
+        }
+    )
+    assert out["ServiceAccountPwd"] == "[REDACTED:ServiceAccountPwd]"
+    assert out["client_secret"] == "[REDACTED:client_secret]"
+    assert out["refreshToken"] == "[REDACTED:refreshToken]"
+    assert out["PasswordHash"] == "[REDACTED:PasswordHash]"
+    assert out["SHA256"] == "3f5a9c1e" and out["FileHash"] == "abc"
+    assert out["tokens_used"] == 12
+
+
+def test_single_letter_password_flags_with_a_value():
+    assert redact("mysql -u root -p hunter2 -h db") == "mysql -u root -p [REDACTED:secret] -h db"
+    assert redact("sqlcmd -S srv -U sa -P 'S3cret!'") == "sqlcmd -S srv -U sa -P [REDACTED:secret]"
+    # A numeric value after -p is a port, not a password.
+    assert redact("ssh -p 22 host") == "ssh -p 22 host"
+    assert redact("psql -p 5432 -U app") == "psql -p 5432 -U app"
+
+
+def test_display_names_are_dropped_by_field_name():
+    out = redact({"AccountDisplayName": "Jane Doe", "displayName": "Jane Doe", "display_name": "J"})
+    assert out == {
+        "AccountDisplayName": "[REDACTED:AccountDisplayName]",
+        "displayName": "[REDACTED:displayName]",
+        "display_name": "[REDACTED:display_name]",
+    }

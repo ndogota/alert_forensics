@@ -1,11 +1,15 @@
-"""Generic redaction: the second layer, applied to every view before the model sees it.
+"""Generic redaction: the backstop, applied to every view before the model sees it.
 
-The first layer is each tool's projection, which drops what the model has no use for.
-This layer catches what a projection passes through: secrets by pattern in any string,
-personal data by field name at any depth. Emails and user principal names are kept on
+The guarantee lives in the projections: views are closed schemas, tabular views keep
+only allowlisted columns, and no view carries a display name, given name, phone number
+or coordinate. This layer is best effort over what an allowlisted column carries in
+free text, a command line or a nested JSON string: secrets by pattern in any string,
+secret-bearing and personal fields by name at any depth, and the same inside any string
+that is itself a JSON object or array. Emails and user principal names are kept on
 purpose; they are the join keys of the investigation.
 """
 
+import json
 import re
 from collections.abc import Callable
 
@@ -46,6 +50,12 @@ _SECRET_PATTERNS: list[tuple[re.Pattern[str], str | Callable[[re.Match[str]], st
         re.compile(r"(?i)\b(ConvertTo-SecureString)\s+" + _QUOTED_OR_WORD),
         lambda m: f"{m.group(1)} [REDACTED:secret]",
     ),
+    # Single-letter flags followed by whitespace and a value: mysql -p, sqlcmd -P. A
+    # purely numeric value is a port (ssh -p 22), not a password, and is left alone.
+    (
+        re.compile(r"(?<!\S)(-[pP])(\s+)(?!\d+(?:\s|$))" + _QUOTED_OR_WORD),
+        lambda m: f"{m.group(1)}{m.group(2)}[REDACTED:secret]",
+    ),
 ]
 
 _PII_FIELDS: frozenset[str] = frozenset(
@@ -80,10 +90,35 @@ _PII_FIELDS: frozenset[str] = frozenset(
         "worklat",
         "worklong",
         "salary",
+        "displayname",
+        "accountdisplayname",
+        "userdisplayname",
+        "senderdisplayname",
+        "targetaccountdisplayname",
+        "fullname",
     }
 )
 """Field names, normalised by lowercasing and dropping separators, whose values are
 personal data whatever the tool."""
+
+_SECRET_FIELD_SUFFIXES: tuple[str, ...] = (
+    "password",
+    "passwd",
+    "pwd",
+    "passphrase",
+    "secret",
+    "token",
+    "apikey",
+    "credential",
+    "credentials",
+    "privatekey",
+    "passwordhash",
+    "nthash",
+    "ntlmhash",
+    "lmhash",
+)
+"""Normalised field-name suffixes whose values are secrets: ``ServiceAccountPwd``,
+``client_secret``, ``refreshToken``, ``NtlmHash``. File hashes are not among them."""
 
 _SEPARATORS = re.compile(r"[\s_\-.]")
 
@@ -96,7 +131,21 @@ def is_pii_field(key: str) -> bool:
     return _normalise(key) in _PII_FIELDS
 
 
+def is_secret_field(key: str) -> bool:
+    return _normalise(key).endswith(_SECRET_FIELD_SUFFIXES)
+
+
 def redact_text(text: str) -> str:
+    """Redact a string. A string that is itself a JSON object or array is parsed,
+    redacted as a value and re-serialised compactly; anything else is pattern-matched."""
+    stripped = text.strip()
+    if stripped[:1] in "{[":
+        try:
+            embedded = json.loads(stripped)
+        except ValueError:
+            embedded = None
+        if isinstance(embedded, dict | list) and embedded:
+            return json.dumps(redact(embedded), ensure_ascii=False, separators=(",", ":"))
     for pattern, replacement in _SECRET_PATTERNS:
         text = pattern.sub(replacement, text)
     return text
@@ -110,7 +159,7 @@ def redact(value: JsonValue) -> JsonValue:
         return [redact(item) for item in value]
     if isinstance(value, dict):
         return {
-            key: f"[REDACTED:{key}]" if is_pii_field(key) else redact(item)
+            key: f"[REDACTED:{key}]" if is_pii_field(key) or is_secret_field(key) else redact(item)
             for key, item in value.items()
         }
     return value

@@ -15,11 +15,12 @@ it could not establish, and is measured against ground truth. The design authori
 
 - **Slice 2, done.** The tool layer, stopping before the agent graph: the `ToolAdapter`
   interface with a declared scope and response shape per tool, the nine definitions, the
-  scope check that returns a structured denial, the two-layer redaction (projection, then
-  a generic pass for secrets and personal data), the raw response store the record's
-  `raw_response_ref` and `raw_response_sha256` point into, the `ToolRunner` pipeline that
-  journals every call as a `ToolCallRecord`, fixture adapters for all nine tools, and two
-  live adapters. The console script arrives with the agent graph.
+  scope check that returns a structured denial, the two-layer redaction (an allowlisted
+  projection as the guarantee, then a generic pass over free text as the backstop), the
+  raw response store the record's `raw_response_ref` and `raw_response_sha256` point
+  into, the `ToolRunner` pipeline that journals every call as a `ToolCallRecord`, fixture
+  adapters for all nine tools, and two live adapters. The console script arrives with the
+  agent graph.
 
 ## Tools: which are live, which are fixture-backed
 

@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from pydantic import ValidationError
+from pydantic import JsonValue, ValidationError
 
 from alert_forensics.contracts import SourceSystem
 from alert_forensics.tools import DEFINITIONS, TOOL_NAMES, ToolDefinition
@@ -89,15 +89,16 @@ def test_request_model_rejects_unknown_arguments(name):
 
 def test_hunting_projection_caps_rows_and_reports_the_total():
     definition = DEFINITIONS["search_events"]
-    rows = [{"n": i} for i in range(75)]
+    rows = [{"ReportId": i} for i in range(75)]
     response = definition.response_model.model_validate(
-        {"schema": [{"name": "n", "type": "Int32"}], "results": rows}
+        {"schema": [{"name": "ReportId", "type": "Int64"}], "results": rows}
     )
     view = definition.project(response)
     assert view.row_count == 75
     assert len(view.rows) == 50
     assert view.truncated is True
-    assert view.columns == ["n"]
+    assert view.columns == ["ReportId"]
+    assert view.dropped_columns == 0
 
 
 def test_ioc_projection_reads_the_counters_and_the_reputation():
@@ -264,3 +265,106 @@ def test_siem_projection_keeps_sid_fields_and_messages():
     assert view.fields == ["_time", "user", "src", "action", "count"]
     assert view.row_count == 2 and not view.truncated
     assert view.messages == ["Your timerange was substituted based on your search string"]
+
+
+DEFENDER_ROW = {
+    "Timestamp": "2026-09-14T08:00:00.000Z",
+    "DeviceName": "srv-prd-app01.contoso.com",
+    "ActionType": "ServiceInstalled",
+    "AccountName": "svc-cfgmgmt",
+    "AccountDisplayName": "Configuration Management (svc)",
+    "ReportId": 8812,
+    "AdditionalFields": (
+        '{"ServiceName":"cfgmgmt-agent","ServiceAccountPwd":"S3cret!Svc","StartType":"Auto",'
+        '"NtlmHash":"aad3b435b51404eeaad3b435b51404ee"}'
+    ),
+}
+
+
+def test_hunting_view_keeps_only_allowlisted_columns():
+    definition = DEFINITIONS["search_events"]
+    response = definition.response_model.model_validate(
+        {"schema": [{"name": k, "type": "String"} for k in DEFENDER_ROW], "results": [DEFENDER_ROW]}
+    )
+    view = definition.project(response)
+    text = json.dumps(view.model_dump(mode="json"))
+    assert "AdditionalFields" not in text
+    assert "S3cret!Svc" not in text and "aad3b435" not in text
+    assert "Configuration Management" not in text
+    assert set(view.rows[0]) == {"Timestamp", "DeviceName", "ActionType", "AccountName", "ReportId"}
+    assert view.columns == ["Timestamp", "DeviceName", "ActionType", "AccountName", "ReportId"]
+    assert view.dropped_columns == 2
+
+
+def test_hunting_view_allows_kql_aggregates_of_allowed_columns_only():
+    definition = DEFINITIONS["search_events"]
+    row = {
+        "AccountUpn": "jdoe@contoso.com",
+        "count_": 3,
+        "dcount_IPAddress": 2,
+        "make_set_Location": ["Paris, FR", "Amsterdam, NL"],
+        "dcount_AdditionalFields": 1,
+        "any_AdditionalFields": '{"x":1}',
+    }
+    view = definition.project(
+        definition.response_model.model_validate({"schema": [], "results": [row]})
+    )
+    assert set(view.rows[0]) == {"AccountUpn", "count_", "dcount_IPAddress", "make_set_Location"}
+    assert view.dropped_columns == 2
+
+
+def test_siem_view_keeps_only_allowlisted_fields():
+    definition = DEFINITIONS["search_siem"]
+    row = {
+        "_time": "2026-09-14T09:12:04.000+00:00",
+        "user": "jdoe",
+        "src": "203.0.113.7",
+        "count": "2",
+        "dc(src)": "1",
+        "values(_raw)": "Sep 14 09:12:04 gw sshd: Accepted password hunter2 for jdoe",
+        "_raw": "Sep 14 09:12:04 gw sshd: Accepted password hunter2 for jdoe",
+        "first": "Jane",
+    }
+    view = definition.project(
+        definition.response_model.model_validate(
+            {"sid": "1", "fields": [{"name": k} for k in row], "results": [row]}
+        )
+    )
+    assert set(view.rows[0]) == {"_time", "user", "src", "count", "dc(src)"}
+    assert view.fields == ["_time", "user", "src", "count", "dc(src)"]
+    assert view.dropped_columns == 3
+    assert "hunter2" not in json.dumps(view.model_dump(mode="json"))
+
+
+def test_process_tree_nodes_never_carry_a_row_column():
+    definition = DEFINITIONS["get_process_tree"]
+    raw = first_stub_response("get_process_tree")
+    rows = [{**r, "AdditionalFields": DEFENDER_ROW["AdditionalFields"]} for r in raw["results"]]
+    request = definition.request_model.model_validate(
+        {"device_name": "ws-fin-0042", "process_id": 4412}
+    )
+    view = definition.project(
+        definition.response_model.model_validate({"schema": [], "results": rows}), request
+    )
+    text = json.dumps(view.model_dump(mode="json"))
+    assert "AdditionalFields" not in text and "S3cret!Svc" not in text
+    assert set(view.lineage[2].model_dump()) == {
+        "relation",
+        "file_name",
+        "folder_path",
+        "command_line",
+        "process_id",
+        "created_at",
+        "account",
+        "sha256",
+    }
+
+
+def test_tabular_rows_are_json_values():
+    from alert_forensics.tools.definitions.search_siem import SiemView
+
+    assert SiemView.model_fields["rows"].annotation == list[dict[str, JsonValue]]
+    assert (
+        DEFINITIONS["search_events"].view_model.model_fields["rows"].annotation
+        == (list[dict[str, JsonValue]])
+    )

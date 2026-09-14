@@ -156,8 +156,8 @@ def test_both_redaction_layers_apply_end_to_end(runner):
     for leaked in ("Jane", "+33 6", "48.8566"):
         assert leaked not in text
     assert identity.redacted_response["email"] == "jdoe@contoso.com"
-    # Layer two, the generic pass: a token inside a hunting row and a password inside a
-    # command line are caught although the projections pass those strings through.
+    # Layer one again, the allowlist: AdditionalFields never reaches the view, and the
+    # model is told a column was dropped, not which.
     events = runner.invoke(
         tool_call_id="tc-ev",
         step=1,
@@ -166,7 +166,11 @@ def test_both_redaction_layers_apply_end_to_end(runner):
     )
     assert events.outcome is ToolOutcome.ok
     assert "eyJhbGciOi" not in events.model_dump_json()
-    assert "[REDACTED:jwt]" in events.redacted_response["rows"][0]["AdditionalFields"]
+    assert "AdditionalFields" not in events.model_dump_json()
+    assert set(events.redacted_response["rows"][0]) == {"Timestamp", "ActionType"}
+    assert events.redacted_response["dropped_columns"] == 1
+    # Layer two, the generic pass: a password inside a command line is caught although
+    # the projection passes the command line through, because it must.
     tree = runner.invoke(
         tool_call_id="tc-tree",
         step=1,

@@ -29,7 +29,8 @@ SEARCH_EVENTS = ToolDefinition(
     description=(
         "Run a KQL query against Microsoft Defender advanced hunting tables such as "
         "SigninLogs, DeviceEvents, DeviceNetworkEvents, EmailEvents or CloudAppEvents. "
-        "Returns the result columns and rows."
+        "Returns the result columns and rows. Only standard schema columns and KQL "
+        "aggregates over them are returned; AdditionalFields never is. Use | project."
     ),
     source_system=SourceSystem.defender,
     required_scope="hunting:read",
