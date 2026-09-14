@@ -2,6 +2,7 @@
   "tool": "search_events",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"query": {"$all": [{"$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"}, {"$regex": "(?i)jdoe"}]}},
       "response": {
         "schema": [
@@ -18,6 +19,7 @@
       }
     },
     {
+      "scenario": "test",
       "match": {"query": {"$all": [{"$regex": "DeviceEvents\\s*\\|\\s*where\\s+ActionType"}, {"$contains": "AntivirusDetection"}]}},
       "response": {
         "schema": [{"name": "Timestamp", "type": "DateTime"}, {"name": "ActionType", "type": "String"}, {"name": "AdditionalFields", "type": "String"}],

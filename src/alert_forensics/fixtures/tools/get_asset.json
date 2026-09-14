@@ -2,6 +2,7 @@
   "tool": "get_asset",
   "stubs": [
     {
+      "scenario": "test",
       "match": {"asset": {"$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$"}},
       "response": {
         "sid": "1789300003.12348",

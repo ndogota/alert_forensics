@@ -2,6 +2,7 @@
   "tool": "get_attack_technique",
   "stubs": [
     {
+      "scenario": "shared",
       "match": {
         "technique_id": "T1110.003"
       },
@@ -42,6 +43,7 @@
       }
     },
     {
+      "scenario": "shared",
       "match": {
         "technique_id": "T9999"
       },

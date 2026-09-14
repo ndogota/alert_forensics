@@ -2,6 +2,7 @@
   "tool": "search_siem",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"search": {"$all": [{"$contains": "index=auth"}, {"$regex": "(?i)jdoe"}]}},
       "response": {
         "sid": "1789300000.12345",

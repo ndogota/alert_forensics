@@ -142,15 +142,16 @@ def test_a_stub_that_constrains_no_argument_is_refused_on_load(tmp_path):
     for match in catch_alls:
         (tmp_path / "search_runbook.json").write_text(
             '{"tool": "search_runbook", "stubs": '
-            f'[{{"match": {match}, "response": {{"hits": []}}}}]}}'
+            f'[{{"scenario": "test", "match": {match}, "response": {{"hits": []}}}}]}}'
         )
         with pytest.raises(ValueError, match="constrain"):
             FixtureSet.load(tmp_path)
     (tmp_path / "search_runbook.json").unlink()
     # $any beside a real constraint is fine: any process on this device.
     (tmp_path / "get_process_tree.json").write_text(
-        '{"tool": "get_process_tree", "stubs": [{"match": {"device_name": "ws-1", '
-        '"process_id": {"$any": true}}, "response": {"schema": [], "results": []}}]}'
+        '{"tool": "get_process_tree", "stubs": [{"scenario": "test", '
+        '"match": {"device_name": "ws-1", "process_id": {"$any": true}}, '
+        '"response": {"schema": [], "results": []}}]}'
     )
     assert "get_process_tree" in FixtureSet.load(tmp_path).tools
 
@@ -248,7 +249,7 @@ def test_fixture_files_are_validated_on_load(tmp_path):
     with pytest.raises(ValueError, match="lookup_ioc"):
         FixtureSet.load(tmp_path)
     (tmp_path / "lookup_ioc.json").write_text(
-        '{"tool": "lookup_ioc", "stubs": [{"match": {"indicator": "x"}}]}'
+        '{"tool": "lookup_ioc", "stubs": [{"scenario": "test", "match": {"indicator": "x"}}]}'
     )
     with pytest.raises(ValueError, match="response"):
         FixtureSet.load(tmp_path)
@@ -364,7 +365,7 @@ def test_the_recordings_own_requests_still_hit(runner):
 
 def test_all_requires_every_matcher_and_an_all_of_anys_is_unconstrained(tmp_path):
     (tmp_path / "search_runbook.json").write_text(
-        '{"tool": "search_runbook", "stubs": [{"match": {"query": {"$all": '
+        '{"tool": "search_runbook", "stubs": [{"scenario": "test", "match": {"query": {"$all": '
         '[{"$regex": "(?i)travel"}, {"$contains": "SASE"}]}}, "response": {"hits": []}}]}'
     )
     adapter = FixtureAdapter(
@@ -378,8 +379,28 @@ def test_all_requires_every_matcher_and_an_all_of_anys_is_unconstrained(tmp_path
         assert info.value.kind == "no_fixture"
     for catch_all in ("[]", '[{"$any": true}]', '[{"$any": true}, {"$any": true}]'):
         (tmp_path / "search_runbook.json").write_text(
-            '{"tool": "search_runbook", "stubs": [{"match": {"query": {"$all": '
+            '{"tool": "search_runbook", "stubs": [{"scenario": "test", "match": {"query": {"$all": '
             f'{catch_all}}}}}, "response": {{"hits": []}}}}]}}'
         )
         with pytest.raises(ValueError, match="constrain"):
             FixtureSet.load(tmp_path)
+
+
+def test_a_stub_names_its_scenario_and_a_shared_stub_is_exact(tmp_path):
+    path = tmp_path / "lookup_ioc.json"
+    path.write_text(
+        '{"tool": "lookup_ioc", "stubs": [{"match": {"indicator": "x"}, "response": {"data": {}}}]}'
+    )
+    with pytest.raises(ValueError, match="scenario"):
+        FixtureSet.load(tmp_path)
+    path.write_text(
+        '{"tool": "lookup_ioc", "stubs": [{"scenario": "shared", '
+        '"match": {"indicator": {"$regex": "^x"}}, "response": {"data": {}}}]}'
+    )
+    with pytest.raises(ValueError, match="exact"):
+        FixtureSet.load(tmp_path)
+    path.write_text(
+        '{"tool": "lookup_ioc", "stubs": [{"scenario": "shared", '
+        '"match": {"indicator": "x"}, "response": {"data": {}}}]}'
+    )
+    assert FixtureSet.load(tmp_path).for_tool("lookup_ioc").stubs[0].scenario == "shared"

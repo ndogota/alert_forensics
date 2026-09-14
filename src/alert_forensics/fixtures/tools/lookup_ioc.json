@@ -2,6 +2,7 @@
   "tool": "lookup_ioc",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"indicator": "203.0.113.7"},
       "response": {
         "data": {
@@ -25,10 +26,12 @@
       }
     },
     {
+      "scenario": "shared",
       "match": {"indicator": "never-seen.example"},
       "response": {"error": {"code": "NotFoundError", "message": "Domain \"never-seen.example\" not found"}}
     },
     {
+      "scenario": "shared",
       "match": {"indicator": "broken.example"},
       "error": {"kind": "upstream_error", "detail": "VirusTotal returned HTTP 503"}
     }

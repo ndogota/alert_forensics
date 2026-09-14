@@ -2,6 +2,7 @@
   "tool": "get_process_tree",
   "stubs": [
     {
+      "scenario": "test",
       "match": {"device_name": {"$regex": "(?i)^ws-fin-0042"}, "process_id": 4412},
       "response": {
         "schema": [

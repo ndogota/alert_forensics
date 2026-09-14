@@ -2,6 +2,7 @@
   "tool": "get_related_alerts",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"user_principal_name": "jdoe@contoso.com"},
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",

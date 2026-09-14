@@ -1,6 +1,12 @@
 """The evaluation harness: ground truth as a contract, deterministic scorers, Wilson
 intervals, failure as a first-class number, cost from a price table kept here."""
 
+from alert_forensics.evaluation.fixture_check import (
+    Collision,
+    fixture_collisions,
+    probe,
+    stale_labels,
+)
 from alert_forensics.evaluation.harness import (
     MEASUREMENT_FILE,
     RAW_DIR,
@@ -60,6 +66,7 @@ __all__ = [
     "CallOutcomes",
     "CellCalls",
     "CellSummary",
+    "Collision",
     "ContextMatch",
     "ExpectedContext",
     "FindingMatch",
@@ -80,14 +87,17 @@ __all__ = [
     "contains_tokens",
     "cost_usd",
     "count_calls",
+    "fixture_collisions",
     "load_scenario",
     "load_scenarios",
     "model_slug",
+    "probe",
     "render_summary",
     "report",
     "run_suite",
     "scenario_name",
     "score_run",
+    "stale_labels",
     "summarise",
     "unpriced_models",
     "wilson",

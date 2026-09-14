@@ -3,9 +3,16 @@
 One JSON file per tool, ``<tool>.json``::
 
     {"tool": "lookup_ioc",
-     "stubs": [{"match": {"indicator": "203.0.113.7"}, "response": {...}},
-               {"match": {"indicator": {"$regex": "^10\\\\."}},
+     "stubs": [{"scenario": "atypical_travel",
+                "match": {"indicator": "203.0.113.7"}, "response": {...}},
+               {"scenario": "test",
+                "match": {"indicator": {"$regex": "^10\\\\."}},
                 "error": {"kind": "upstream_error", "detail": "..."}}]}
+
+Every stub names the scenario it serves: the scenario's stem, ``shared`` for a reading
+that does not depend on who asks, or ``test`` for a stub that exists for the suite. A
+shared stub matches by exact value only. The evaluation package checks, over the
+scenarios present, that no stub answers another scenario's question.
 
 Stubs are tried in file order and the first match wins. A match value is compared for
 equality, or is an operator object: ``{"$contains": "text"}``, ``{"$regex": "..."}``,
@@ -25,6 +32,7 @@ are held to it by tests.
 import copy
 import json
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -46,7 +54,13 @@ class FixtureError(ContractModel):
     detail: NonEmptyStr
 
 
+SHARED = "shared"
+TEST = "test"
+
+
 class FixtureStub(ContractModel):
+    scenario: NonEmptyStr
+    """The scenario the stub serves, ``shared`` or ``test``."""
     match: dict[str, JsonValue]
     response: JsonValue = None
     error: FixtureError | None = None
@@ -58,6 +72,15 @@ class FixtureStub(ContractModel):
         if not any(not _is_any(spec) for spec in match.values()):
             raise ValueError("a stub must constrain at least one argument")
         return match
+
+    @model_validator(mode="after")
+    def _shared_is_exact(self) -> "FixtureStub":
+        if self.scenario == SHARED and any(_is_operator(spec) for spec in self.match.values()):
+            raise ValueError(
+                "a shared stub matches by exact value only; an operator could answer more "
+                "than the one entity it names"
+            )
+        return self
 
     @model_validator(mode="after")
     def _response_xor_error(self) -> "FixtureStub":
@@ -103,6 +126,10 @@ class FixtureSet:
         return self.tools[name]
 
 
+def _is_operator(spec: JsonValue) -> bool:
+    return isinstance(spec, dict) and any(str(k).startswith("$") for k in spec)
+
+
 def _is_any(spec: JsonValue) -> bool:
     """Whether a matcher would accept every value: ``$any``, or an ``$all`` of nothing
     but those. Such a matcher constrains nothing."""
@@ -143,6 +170,21 @@ def matches(match: dict[str, JsonValue], arguments: dict[str, JsonValue]) -> boo
     return all(
         key in arguments and _matches_value(spec, arguments[key]) for key, spec in match.items()
     )
+
+
+def could_answer(match: dict[str, JsonValue], candidates: Sequence[str]) -> bool:
+    """Whether some request built from ``candidates`` would satisfy ``match``. Each
+    argument is tried against every candidate on its own: an operator against each
+    text, an exact string against each entity, case-insensitively; an exact value that
+    is not a string is taken as given, so the string constraints decide."""
+    folded = {c.casefold() for c in candidates}
+    for spec in match.values():
+        if _is_operator(spec):
+            if not any(_matches_value(spec, c) for c in candidates):
+                return False
+        elif isinstance(spec, str) and spec.casefold() not in folded:
+            return False
+    return True
 
 
 class FixtureAdapter(ToolAdapter[Any, Any, Any]):

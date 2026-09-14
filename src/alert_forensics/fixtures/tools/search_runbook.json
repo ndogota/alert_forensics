@@ -2,6 +2,7 @@
   "tool": "search_runbook",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"query": {"$regex": "(?i)atypical travel|impossible travel|sase|203\\.0\\.113|198\\.51\\.100"}},
       "response": {
         "hits": [

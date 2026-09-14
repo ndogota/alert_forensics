@@ -2,6 +2,7 @@
   "tool": "get_identity",
   "stubs": [
     {
+      "scenario": "atypical_travel",
       "match": {"identity": {"$regex": "(?i)^jdoe(@contoso\\.com)?$"}},
       "response": {
         "sid": "1789300001.12346",
