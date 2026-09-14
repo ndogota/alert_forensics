@@ -144,7 +144,7 @@ def test_an_alternatives_group_is_satisfied_by_any_one_and_reported_whole():
 
 
 def test_a_correct_completed_run_scores_full_marks(fixture_set):
-    facts = [(PARIS, ["tc-signins"]), (AMSTERDAM, ["tc-signins"]), (SASE, ["tc-ioc"])]
+    facts = [(PARIS, ["tc-signins"]), (AMSTERDAM, ["tc-signins"]), (SASE, ["tc-runbook"])]
     missing = [
         ("SASE session log for jdoe", "Ties the user to the gateway.", "SASE provider audit."),
         ("MFA outcome of both sign-ins", "Shows the session was challenged.", "SigninLogs."),
@@ -171,9 +171,24 @@ def test_a_correct_completed_run_scores_full_marks(fixture_set):
 def test_a_finding_is_reached_through_any_of_its_tools(fixture_set):
     runbook_fact = "The runbook says 203.0.113.0/24 is the SASE gateway range."
     facts = [(runbook_fact, ["tc-runbook"])]
+    gateway = next(
+        f for f in TRUTH.required_findings if f.name == "the_egress_address_is_the_sase_gateway"
+    )
+    two_tools = gateway.model_copy(update={"tools": ["search_siem", "search_runbook"]})
+    truth = TRUTH.model_copy(update={"required_findings": [two_tools]})
+    score = score_run(run([INVESTIGATION, PROPOSAL, result_turn(facts)], fixture_set), truth)
+    sase = score.findings[0]
+    assert sase.reached and sase.fact_index == 0 and sase.cited_tool == "search_runbook"
+
+
+def test_the_gateway_finding_is_not_carried_by_virustotal(fixture_set):
+    """VirusTotal's reading carries an owner and a range, never what the address is. A
+    fact that says gateway on that citation says more than its source, and it is not a
+    candidate for the finding at all."""
+    facts = [(SASE, ["tc-ioc"])]
     score = score_run(run([INVESTIGATION, PROPOSAL, result_turn(facts)], fixture_set), TRUTH)
     sase = next(f for f in score.findings if f.name == "the_egress_address_is_the_sase_gateway")
-    assert sase.reached and sase.fact_index == 0 and sase.cited_tool == "search_runbook"
+    assert sase.reached is False and sase.candidates == 0
 
 
 def test_the_right_words_on_the_wrong_tool_do_not_count(fixture_set):
@@ -197,7 +212,7 @@ def test_a_miss_names_the_tokens_the_closest_candidate_lacked(fixture_set):
 
 
 def test_a_wrong_verdict_and_a_wrong_escalation_score_zero_on_those_alone(fixture_set):
-    facts = [(PARIS, ["tc-signins"]), (AMSTERDAM, ["tc-signins"]), (SASE, ["tc-ioc"])]
+    facts = [(PARIS, ["tc-signins"]), (AMSTERDAM, ["tc-signins"]), (SASE, ["tc-runbook"])]
     turn = result_turn(facts, verdict="benign_true_positive", escalate=True)
     score = score_run(run([INVESTIGATION, PROPOSAL, turn], fixture_set), TRUTH)
     assert score.verdict_correct is False
@@ -257,6 +272,12 @@ def test_a_truth_for_another_scenario_is_refused(fixture_set):
 # --- the committed recording ----------------------------------------------------------
 
 
+def gateway_tokens():
+    return next(
+        f for f in TRUTH.required_findings if f.name == "the_egress_address_is_the_sase_gateway"
+    ).tokens
+
+
 def test_the_recorded_real_run_scores_as_the_spec_says():
     artifact = RunArtifact.model_validate_json(Path("runs/atypical_travel/run.json").read_text())
     score = score_run(artifact, TRUTH)
@@ -264,9 +285,13 @@ def test_the_recorded_real_run_scores_as_the_spec_says():
     assert score.verdict_correct is True
     assert score.findings_reached == 2 and score.findings_required == 3
     gateway = next(f for f in score.findings if f.name == "the_egress_address_is_the_sase_gateway")
-    assert gateway.reached is False and gateway.candidates == 1
-    # The fact named the ASN owner and never said what the address is.
-    assert gateway.missed_tokens == ["SASE", ["gateway", "gateways", "egress", "proxy"]]
+    # No grounded fact cites the runbook: the model asked it with the right terms and
+    # the fixture's default answered empty. The trace shows the gap; the score shows it.
+    assert gateway.reached is False and gateway.candidates == 0
+    assert gateway.missed_tokens == list(gateway_tokens())
+    runbook = next(r for r in artifact.trace.records if r.tool_name == "search_runbook")
+    assert runbook.arguments["query"] == "VPN SASE corporate egress proxy Amsterdam Paris"
+    assert runbook.redacted_response == {"count": 0, "hits": []}
     assert score.context_named == 0 and score.context_expected == 2
     assert score.escalation_correct is True
     assert score.ungrounded_facts == 0

@@ -112,7 +112,7 @@ def test_eval_report_recomputes_the_summary_from_the_current_truth(scenarios, tm
     assert before.findings_reached == 0
     # The owner widens a finding; the old runs re-score without a model.
     widened = json.loads((scenarios / "atypical_travel.truth.json").read_text())
-    widened["required_findings"][2]["tokens"] = ["203.0.113.7"]
+    widened["required_findings"][2]["tokens"] = ["Atypical travel"]
     (scenarios / "atypical_travel.truth.json").write_text(json.dumps(widened))
     capsys.readouterr()
     assert main(["eval-report", str(results), "--scenarios", str(scenarios)]) == 0
