@@ -2,7 +2,7 @@
   "tool": "search_events",
   "stubs": [
     {
-      "match": {"query": {"$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"}},
+      "match": {"query": {"$all": [{"$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"}, {"$regex": "(?i)jdoe"}]}},
       "response": {
         "schema": [
           {"name": "Timestamp", "type": "DateTime"},
@@ -18,7 +18,7 @@
       }
     },
     {
-      "match": {"query": {"$regex": "DeviceEvents\\s*\\|\\s*where\\s+ActionType"}},
+      "match": {"query": {"$all": [{"$regex": "DeviceEvents\\s*\\|\\s*where\\s+ActionType"}, {"$contains": "AntivirusDetection"}]}},
       "response": {
         "schema": [{"name": "Timestamp", "type": "DateTime"}, {"name": "ActionType", "type": "String"}, {"name": "AdditionalFields", "type": "String"}],
         "results": [

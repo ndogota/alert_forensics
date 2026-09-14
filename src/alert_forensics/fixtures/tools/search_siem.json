@@ -2,7 +2,7 @@
   "tool": "search_siem",
   "stubs": [
     {
-      "match": {"search": {"$contains": "index=auth"}},
+      "match": {"search": {"$all": [{"$contains": "index=auth"}, {"$regex": "(?i)jdoe"}]}},
       "response": {
         "sid": "1789300000.12345",
         "preview": false,

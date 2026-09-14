@@ -9,10 +9,17 @@ One JSON file per tool, ``<tool>.json``::
 
 Stubs are tried in file order and the first match wins. A match value is compared for
 equality, or is an operator object: ``{"$contains": "text"}``, ``{"$regex": "..."}``,
-``{"$any": true}``. A request no stub answers is a ``no_fixture`` error, never a silent
-empty result. There is no default: a default cannot tell a reading nobody has seen from
-a query nobody anticipated, and a stub must constrain at least one argument for the
-same reason. A real empty reading is a stub whose match names the request it answers.
+``{"$any": true}``, or ``{"$all": [operator, ...]}``, every one of which must hold. A
+request no stub answers is a ``no_fixture`` error, never a silent empty result. There
+is no default: a default cannot tell a reading nobody has seen from a query nobody
+anticipated, and a stub must constrain at least one argument for the same reason. A
+real empty reading is a stub whose match names the request it answers.
+
+A stub on a free-text request, a hunting query, an SPL search, a runbook question,
+answers only questions about the entities its response holds: the match names the
+account, device or subject the rows are about, and not only the table. That rule the
+loader cannot hold, since it cannot read what a query is about; the shipped fixtures
+are held to it by tests.
 """
 
 import copy
@@ -97,13 +104,23 @@ class FixtureSet:
 
 
 def _is_any(spec: JsonValue) -> bool:
-    return isinstance(spec, dict) and bool(spec.get("$any"))
+    """Whether a matcher would accept every value: ``$any``, or an ``$all`` of nothing
+    but those. Such a matcher constrains nothing."""
+    if not isinstance(spec, dict):
+        return False
+    if spec.get("$any"):
+        return True
+    every = spec.get("$all")
+    return isinstance(every, list) and all(_is_any(part) for part in every)
 
 
 def _matches_value(spec: JsonValue, actual: JsonValue) -> bool:
     if isinstance(spec, dict) and any(str(k).startswith("$") for k in spec):
         if spec.get("$any"):
             return True
+        if "$all" in spec:
+            every = spec["$all"]
+            return isinstance(every, list) and all(_matches_value(part, actual) for part in every)
         if "$contains" in spec:
             needle = spec["$contains"]
             if isinstance(actual, str):
