@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from alert_forensics.contracts import ToolOutcome
@@ -89,13 +91,99 @@ def test_the_first_matching_stub_wins_in_file_order(fixture_set):
     assert raw["results"][0]["AccountUpn"] == "jdoe@contoso.com"
 
 
-def test_default_answers_when_no_stub_matches(fixture_set):
-    adapter = FixtureAdapter(DEFINITIONS["get_identity"], fixture_set.for_tool("get_identity"))
-    raw = adapter.fetch(DEFINITIONS["get_identity"].request_model(identity="nobody"))
-    assert raw["results"] == []
+UNANTICIPATED_ARGUMENTS = {
+    "search_events": {"query": "EmailEvents | where SenderFromAddress has 'invoice'"},
+    "search_siem": {"search": "index=web"},
+    "get_identity": {"identity": "nobody"},
+    "get_asset": {"asset": "nobody"},
+    "lookup_ioc": {"indicator": "198.51.100.200"},
+    "get_related_alerts": {"user_principal_name": "nobody@contoso.com"},
+    "get_process_tree": {"device_name": "nobody", "process_id": 1},
+    "search_runbook": {"query": "printer toner"},
+    "get_attack_technique": {"technique_id": "T0000"},
+}
 
 
-def test_no_stub_and_no_default_is_a_no_fixture_error(fixture_set, runner):
+@pytest.mark.parametrize("name", READ_TOOL_NAMES)
+def test_a_request_no_stub_answers_is_a_no_fixture_error_on_every_shipped_fixture(name, runner):
+    """No shipped fixture answers a request it did not anticipate with an empty result.
+    Five of them did, and the model read the emptiness as a reading."""
+    record = runner.invoke(
+        tool_call_id=f"tc-gap-{name}",
+        step=0,
+        tool_name=name,
+        arguments=UNANTICIPATED_ARGUMENTS[name],
+        turn_siblings=[],
+    )
+    assert record.outcome is ToolOutcome.error, record.redacted_response
+    assert record.redacted_response["error"] == "no_fixture"
+
+
+def test_a_fixture_default_is_refused_on_load(tmp_path):
+    (tmp_path / "search_runbook.json").write_text(
+        '{"tool": "search_runbook", "stubs": [], "default": {"response": {"hits": []}}}'
+    )
+    with pytest.raises(ValueError, match="default"):
+        FixtureSet.load(tmp_path)
+
+
+def test_a_stub_that_constrains_no_argument_is_refused_on_load(tmp_path):
+    catch_alls = (
+        "{}",
+        '{"query": {"$any": true}}',
+        '{"query": {"$any": true}, "top_k": {"$any": true}}',
+    )
+    for match in catch_alls:
+        (tmp_path / "search_runbook.json").write_text(
+            '{"tool": "search_runbook", "stubs": '
+            f'[{{"match": {match}, "response": {{"hits": []}}}}]}}'
+        )
+        with pytest.raises(ValueError, match="constrain"):
+            FixtureSet.load(tmp_path)
+    (tmp_path / "search_runbook.json").unlink()
+    # $any beside a real constraint is fine: any process on this device.
+    (tmp_path / "get_process_tree.json").write_text(
+        '{"tool": "get_process_tree", "stubs": [{"match": {"device_name": "ws-1", '
+        '"process_id": {"$any": true}}, "response": {"schema": [], "results": []}}]}'
+    )
+    assert "get_process_tree" in FixtureSet.load(tmp_path).tools
+
+
+def test_scenario_1_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    """The committed recording asked these and was handed empties by the defaults."""
+    runbook = runner.invoke(
+        tool_call_id="tc-rb",
+        step=0,
+        tool_name="search_runbook",
+        arguments={"query": "VPN SASE corporate egress proxy Amsterdam Paris"},
+        turn_siblings=[],
+    )
+    assert runbook.outcome is ToolOutcome.ok
+    assert runbook.redacted_response["count"] >= 1
+    assert "SASE gateways egress" in json.dumps(runbook.redacted_response)
+    for n, spelling in enumerate(("jdoe@contoso.com", "JDOE")):
+        identity = runner.invoke(
+            tool_call_id=f"tc-id-{n}",
+            step=0,
+            tool_name="get_identity",
+            arguments={"identity": spelling},
+            turn_siblings=[],
+        )
+        assert identity.outcome is ToolOutcome.ok
+        assert identity.redacted_response["found"] is True, spelling
+    for n, table in enumerate(("SigninLogs", "AADSignInEventsBeta", "IdentityLogonEvents")):
+        events = runner.invoke(
+            tool_call_id=f"tc-ev-{n}",
+            step=0,
+            tool_name="search_events",
+            arguments={"query": f"{table} | where AccountUpn == 'jdoe@contoso.com'"},
+            turn_siblings=[],
+        )
+        assert events.outcome is ToolOutcome.ok
+        assert events.redacted_response["row_count"] == 2, table
+
+
+def test_no_stub_is_a_no_fixture_error(fixture_set, runner):
     adapter = FixtureAdapter(DEFINITIONS["search_siem"], fixture_set.for_tool("search_siem"))
     with pytest.raises(UpstreamError) as info:
         adapter.fetch(DEFINITIONS["search_siem"].request_model(search="index=web"))
@@ -153,7 +241,9 @@ def test_fixture_files_are_validated_on_load(tmp_path):
     (tmp_path / "lookup_ioc.json").write_text('{"tool": "search_siem", "stubs": []}')
     with pytest.raises(ValueError, match="lookup_ioc"):
         FixtureSet.load(tmp_path)
-    (tmp_path / "lookup_ioc.json").write_text('{"tool": "lookup_ioc", "stubs": [{"match": {}}]}')
+    (tmp_path / "lookup_ioc.json").write_text(
+        '{"tool": "lookup_ioc", "stubs": [{"match": {"indicator": "x"}}]}'
+    )
     with pytest.raises(ValueError, match="response"):
         FixtureSet.load(tmp_path)
     (tmp_path / "nonsense.json").write_text('{"tool": "nonsense", "stubs": []}')

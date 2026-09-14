@@ -2,7 +2,7 @@
   "tool": "search_events",
   "stubs": [
     {
-      "match": {"query": {"$contains": "SigninLogs"}},
+      "match": {"query": {"$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"}},
       "response": {
         "schema": [
           {"name": "Timestamp", "type": "DateTime"},
@@ -26,6 +26,5 @@
         ]
       }
     }
-  ],
-  "default": {"response": {"schema": [], "results": []}}
+  ]
 }

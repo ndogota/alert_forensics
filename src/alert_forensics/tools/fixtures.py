@@ -5,13 +5,14 @@ One JSON file per tool, ``<tool>.json``::
     {"tool": "lookup_ioc",
      "stubs": [{"match": {"indicator": "203.0.113.7"}, "response": {...}},
                {"match": {"indicator": {"$regex": "^10\\\\."}},
-                "error": {"kind": "upstream_error", "detail": "..."}}],
-     "default": {"response": {...}}}
+                "error": {"kind": "upstream_error", "detail": "..."}}]}
 
 Stubs are tried in file order and the first match wins. A match value is compared for
 equality, or is an operator object: ``{"$contains": "text"}``, ``{"$regex": "..."}``,
-``{"$any": true}``. A request no stub answers falls to ``default`` when there is one and
-is otherwise a ``no_fixture`` error, never a silent empty result.
+``{"$any": true}``. A request no stub answers is a ``no_fixture`` error, never a silent
+empty result. There is no default: a default cannot tell a reading nobody has seen from
+a query nobody anticipated, and a stub must constrain at least one argument for the
+same reason. A real empty reading is a stub whose match names the request it answers.
 """
 
 import copy
@@ -20,7 +21,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import Field, JsonValue, ValidationError, model_validator
+from pydantic import Field, JsonValue, ValidationError, field_validator, model_validator
 
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr
 from alert_forensics.tools.adapter import (
@@ -39,9 +40,17 @@ class FixtureError(ContractModel):
 
 
 class FixtureStub(ContractModel):
-    match: dict[str, JsonValue] = Field(default_factory=dict)
+    match: dict[str, JsonValue]
     response: JsonValue = None
     error: FixtureError | None = None
+
+    @field_validator("match")
+    @classmethod
+    def _constrains_an_argument(cls, match: dict[str, JsonValue]) -> dict[str, JsonValue]:
+        """A stub that would answer every request is a default under another name."""
+        if not any(not _is_any(spec) for spec in match.values()):
+            raise ValueError("a stub must constrain at least one argument")
+        return match
 
     @model_validator(mode="after")
     def _response_xor_error(self) -> "FixtureStub":
@@ -52,14 +61,11 @@ class FixtureStub(ContractModel):
         return self
 
 
-class FixtureDefault(ContractModel):
-    response: JsonValue
-
-
 class ToolFixture(ContractModel):
+    """A fixture file. A ``default`` key is a field nobody declared and refuses to load."""
+
     tool: NonEmptyStr
     stubs: list[FixtureStub] = Field(default_factory=list)
-    default: FixtureDefault | None = None
 
 
 class FixtureSet:
@@ -88,6 +94,10 @@ class FixtureSet:
 
     def for_tool(self, name: str) -> ToolFixture:
         return self.tools[name]
+
+
+def _is_any(spec: JsonValue) -> bool:
+    return isinstance(spec, dict) and bool(spec.get("$any"))
 
 
 def _matches_value(spec: JsonValue, actual: JsonValue) -> bool:
@@ -135,8 +145,6 @@ class FixtureAdapter(ToolAdapter[Any, Any, Any]):
             if stub.error is not None:
                 raise UpstreamError(stub.error.kind, stub.error.detail)
             return copy.deepcopy(stub.response)
-        if self.fixture.default is not None:
-            return copy.deepcopy(self.fixture.default.response)
         raise UpstreamError(
             "no_fixture",
             f"no fixture stub for {self.definition.name} matches arguments "

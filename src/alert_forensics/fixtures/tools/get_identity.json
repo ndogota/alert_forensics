@@ -2,7 +2,7 @@
   "tool": "get_identity",
   "stubs": [
     {
-      "match": {"identity": "jdoe"},
+      "match": {"identity": {"$regex": "(?i)^jdoe(@contoso\\.com)?$"}},
       "response": {
         "sid": "1789300001.12346",
         "preview": false,
@@ -33,6 +33,5 @@
         ]
       }
     }
-  ],
-  "default": {"response": {"sid": "1789300002.12347", "preview": false, "fields": [], "results": []}}
+  ]
 }

@@ -2,7 +2,7 @@
   "tool": "search_runbook",
   "stubs": [
     {
-      "match": {"query": {"$regex": "(?i)atypical travel|impossible travel"}},
+      "match": {"query": {"$regex": "(?i)atypical travel|impossible travel|sase|egress|gateway|proxy|vpn"}},
       "response": {
         "hits": [
           {
@@ -22,6 +22,5 @@
         ]
       }
     }
-  ],
-  "default": {"response": {"hits": []}}
+  ]
 }
