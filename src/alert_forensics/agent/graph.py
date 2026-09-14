@@ -5,16 +5,20 @@ Built once per investigation around one ``ToolRunner``. The investigation is a
 the outer graph. Compiled on a checkpointer so the proposal interrupt can resume.
 """
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated, Any, Literal, NotRequired, TypedDict
 
 from langchain.agents import create_agent
-from langchain.agents.middleware import HumanInTheLoopMiddleware
+from langchain.agents.middleware import AgentMiddleware, HumanInTheLoopMiddleware
+from langchain.agents.middleware.types import AgentState, ModelRequest, ModelResponse, hook_config
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AnyMessage, HumanMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
+from langchain_core.tools import BaseTool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.runtime import Runtime
 from langgraph.types import Checkpointer
 
 from alert_forensics.agent.prompts import REPAIR_SYSTEM_PROMPT, SYSTEM_PROMPT, repair_message
@@ -33,9 +37,61 @@ from alert_forensics.repair import CitationRepairs, apply_repairs, build_repair_
 from alert_forensics.tools.definitions.propose_alert_disposition import (
     PROPOSE_ALERT_DISPOSITION,
 )
+from alert_forensics.tools.ordering import check_order, offerable
 from alert_forensics.tools.runner import ToolRunner
 
 GATED_TOOL = PROPOSE_ALERT_DISPOSITION.name
+
+
+class OrderingMiddleware(AgentMiddleware[Any, Any]):
+    """Enforces the ordering rules the definitions declare, in the graph.
+
+    Two halves. Before a model call, a tool that needs evidence is left out of the bound
+    tools while the journal holds no ``ok`` record. After a model call, a turn that
+    breaks a rule jumps straight to the tool node, past the human-in-the-loop interrupt:
+    the runner denies the call and journals it, and a proposal that will be refused is
+    never put in front of the analyst. Listed after the interrupt middleware, because
+    ``after_model`` hooks run in reverse order of the list.
+    """
+
+    def __init__(self, runner: ToolRunner) -> None:
+        super().__init__()
+        self.runner = runner
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest[Any],
+        handler: Callable[[ModelRequest[Any]], ModelResponse[Any]],
+    ) -> ModelResponse[Any]:
+        offered = [t for t in request.tools if self._offered(t)]
+        if len(offered) != len(request.tools):
+            request = request.override(tools=offered)
+        return handler(request)
+
+    def _offered(self, tool: BaseTool | dict[str, Any]) -> bool:
+        name = tool.name if isinstance(tool, BaseTool) else None
+        adapter = self.runner.adapters.get(name) if name else None
+        return adapter is None or offerable(adapter.definition, self.runner.records)
+
+    @hook_config(can_jump_to=["tools"])
+    def after_model(self, state: AgentState[Any], runtime: Runtime[Any]) -> dict[str, Any] | None:
+        last = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
+        if last is None or not self._breaks_a_rule(last):
+            return None
+        return {"jump_to": "tools"}
+
+    def _breaks_a_rule(self, message: AIMessage) -> bool:
+        for call in message.tool_calls:
+            adapter = self.runner.adapters.get(call["name"])
+            if adapter is None:
+                continue
+            siblings = [c["name"] for c in message.tool_calls if c.get("id") != call.get("id")]
+            denial = check_order(
+                self.runner.principal, adapter.definition, self.runner.records, siblings
+            )
+            if denial is not None:
+                return True
+        return False
 
 
 class TriageState(TypedDict):
@@ -73,7 +129,8 @@ def build_triage_graph(
             HumanInTheLoopMiddleware(
                 interrupt_on={GATED_TOOL: {"allowed_decisions": ["approve", "reject"]}},
                 description_prefix="The agent proposes a disposition. Nothing is written.",
-            )
+            ),
+            OrderingMiddleware(runner),
         ],
         response_format=output_strategy(model, TriageResult),
         name="investigate",

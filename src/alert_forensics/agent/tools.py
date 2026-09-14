@@ -38,6 +38,7 @@ def _tool(runner: ToolRunner, definition: ToolDefinition[Any, Any, Any]) -> Base
             step=_step(runtime),
             tool_name=definition.name,
             arguments=arguments,
+            turn_siblings=_siblings(runtime, runtime.tool_call_id),
         )
         content = json.dumps(record.redacted_response, ensure_ascii=False)
         return content, record.model_dump(mode="json")
@@ -54,6 +55,18 @@ def _tool(runner: ToolRunner, definition: ToolDefinition[Any, Any, Any]) -> Base
 def _step(runtime: ToolRuntime[Any, Any]) -> int:
     """Index of the model turn that emitted this call: the tool node sees the emitting
     ``AIMessage`` already in the state, so it is the count of model turns less one."""
-    messages = runtime.state.get("messages", []) if isinstance(runtime.state, dict) else []
-    turns = sum(1 for m in messages if isinstance(m, AIMessage))
+    turns = sum(1 for m in _messages(runtime) if isinstance(m, AIMessage))
     return max(turns - 1, 0)
+
+
+def _siblings(runtime: ToolRuntime[Any, Any], tool_call_id: str) -> list[str]:
+    """Names of the other calls in the turn that emitted this one."""
+    last = next((m for m in reversed(_messages(runtime)) if isinstance(m, AIMessage)), None)
+    if last is None:
+        return []
+    return [str(c["name"]) for c in last.tool_calls if c.get("id") != tool_call_id]
+
+
+def _messages(runtime: ToolRuntime[Any, Any]) -> list[Any]:
+    state = runtime.state
+    return list(state.get("messages", [])) if isinstance(state, dict) else []

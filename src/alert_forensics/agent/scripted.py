@@ -67,11 +67,17 @@ class ScriptedChatModel(BaseChatModel):
     model_id: str = "scripted:demo"
     _cursor: int = PrivateAttr(default=0)
     _received: list[list[BaseMessage]] = PrivateAttr(default_factory=list)
+    _offered_tools: list[list[str]] = PrivateAttr(default_factory=list)
 
     @property
     def received(self) -> list[list[BaseMessage]]:
         """The messages each model call received, in order. What the tests inspect."""
         return self._received
+
+    @property
+    def offered_tools(self) -> list[list[str]]:
+        """The tool names bound on each model call, in order: what the model was offered."""
+        return self._offered_tools
 
     @property
     def _llm_type(self) -> str:
@@ -101,6 +107,7 @@ class ScriptedChatModel(BaseChatModel):
         **kwargs: Any,
     ) -> ChatResult:
         self._received.append(list(messages))
+        self._offered_tools.append([str(t["function"]["name"]) for t in kwargs.get("tools") or []])
         if self._cursor >= len(self.script):
             raise ScriptExhaustedError(
                 f"the script ran out after {len(self.script)} turn"

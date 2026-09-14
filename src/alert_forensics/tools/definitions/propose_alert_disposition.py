@@ -3,7 +3,8 @@
 It records a proposed verdict and recommended action for a human to accept or reject.
 It has no upstream: the shape is the project's own, the source system is ``human``, and
 the adapter echoes the proposal with a timestamp. The human-in-the-loop middleware
-interrupts on it before it runs; the scope check decides whether it may run at all.
+interrupts on it before it runs; the scope check decides whether it may run at all; the
+ordering rules say when: after at least one call returned evidence, and alone in its turn.
 """
 
 from typing import Literal
@@ -82,6 +83,8 @@ PROPOSE_ALERT_DISPOSITION = ToolDefinition(
     response_model=ProposeDispositionResponse,
     view_model=ProposeDispositionView,
     projector=_project,
+    needs_evidence=True,
+    alone_in_turn=True,
     live=LiveContract(
         status="local",
         system="the analyst",

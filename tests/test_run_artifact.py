@@ -27,6 +27,11 @@ def make_artifact(trace, report=None, **overrides):
         "investigation_id": "inv-1",
         "outcome": RunOutcome.completed,
         "model": "scripted:demo",
+        "output_binding": {
+            "strategy": "provider",
+            "profile_declared": True,
+            "structured_output": True,
+        },
         "role": "analyst",
         "adapters": {"search_events": "fixture", "lookup_ioc": "live"},
         "trace": trace,
@@ -132,3 +137,19 @@ def test_model_limits_sit_beside_the_model_and_round_trip(trace, grounded_result
         ModelLimits(timeout_s=0, max_retries=1)
     with pytest.raises(ValidationError):
         ModelLimits(timeout_s=60, max_retries=-1)
+
+
+def test_the_output_binding_is_required_and_round_trips(trace, grounded_result):
+    from alert_forensics.contracts import OutputBinding
+
+    report = validate_grounding(grounded_result, trace)
+    binding = OutputBinding(strategy="tool", profile_declared=True, structured_output=False)
+    artifact = make_artifact(trace, report, output_binding=binding)
+    assert artifact.output_binding == binding
+    assert RunArtifact.model_validate_json(artifact.model_dump_json()) == artifact
+    fields = artifact.model_dump()
+    del fields["output_binding"]
+    with pytest.raises(ValidationError, match="output_binding"):
+        RunArtifact.model_validate(fields)
+    with pytest.raises(ValidationError):
+        OutputBinding(strategy="magic", profile_declared=True, structured_output=True)

@@ -295,3 +295,24 @@ def test_any_other_failure_keeps_exit_1(alert_file, tmp_path, monkeypatch, capsy
     assert main(argv) == 1
     captured = capsys.readouterr()
     assert "RuntimeError" in captured.out and "not a bug" not in captured.err
+
+
+def test_the_google_schema_warning_is_filtered_at_startup_and_nothing_else(
+    alert_file, tmp_path, caplog
+):
+    import logging
+
+    out = tmp_path / "run.json"
+    assert main(["triage", str(alert_file), "--scripted", "--accept", "-o", str(out)]) == 0
+    logger = logging.getLogger("langchain_google_genai._function_utils")
+    with caplog.at_level(logging.WARNING):
+        logger.warning("Key 'additionalProperties' is not supported in schema, ignoring")
+        logger.warning("Key 'title' is not supported in schema, ignoring")
+        logger.warning("something else worth reading")
+        logging.getLogger("alert_forensics").warning("Key 'x' is not supported in schema")
+    assert [r.getMessage() for r in caplog.records] == [
+        "something else worth reading",
+        "Key 'x' is not supported in schema",
+    ]
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert artifact.output_binding.strategy == "provider"

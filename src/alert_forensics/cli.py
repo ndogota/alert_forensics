@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import logging
 import os
 import sys
 from collections.abc import Sequence
@@ -43,7 +44,28 @@ class CliError(Exception):
     """A usage or configuration problem, reported on stderr before anything runs."""
 
 
+class _DropSchemaKeyNotice(logging.Filter):
+    """The Google client logs, per tool and twice, a JSON schema key it ignores. It is
+    the library's note to itself; a tool that opens with twenty-two lines of it reads as
+    broken."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "is not supported in schema" not in record.getMessage()
+
+
+_SCHEMA_KEY_NOTICE = _DropSchemaKeyNotice()
+_NOISY_LOGGERS = ("langchain_google_genai", "langchain_google_genai._function_utils")
+
+
+def _silence_library_noise() -> None:
+    """A filter sits on the logger that emits the record: a parent's filters do not see
+    a child's records, so the module logger is named as well as the package."""
+    for name in _NOISY_LOGGERS:
+        logging.getLogger(name).addFilter(_SCHEMA_KEY_NOTICE)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    _silence_library_noise()
     parser = _parser()
     args = parser.parse_args(argv)
     try:

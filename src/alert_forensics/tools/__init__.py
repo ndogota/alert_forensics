@@ -20,6 +20,7 @@ from alert_forensics.tools.fixtures import (
     ToolFixture,
     fixture_adapters,
 )
+from alert_forensics.tools.ordering import OrderDenial, check_order
 from alert_forensics.tools.redaction import redact, redact_text
 from alert_forensics.tools.runner import ToolRunner
 from alert_forensics.tools.scope import (
@@ -57,6 +58,7 @@ __all__ = [
     "FixtureStub",
     "InMemoryRawStore",
     "LiveContract",
+    "OrderDenial",
     "Principal",
     "RawIntegrityError",
     "RawResponseStore",
@@ -72,6 +74,7 @@ __all__ = [
     "ToolRunner",
     "ToolView",
     "UpstreamError",
+    "check_order",
     "check_scope",
     "fixture_adapters",
     "redact",

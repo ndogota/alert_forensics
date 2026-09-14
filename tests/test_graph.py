@@ -510,3 +510,81 @@ def test_a_refused_run_is_failed_error_of_kind_rate_limit_and_still_writes_the_t
     assert artifact.error.kind == "rate_limit"
     assert "429" in artifact.error.message
     assert artifact.trace.records == []
+
+
+# --- The write action comes after evidence, and alone ------------------------------
+
+EARLY_PROPOSAL = ToolCallsTurn(
+    tool_calls=[
+        call(
+            "tc-early",
+            "propose_alert_disposition",
+            **{
+                "verdict": "true_positive",
+                "recommended_action": "Reset the credentials.",
+                "escalate": True,
+                "summary": "Impossible travel.",
+            },
+        )
+    ]
+)
+
+
+def test_a_proposal_before_any_evidence_is_refused_without_asking_the_analyst(fixture_set):
+    asked = []
+    script = [EARLY_PROPOSAL, INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])]
+    artifact, model, _ = run(
+        script,
+        fixture_set=fixture_set,
+        decide=lambda p: asked.append(p) or AnalystDecision(accept=True),
+    )
+    assert artifact.outcome is RunOutcome.completed
+    # Not offered on the first turn; offered once an ok record exists.
+    assert "propose_alert_disposition" not in model.offered_tools[0]
+    assert "propose_alert_disposition" in model.offered_tools[2]
+    early = artifact.trace.find("tc-early")
+    assert early is not None and early.outcome is ToolOutcome.denied
+    assert early.step == 0
+    assert early.redacted_response["error"] == "order_denied"
+    assert early.redacted_response["rule"] == "needs_evidence"
+    # The analyst saw one proposal, the real one, and it ran.
+    assert [p["verdict"] for p in asked] == ["false_positive"]
+    assert len(artifact.decisions) == 1 and artifact.decisions[0].tool_call_id == "tc-propose"
+    assert artifact.trace.find("tc-propose").outcome is ToolOutcome.ok
+    # The model was told the rule, in the turn after.
+    told = [m for m in model.received[1] if isinstance(m, ToolMessage)][-1]
+    assert told.tool_call_id == "tc-early" and "needs_evidence" in str(told.content)
+
+
+def test_a_proposal_beside_other_calls_is_refused_and_the_siblings_still_run(fixture_set):
+    asked = []
+    same_turn = ToolCallsTurn(
+        tool_calls=[
+            call("tc-identity-2", "get_identity", identity="jdoe"),
+            *EARLY_PROPOSAL.tool_calls,
+        ]
+    )
+    script = [INVESTIGATION, same_turn, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])]
+    artifact, _, _ = run(
+        script,
+        fixture_set=fixture_set,
+        decide=lambda p: asked.append(p) or AnalystDecision(accept=True),
+    )
+    assert artifact.outcome is RunOutcome.completed
+    early = artifact.trace.find("tc-early")
+    assert early is not None and early.outcome is ToolOutcome.denied
+    assert early.redacted_response["rule"] == "alone_in_turn"
+    assert "get_identity" in early.redacted_response["message"]
+    assert artifact.trace.find("tc-identity-2").outcome is ToolOutcome.ok
+    assert [p["verdict"] for p in asked] == ["false_positive"]
+    assert [d.tool_call_id for d in artifact.decisions] == ["tc-propose"]
+    assert artifact.trace.find("tc-propose").outcome is ToolOutcome.ok
+
+
+@pytest.mark.parametrize("profile", sorted(PROFILES))
+def test_the_artifact_records_how_output_was_bound(fixture_set, profile):
+    script = [INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])]
+    artifact, _, _ = run(script, fixture_set=fixture_set, profile=profile)
+    assert artifact.output_binding.strategy == profile
+    assert artifact.output_binding.profile_declared is True
+    assert artifact.output_binding.structured_output is (profile == "provider")

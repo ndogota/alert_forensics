@@ -7,7 +7,7 @@ fail ends as a ``ToolCallRecord`` with a structured response the model can read.
 
 import threading
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -21,6 +21,7 @@ from alert_forensics.tools.adapter import (
     UpstreamError,
 )
 from alert_forensics.tools.definitions import DEFINITIONS
+from alert_forensics.tools.ordering import check_order
 from alert_forensics.tools.redaction import redact
 from alert_forensics.tools.scope import Principal, check_scope
 from alert_forensics.tools.store import RawResponseStore
@@ -60,19 +61,32 @@ class ToolRunner:
         before anything runs even when a caller invokes from several threads."""
 
     def invoke(
-        self, *, tool_call_id: str, step: int, tool_name: str, arguments: dict[str, JsonValue]
+        self,
+        *,
+        tool_call_id: str,
+        step: int,
+        tool_name: str,
+        arguments: dict[str, JsonValue],
+        turn_siblings: Sequence[str] = (),
     ) -> ToolCallRecord:
+        """``turn_siblings`` names the other calls the model emitted in the same turn;
+        the ordering rules read it, the journal does not."""
         with self._lock:
-            return self._invoke(tool_call_id, step, tool_name, arguments)
+            return self._invoke(tool_call_id, step, tool_name, arguments, turn_siblings)
 
     def _invoke(
-        self, tool_call_id: str, step: int, tool_name: str, arguments: dict[str, JsonValue]
+        self,
+        tool_call_id: str,
+        step: int,
+        tool_name: str,
+        arguments: dict[str, JsonValue],
+        turn_siblings: Sequence[str],
     ) -> ToolCallRecord:
         if any(r.tool_call_id == tool_call_id for r in self.records):
             raise ValueError(f"tool_call_id {tool_call_id!r} was already journalled")
         started_at = self.clock()
         t0 = time.perf_counter_ns()
-        outcome, raw, view, definition = self._execute(tool_name, arguments)
+        outcome, raw, view, definition = self._execute(tool_name, arguments, turn_siblings)
         duration_us = (time.perf_counter_ns() - t0) // 1000
         stored = self.store.put(self.investigation_id, tool_call_id, raw)
         record = ToolCallRecord(
@@ -96,7 +110,7 @@ class ToolRunner:
         return record
 
     def _execute(
-        self, tool_name: str, arguments: dict[str, JsonValue]
+        self, tool_name: str, arguments: dict[str, JsonValue], turn_siblings: Sequence[str]
     ) -> tuple[ToolOutcome, JsonValue, JsonValue, AnyDefinition | None]:
         """Run the pipeline. Returns outcome, the raw to store, the view for the model,
         and the definition when one exists."""
@@ -112,7 +126,9 @@ class ToolRunner:
             return ToolOutcome.error, failure, failure, known
         definition = adapter.definition
 
-        denial = check_scope(self.principal, definition)
+        denial = check_scope(self.principal, definition) or check_order(
+            self.principal, definition, self.records, turn_siblings
+        )
         if denial is not None:
             dumped: JsonValue = denial.model_dump(mode="json")
             return ToolOutcome.denied, dumped, dumped, definition

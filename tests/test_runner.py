@@ -299,3 +299,89 @@ def test_every_journalled_record_reaches_the_callback_in_journal_order(store):
     runner.invoke(tool_call_id="tc-2", step=1, tool_name="no_such_tool", arguments={})
     assert seen == runner.records
     assert [r.outcome for r in seen] == [ToolOutcome.ok, ToolOutcome.error]
+
+
+# --- The write action comes after evidence, and alone ------------------------------
+
+IOC_ARGS = {"indicator": "203.0.113.7"}
+PROPOSAL_ARGS = {
+    "verdict": "false_positive",
+    "recommended_action": "Close.",
+    "escalate": False,
+    "summary": "Gateway.",
+}
+
+
+def _propose(runner, tool_call_id="tc-propose", step=1, siblings=()):
+    return runner.invoke(
+        tool_call_id=tool_call_id,
+        step=step,
+        tool_name="propose_alert_disposition",
+        arguments=dict(PROPOSAL_ARGS),
+        turn_siblings=list(siblings),
+    )
+
+
+def test_a_proposal_before_any_ok_record_is_denied_by_rule(store):
+    from alert_forensics.tools.disposition import DispositionAdapter
+
+    runner = make_runner([DispositionAdapter(clock=lambda: T0)], store)
+    record = _propose(runner, step=0)
+    assert record.outcome is ToolOutcome.denied
+    assert record.required_scope == "alerts:write"
+    assert record.redacted_response["error"] == "order_denied"
+    assert record.redacted_response["rule"] == "needs_evidence"
+    assert record.redacted_response["tool"] == "propose_alert_disposition"
+    assert record.redacted_response["caller"] == "analyst"
+    assert record.redacted_response["role"] == "analyst"
+    assert "ok" in record.redacted_response["message"]
+    assert store.get(record.raw_response_ref, expected_sha256=record.raw_response_sha256)
+
+
+def test_a_failed_call_is_not_evidence_enough_but_an_ok_call_is(store):
+    from alert_forensics.tools.disposition import DispositionAdapter
+
+    failing = ScriptedAdapter("lookup_ioc", error=UpstreamError("upstream_error", "down"))
+    runner = make_runner([failing, DispositionAdapter(clock=lambda: T0)], store)
+    runner.invoke(
+        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+    )
+    assert _propose(runner, "tc-p1").outcome is ToolOutcome.denied
+    runner.adapters["lookup_ioc"] = ScriptedAdapter("lookup_ioc", raw=IOC_RAW)
+    runner.invoke(
+        tool_call_id="tc-2", step=1, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+    )
+    assert _propose(runner, "tc-p2", step=2).outcome is ToolOutcome.ok
+
+
+def test_a_proposal_beside_another_call_in_its_turn_is_denied_by_rule(store):
+    from alert_forensics.tools.disposition import DispositionAdapter
+
+    runner = make_runner(
+        [ScriptedAdapter("lookup_ioc", raw=IOC_RAW), DispositionAdapter(clock=lambda: T0)], store
+    )
+    runner.invoke(
+        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+    )
+    record = _propose(runner, step=1, siblings=["lookup_ioc", "get_identity"])
+    assert record.outcome is ToolOutcome.denied
+    assert record.redacted_response["rule"] == "alone_in_turn"
+    assert "lookup_ioc" in record.redacted_response["message"]
+    # A read-only tool has no ordering rules: siblings are nothing to it.
+    sibling = runner.invoke(
+        tool_call_id="tc-2",
+        step=1,
+        tool_name="lookup_ioc",
+        arguments=IOC_ARGS,
+        turn_siblings=["propose_alert_disposition"],
+    )
+    assert sibling.outcome is ToolOutcome.ok
+
+
+def test_scope_is_checked_before_order(store):
+    from alert_forensics.tools.disposition import DispositionAdapter
+
+    runner = make_runner([DispositionAdapter(clock=lambda: T0)], store, role=TIER1_ROLE)
+    record = _propose(runner, step=0)
+    assert record.outcome is ToolOutcome.denied
+    assert record.redacted_response["error"] == "scope_denied"

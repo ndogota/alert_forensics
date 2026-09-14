@@ -91,6 +91,11 @@ class ToolDefinition[Req: ToolRequest, Resp: ToolResponse, View: ToolView]:
     view_model: type[View]
     projector: Callable[[Resp, Req | None], View]
     live: LiveContract
+    needs_evidence: bool = False
+    """Not offered to the model, and denied if called, until at least one call in the
+    journal has outcome ``ok``."""
+    alone_in_turn: bool = False
+    """Denied when the model emits it in the same turn as any other tool call."""
 
     @property
     def live_capable(self) -> bool:

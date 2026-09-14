@@ -103,3 +103,32 @@ def test_output_strategy_is_decided_by_the_profile_never_by_the_name():
     named = ScriptedChatModel(script=[], model_id="openai:gpt-4o", profile=None)
     assert named.profile is None
     assert isinstance(output_strategy(named, Out), ToolStrategy)
+
+
+def test_the_output_binding_records_the_strategy_and_the_profile_values_it_read():
+    from alert_forensics.agent import output_binding
+    from alert_forensics.contracts import OutputBinding
+
+    provider = ScriptedChatModel(script=[], profile={"structured_output": True})
+    tool = ScriptedChatModel(script=[], profile={"structured_output": False})
+    silent = ScriptedChatModel(script=[], profile={"tool_calling": True})
+    unknown = ScriptedChatModel(script=[], profile=None)
+    assert output_binding(provider) == OutputBinding(
+        strategy="provider", profile_declared=True, structured_output=True
+    )
+    assert output_binding(tool) == OutputBinding(
+        strategy="tool", profile_declared=True, structured_output=False
+    )
+    assert output_binding(silent) == OutputBinding(
+        strategy="tool", profile_declared=True, structured_output=None
+    )
+    assert output_binding(unknown) == OutputBinding(
+        strategy="tool", profile_declared=False, structured_output=None
+    )
+
+
+def test_the_scripted_client_records_the_tools_it_was_offered():
+    model = ScriptedChatModel(script=[TextTurn(text="hi")], profile={"structured_output": True})
+    bound = model.bind_tools([{"name": "a", "description": "A", "parameters": {}}])
+    bound.invoke([HumanMessage("x")])
+    assert model.offered_tools == [["a"]]

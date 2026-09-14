@@ -18,7 +18,7 @@ from alert_forensics.agent.scripted import (
     ToolCallsTurn,
     demo_script,
 )
-from alert_forensics.agent.strategy import output_strategy
+from alert_forensics.agent.strategy import output_binding, output_strategy
 from alert_forensics.agent.tools import runner_tools
 
 __all__ = [
@@ -34,6 +34,7 @@ __all__ = [
     "TriageState",
     "build_triage_graph",
     "demo_script",
+    "output_binding",
     "output_strategy",
     "run_error",
     "run_triage",

@@ -6,20 +6,35 @@ from langchain.agents.structured_output import ProviderStrategy, ToolStrategy
 from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import BaseModel
 
+from alert_forensics.contracts import OutputBinding
+
 OutputStrategy = ProviderStrategy[Any] | ToolStrategy[Any]
 
 
-def output_strategy(model: BaseChatModel, schema: type[BaseModel]) -> OutputStrategy:
-    """``ProviderStrategy`` when the profile says the provider enforces a schema natively,
-    ``ToolStrategy`` otherwise.
+def output_binding(model: BaseChatModel) -> OutputBinding:
+    """The strategy for this model and the profile values that decided it, recorded on
+    the artifact so a recording says how it was bound.
 
     LangChain's automatic choice falls back to matching model names when a profile is
     missing. That fallback is not used: a strategy chosen from a name is a guess, and the
     profile exists to replace the guess. A model with no profile gets ``ToolStrategy``,
-    which every tool-calling model supports. Neither strategy retries a malformed
-    output: unparseable structured output is a failed run, not a hidden extra pass.
+    which every tool-calling model supports.
     """
     profile = model.profile
-    if profile is not None and profile.get("structured_output") is True:
+    value = profile.get("structured_output") if profile is not None else None
+    read = value if isinstance(value, bool) else None
+    return OutputBinding(
+        strategy="provider" if read is True else "tool",
+        profile_declared=profile is not None,
+        structured_output=read,
+    )
+
+
+def output_strategy(model: BaseChatModel, schema: type[BaseModel]) -> OutputStrategy:
+    """``ProviderStrategy`` when the profile says the provider enforces a schema natively,
+    ``ToolStrategy`` otherwise. Neither strategy retries a malformed output: unparseable
+    structured output is a failed run, not a hidden extra pass.
+    """
+    if output_binding(model).strategy == "provider":
         return ProviderStrategy(schema)
     return ToolStrategy(schema, handle_errors=False)

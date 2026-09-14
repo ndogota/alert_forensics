@@ -18,6 +18,7 @@ from pydantic import JsonValue
 
 from alert_forensics.agent.graph import GATED_TOOL, TriageGraph, build_triage_graph
 from alert_forensics.agent.prompts import alert_message
+from alert_forensics.agent.strategy import output_binding
 from alert_forensics.artifact import CorrectionRecord, RunArtifact
 from alert_forensics.contracts import (
     Alert,
@@ -221,6 +222,7 @@ def run_triage(
         outcome=outcome,
         model=model_id,
         model_limits=model_limits,
+        output_binding=output_binding(model),
         role=principal.role.name,
         adapters={name: adapter.kind for name, adapter in runner.adapters.items()},
         trace=trace,

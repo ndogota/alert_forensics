@@ -1,7 +1,11 @@
 {
-  "investigation_id": "inv-7b1875e28b4b",
-  "outcome": "failed_error",
-  "model": "google_genai:gemini-3.8-flash",
+  "investigation_id": "inv-15f4d3177ada",
+  "outcome": "completed",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 1
+  },
   "role": "analyst",
   "adapters": {
     "search_events": "fixture",
@@ -16,7 +20,7 @@
     "propose_alert_disposition": "local"
   },
   "trace": {
-    "investigation_id": "inv-7b1875e28b4b",
+    "investigation_id": "inv-15f4d3177ada",
     "alert": {
       "id": "da637551227677560813_-961444813",
       "title": "Atypical travel",
@@ -59,17 +63,413 @@
         }
       ]
     },
-    "started_at": "2026-09-14T15:18:11.564946Z",
-    "records": [],
-    "usage": []
+    "started_at": "2026-09-14T15:35:25.818717Z",
+    "records": [
+      {
+        "tool_call_id": "call_6619040",
+        "step": 0,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "timespan": "P7D",
+          "query": "SigninLogs | where UserPrincipalName == \"jdoe@contoso.com\" | order by TimeGenerated desc | take 10"
+        },
+        "started_at": "2026-09-14T15:35:34.864658Z",
+        "duration_us": 311,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "Timestamp",
+            "AccountUpn",
+            "IPAddress",
+            "Location",
+            "ErrorCode"
+          ],
+          "row_count": 2,
+          "rows": [
+            {
+              "Timestamp": "2026-09-14T09:12:04.000Z",
+              "AccountUpn": "jdoe@contoso.com",
+              "IPAddress": "203.0.113.7",
+              "Location": "Paris, FR",
+              "ErrorCode": 0
+            },
+            {
+              "Timestamp": "2026-09-14T09:51:40.000Z",
+              "AccountUpn": "jdoe@contoso.com",
+              "IPAddress": "203.0.113.7",
+              "Location": "Amsterdam, NL",
+              "ErrorCode": 0
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 0
+        },
+        "raw_response_ref": "inv-15f4d3177ada/call_6619040.json",
+        "raw_response_sha256": "c22d6e817cbb6088ef7e462da838c0e0e10827635cbbdf5b666005bea3dc2f5f"
+      },
+      {
+        "tool_call_id": "call_6619041",
+        "step": 0,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1078.004"
+        },
+        "started_at": "2026-09-14T15:35:34.867204Z",
+        "duration_us": 215046,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1078.004",
+          "name": "Cloud Accounts",
+          "url": "https://attack.mitre.org/techniques/T1078/004",
+          "tactics": [
+            "stealth",
+            "persistence",
+            "privilege-escalation",
+            "initial-access"
+          ],
+          "is_subtechnique": true,
+          "platforms": [
+            "IaaS",
+            "Identity Provider",
+            "Office Suite",
+            "SaaS"
+          ],
+          "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created and configured by an organization for use by users, remote support, services, or for administration of resources within a cloud service provider or SaaS application. Cloud Accounts can exist solely in the cloud; alternatively, they may be hybrid-joined between on-premises systems and the cloud through syncing or federation with other identity sources such as Windows Active Directory.\n\nService or user accounts may be targeted by adversaries through [Brute Force](https://attack.mitre.org/techniques/T1110), [Phishing](https://attack.mitre.org/techniques/T1566), or various other means to gain access to the environment. Federated or synced accounts may be a pathway for the adversary to affect both on-premises systems and cloud environments - for example, by leveraging shared credentials to log onto [Remote Services](https://attack.mitre.org/techniques/T1021). High privileged cloud accounts, whether federated, synced, or cloud-only, may also allow pivoting to on-premises environments by leveraging SaaS-based [Software Deployment Tools](https://attack.mitre.org/techniques/T1072) to run commands on hybrid-joined devices.\n\nAn adversary may create long lasting [Additional Cloud Credentials](https://attack.mitre.org/techniques/T1098/001) on a compromised cloud account to maintain persistence in the environment. Such credentials may also be used to bypass security controls such as multi-factor authentication. \n\nCloud accounts may also be able to assume [Temporary Elevated Cloud Access](https://attack.mitre.org/techniques/T1548/005) or other privileges through various means within the environment. Misconfigurations in role assignments or role assumption policies may allow an adversary to use these mechanisms to leverage permissions outside the intended scope of the account. Such over privileged accounts may be used to harvest sensitive data from online storage accounts and databases through [Cloud API](https://attack.mitre.org/techniques/T1059/009) or other methods. For example, in Azure environments, adversaries may target Azure Managed Identities, which allow associated Azure resources to request access tokens. By compromising a resource with an attached Managed Identity, such as an Azure VM, adversaries may be able to [Steal Application Access Token](https://attack.mitre.org/techniques/T1528)s to move laterally across the cloud environment.",
+          "version": "2.0",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-15f4d3177ada/call_6619041.json",
+        "raw_response_sha256": "f3f719dcd0d2b50d2cced24b21e73e64342f387f50e03baf80ada94794c7d7f6"
+      },
+      {
+        "tool_call_id": "call_6619042",
+        "step": 0,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "escalate": true,
+          "summary": "The alert indicates atypical travel for jdoe@contoso.com from Paris to Amsterdam within 40 minutes, matching impossible travel patterns characteristic of credential compromise. Further sign-in history analysis is required to verify session details and confirm whether this constitutes active compromise.",
+          "verdict": "true_positive",
+          "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity."
+        },
+        "started_at": "2026-09-14T15:35:35.084098Z",
+        "duration_us": 117,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "true_positive",
+          "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity.",
+          "escalate": true,
+          "proposed_at": "2026-09-14T15:35:35Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-15f4d3177ada/call_6619042.json",
+        "raw_response_sha256": "b3096efeded6917ab97be124df89facffe3c64e7feaee7f4a2282fb13b7c2811"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2085,
+        "output_tokens": 208,
+        "total_tokens": 2293,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3292,
+        "output_tokens": 519,
+        "total_tokens": 3811,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 716,
+        "output_tokens": 103,
+        "total_tokens": 819,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
   },
-  "report": null,
-  "passes": 0,
-  "corrections": [],
-  "decisions": [],
-  "error": {
-    "kind": "GoogleAPIError",
-    "message": "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+  "report": {
+    "result": {
+      "verdict": "true_positive",
+      "confidence": 0.95,
+      "mitre_techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "observed_facts": [
+        {
+          "statement": "User jdoe@contoso.com performed a successful sign-in from Paris, FR at 2026-09-14T09:12:04.000Z and another successful sign-in from Amsterdam, NL at 2026-09-14T09:51:40.000Z using IP address 203.0.113.7 within approximately 40 minutes.",
+          "evidence": [
+            "call_6619040"
+          ]
+        },
+        {
+          "statement": "ATT&CK technique T1078.004 represents Cloud Accounts usage as a valid account mechanism for initial access or persistence.",
+          "evidence": [
+            "call_6619041"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "The IP address 203.0.113.7 reflects a VPN or proxy service usage, or credential sharing/compromise, as physical travel between Paris and Amsterdam in 39 minutes is impossible.",
+          "why_unverified": "Network infrastructure logs or client-side telemetry regarding VPN usage were not queried."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Subsequent session activity and device compliance status",
+          "why_it_matters": "Determines whether the user successfully executed actions or accessed sensitive resources post sign-in.",
+          "how_to_obtain": "Query CloudAppEvents or DeviceEvents for jdoe@contoso.com around 2026-09-14T09:51:40.000Z."
+        }
+      ],
+      "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity.",
+      "escalate": true
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "User jdoe@contoso.com performed a successful sign-in from Paris, FR at 2026-09-14T09:12:04.000Z and another successful sign-in from Amsterdam, NL at 2026-09-14T09:51:40.000Z using IP address 203.0.113.7 within approximately 40 minutes.",
+        "evidence_ids": [
+          "call_6619040"
+        ],
+        "resolved_ids": [
+          "call_6619040"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "ATT&CK technique T1078.004 represents Cloud Accounts usage as a valid account mechanism for initial access or persistence.",
+        "evidence_ids": [
+          "call_6619041"
+        ],
+        "resolved_ids": [
+          "call_6619041"
+        ],
+        "source_systems": [
+          "attack"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 2,
+    "grounded_count": 2,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
   },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "User jdoe@contoso.com performed a successful sign-in from Paris, FR at 2026-09-14T09:12:04.000Z and another successful sign-in from Amsterdam, NL at 2026-09-14T09:51:40.000Z using IP address 203.0.113.7 within approximately 40 minutes.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "ATT&CK technique T1078.004 represents Cloud Accounts usage as a valid account mechanism for initial access or persistence.",
+            "evidence_id": "default_api:get_attack_technique",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_6619040",
+            "tool_name": "search_events",
+            "arguments": {
+              "timespan": "P7D",
+              "query": "SigninLogs | where UserPrincipalName == \"jdoe@contoso.com\" | order by TimeGenerated desc | take 10"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_6619041",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1078.004"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_6619042",
+            "tool_name": "propose_alert_disposition",
+            "arguments": {
+              "escalate": true,
+              "summary": "The alert indicates atypical travel for jdoe@contoso.com from Paris to Amsterdam within 40 minutes, matching impossible travel patterns characteristic of credential compromise. Further sign-in history analysis is required to verify session details and confirm whether this constitutes active compromise.",
+              "verdict": "true_positive",
+              "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity."
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "recite",
+            "evidence": [
+              "call_6619040"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "call_6619041"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "mitre_techniques": [
+            "T1078",
+            "T1078.004"
+          ],
+          "observed_facts": [
+            {
+              "statement": "User jdoe@contoso.com performed a successful sign-in from Paris, FR at 2026-09-14T09:12:04.000Z and another successful sign-in from Amsterdam, NL at 2026-09-14T09:51:40.000Z using IP address 203.0.113.7 within approximately 40 minutes.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "ATT&CK technique T1078.004 represents Cloud Accounts usage as a valid account mechanism for initial access or persistence.",
+              "evidence": [
+                "default_api:get_attack_technique"
+              ]
+            }
+          ],
+          "assumptions": [
+            {
+              "statement": "The IP address 203.0.113.7 reflects a VPN or proxy service usage, or credential sharing/compromise, as physical travel between Paris and Amsterdam in 39 minutes is impossible.",
+              "why_unverified": "Network infrastructure logs or client-side telemetry regarding VPN usage were not queried."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Subsequent session activity and device compliance status",
+              "why_it_matters": "Determines whether the user successfully executed actions or accessed sensitive resources post sign-in.",
+              "how_to_obtain": "Query CloudAppEvents or DeviceEvents for jdoe@contoso.com around 2026-09-14T09:51:40.000Z."
+            }
+          ],
+          "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity.",
+          "escalate": true
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "User jdoe@contoso.com performed a successful sign-in from Paris, FR at 2026-09-14T09:12:04.000Z and another successful sign-in from Amsterdam, NL at 2026-09-14T09:51:40.000Z using IP address 203.0.113.7 within approximately 40 minutes.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "ATT&CK technique T1078.004 represents Cloud Accounts usage as a valid account mechanism for initial access or persistence.",
+            "evidence_ids": [
+              "default_api:get_attack_technique"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:get_attack_technique",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 2,
+        "grounded_count": 0,
+        "ungrounded_count": 2,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_6619042",
+      "proposal": {
+        "escalate": true,
+        "summary": "The alert indicates atypical travel for jdoe@contoso.com from Paris to Amsterdam within 40 minutes, matching impossible travel patterns characteristic of credential compromise. Further sign-in history analysis is required to verify session details and confirm whether this constitutes active compromise.",
+        "verdict": "true_positive",
+        "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity."
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
   "raw_store": "run.raw"
 }

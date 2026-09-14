@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-14T15:35:35Z",
+ "recommended_action": "Review sign-in logs for jdoe@contoso.com, confirm the impossible travel details, reset credentials if unauthorized, and check for concurrent sessions or malicious activity.",
+ "status": "proposed",
+ "summary": "The alert indicates atypical travel for jdoe@contoso.com from Paris to Amsterdam within 40 minutes, matching impossible travel patterns characteristic of credential compromise. Further sign-in history analysis is required to verify session details and confirm whether this constitutes active compromise.",
+ "verdict": "true_positive"
+}

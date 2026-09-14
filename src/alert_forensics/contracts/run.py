@@ -32,6 +32,19 @@ class ModelLimits(ContractModel):
     max_retries: StrictNonNegativeInt
 
 
+class OutputBinding(ContractModel):
+    """How structured output was bound for the run, and the profile values that decided
+    it. The strategy is decided from ``profile["structured_output"]`` alone: True means
+    the provider strategy, anything else the tool strategy."""
+
+    strategy: Literal["provider", "tool"]
+    profile_declared: bool
+    """Whether the model declared a profile at all."""
+    structured_output: bool | None
+    """``profile["structured_output"]`` as read; None when the profile or the key is absent,
+    or the value is not a boolean."""
+
+
 class RunError(ContractModel):
     kind: NonEmptyStr
     """The exception's class name, or ``budget`` for the recursion limit, or

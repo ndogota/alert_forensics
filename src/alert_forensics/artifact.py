@@ -12,6 +12,7 @@ from alert_forensics.contracts import (
     HumanDecision,
     InvestigationTrace,
     ModelLimits,
+    OutputBinding,
     RunError,
     RunOutcome,
     TriageResult,
@@ -37,6 +38,8 @@ class RunArtifact(ContractModel):
     model_limits: ModelLimits | None = None
     """The timeout and retry bound the model client ran under. None for the scripted
     client, which makes no network call."""
+    output_binding: OutputBinding
+    """How structured output was bound, and the profile values that decided it."""
     role: NonEmptyStr
     adapters: dict[str, AdapterKind]
     """Which kind of adapter served each tool offered to the model."""

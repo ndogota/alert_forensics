@@ -24,6 +24,7 @@ from alert_forensics.contracts.run import (
     DispositionDecision,
     HumanDecision,
     ModelLimits,
+    OutputBinding,
     RunError,
     RunOutcome,
 )
@@ -68,6 +69,7 @@ __all__ = [
     "ModelLimits",
     "ModelUsageRecord",
     "ObservedFact",
+    "OutputBinding",
     "OutputTokenDetails",
     "ProcessEvidence",
     "RunError",
