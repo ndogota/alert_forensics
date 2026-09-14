@@ -23,6 +23,7 @@ from alert_forensics.contracts.run import (
     AdapterKind,
     DispositionDecision,
     HumanDecision,
+    ModelLimits,
     RunError,
     RunOutcome,
 )
@@ -64,6 +65,7 @@ __all__ = [
     "MailboxEvidence",
     "MissingContext",
     "MitreTechniqueId",
+    "ModelLimits",
     "ModelUsageRecord",
     "ObservedFact",
     "OutputTokenDetails",

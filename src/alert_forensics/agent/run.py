@@ -1,10 +1,12 @@
 """Run one investigation end to end and return the artifact, whatever happened."""
 
+import re
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+from langchain_core.exceptions import ModelRateLimitError
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -25,12 +27,14 @@ from alert_forensics.contracts import (
     InputTokenDetails,
     InvestigationTrace,
     MissingContext,
+    ModelLimits,
     ModelUsageRecord,
     ObservedFact,
     OutputTokenDetails,
     RunError,
     RunOutcome,
     SourceSystem,
+    ToolCallRecord,
     ToolOutcome,
     TriageResult,
     Verdict,
@@ -85,6 +89,53 @@ class AnalystDecision(ContractModel):
 DecideFn = Callable[[dict[str, JsonValue]], AnalystDecision]
 """Given the proposal's arguments as the model wrote them, the analyst's decision."""
 
+PROVIDER_REFUSALS: frozenset[str] = frozenset({"rate_limit", "overloaded"})
+"""Error kinds that mean the provider would not serve the call: its capacity, not the
+run's fault. The two kinds that are not an exception's class name."""
+
+_RATE_LIMIT_STATUS = {429}
+_OVERLOADED_STATUS = {503, 529}
+_RATE_LIMIT_TEXT = re.compile(r"\b429\b|resource_exhausted|rate.?limit|quota", re.IGNORECASE)
+_OVERLOADED_TEXT = re.compile(r"\b503\b|\b529\b|unavailable|overloaded", re.IGNORECASE)
+
+
+def run_error(exc: BaseException) -> RunError:
+    """The error a raised exception becomes on the artifact.
+
+    A provider refusal is named as such, ``rate_limit`` or ``overloaded``, rather than
+    by its class: LangChain's error class first, then the status code the exception
+    carries, then the message, so a client that does not map onto LangChain's classes
+    is still named. Anything else keeps its class name.
+    """
+    message = str(exc)
+    return RunError(kind=_error_kind(exc, message), message=message)
+
+
+def _error_kind(exc: BaseException, message: str) -> str:
+    if isinstance(exc, ModelRateLimitError):
+        return "rate_limit"
+    status = _status_code(exc)
+    if status in _RATE_LIMIT_STATUS:
+        return "rate_limit"
+    if status in _OVERLOADED_STATUS:
+        return "overloaded"
+    if status is None:
+        if _RATE_LIMIT_TEXT.search(message):
+            return "rate_limit"
+        if _OVERLOADED_TEXT.search(message):
+            return "overloaded"
+    return type(exc).__name__
+
+
+def _status_code(exc: BaseException) -> int | None:
+    """The HTTP status an SDK exception carries: ``status_code`` on the Anthropic and
+    OpenAI clients, ``code`` on Google's."""
+    for name in ("status_code", "code"):
+        value = getattr(exc, name, None)
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+    return None
+
 
 def run_triage(
     *,
@@ -100,6 +151,8 @@ def run_triage(
     max_corrections: int = 1,
     recursion_limit: int = 50,
     clock: Callable[[], datetime] | None = None,
+    model_limits: ModelLimits | None = None,
+    on_tool_call: Callable[[ToolCallRecord], None] | None = None,
 ) -> RunArtifact:
     clock = clock or (lambda: datetime.now(UTC))
     started_at = clock()
@@ -110,6 +163,7 @@ def run_triage(
         store=store,
         investigation_id=investigation_id,
         clock=clock,
+        on_record=on_tool_call,
     )
     graph = build_triage_graph(
         model=model,
@@ -138,7 +192,7 @@ def run_triage(
     except GraphRecursionError as exc:
         error = RunError(kind="budget", message=str(exc))
     except Exception as exc:
-        error = RunError(kind=type(exc).__name__, message=str(exc))
+        error = run_error(exc)
 
     snapshot = graph.get_state(config).values
     messages = _all_messages(graph, config) or list(state.get("messages") or [])
@@ -166,6 +220,7 @@ def run_triage(
         investigation_id=investigation_id,
         outcome=outcome,
         model=model_id,
+        model_limits=model_limits,
         role=principal.role.name,
         adapters={name: adapter.kind for name, adapter in runner.adapters.items()},
         trace=trace,

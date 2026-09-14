@@ -2,10 +2,12 @@ import json
 from copy import deepcopy
 
 import pytest
+from langchain_core.exceptions import ModelRateLimitError
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from alert_forensics.agent import AnalystDecision, run_triage, runner_tools
+from alert_forensics.agent.run import PROVIDER_REFUSALS, run_error
 from alert_forensics.agent.scripted import (
     ScriptedCall,
     ScriptedChatModel,
@@ -31,7 +33,7 @@ from alert_forensics.tools import (
     fixture_adapters,
 )
 from alert_forensics.tools.disposition import DispositionAdapter
-from conftest import ALERT_PAYLOAD, FIXTURE_TOOLS_DIR, T0
+from conftest import ALERT_PAYLOAD, FIXTURE_TOOLS_DIR, T0, RefusingChatModel
 
 PROFILES = {"provider": {"structured_output": True}, "tool": {"structured_output": False}}
 
@@ -399,3 +401,112 @@ def test_runner_tools_expose_the_request_schema_and_journal_through_the_runner(f
         investigation_id="inv-partial",
     )
     assert [t.name for t in runner_tools(partial)] == ["search_events", "search_siem"]
+
+
+# --- Bounded model calls, progress, provider refusals --------------------------------
+
+
+def test_the_runner_callback_sees_every_call_of_a_run(fixture_set):
+    seen = []
+    model = ScriptedChatModel(
+        script=[INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])],
+        profile=PROFILES["provider"],
+        model_id="s:t",
+    )
+    artifact = run_triage(
+        alert=Alert.model_validate(ALERT_PAYLOAD),
+        model=model,
+        model_id="s:t",
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        store=InMemoryRawStore(),
+        raw_store="mem",
+        decide=lambda proposal: AnalystDecision(accept=True),
+        clock=lambda: T0,
+        on_tool_call=seen.append,
+    )
+    assert artifact.outcome is RunOutcome.completed
+    assert seen == artifact.trace.records
+    assert artifact.model_limits is None
+
+
+def test_model_limits_are_recorded_when_given(fixture_set):
+    from alert_forensics.contracts import ModelLimits
+
+    limits = ModelLimits(timeout_s=30, max_retries=2)
+    artifact, _, _ = run(
+        [INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])], fixture_set=fixture_set
+    )
+    assert artifact.model_limits is None
+    model = ScriptedChatModel(
+        script=[INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])],
+        profile=PROFILES["provider"],
+        model_id="s:t",
+    )
+    artifact = run_triage(
+        alert=Alert.model_validate(ALERT_PAYLOAD),
+        model=model,
+        model_id="s:t",
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        store=InMemoryRawStore(),
+        raw_store="mem",
+        decide=lambda proposal: AnalystDecision(accept=True),
+        clock=lambda: T0,
+        model_limits=limits,
+    )
+    assert artifact.model_limits == limits
+
+
+class _StatusError(Exception):
+    def __init__(self, status_code: int, message: str = "nope"):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+@pytest.mark.parametrize(
+    ("exc", "kind"),
+    [
+        (ModelRateLimitError("Error calling model 'g' (RESOURCE_EXHAUSTED): 429"), "rate_limit"),
+        (_StatusError(429), "rate_limit"),
+        (_StatusError(503), "overloaded"),
+        (_StatusError(529, "overloaded_error"), "overloaded"),
+        (
+            Exception(
+                "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is "
+                "currently experiencing high demand.', 'status': 'UNAVAILABLE'}}"
+            ),
+            "overloaded",
+        ),
+        (Exception("429 RESOURCE_EXHAUSTED. quota exceeded for quota metric"), "rate_limit"),
+        (RuntimeError("You exceeded your current quota, please check your plan"), "rate_limit"),
+        (ValueError("boom"), "ValueError"),
+        (_StatusError(500, "internal"), "_StatusError"),
+    ],
+)
+def test_a_provider_refusal_is_classified_by_class_then_status_then_message(exc, kind):
+    error = run_error(exc)
+    assert error.kind == kind
+    assert error.message == str(exc)
+    assert (kind in PROVIDER_REFUSALS) == (kind in {"rate_limit", "overloaded"})
+
+
+def test_a_refused_run_is_failed_error_of_kind_rate_limit_and_still_writes_the_trace(
+    fixture_set,
+):
+    model = RefusingChatModel(exc=ModelRateLimitError("429 RESOURCE_EXHAUSTED"))
+    artifact = run_triage(
+        alert=Alert.model_validate(ALERT_PAYLOAD),
+        model=model,
+        model_id="google_genai:gemini-x",
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        store=InMemoryRawStore(),
+        raw_store="mem",
+        decide=lambda proposal: AnalystDecision(accept=True),
+        clock=lambda: T0,
+    )
+    assert artifact.outcome is RunOutcome.failed_error
+    assert artifact.error.kind == "rate_limit"
+    assert "429" in artifact.error.message
+    assert artifact.trace.records == []

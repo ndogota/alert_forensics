@@ -10,9 +10,15 @@ from typing import Any
 
 from pydantic import JsonValue, ValidationError
 
-from alert_forensics.agent import AnalystDecision, ScriptedChatModel, demo_script, run_triage
+from alert_forensics.agent import (
+    PROVIDER_REFUSALS,
+    AnalystDecision,
+    ScriptedChatModel,
+    demo_script,
+    run_triage,
+)
 from alert_forensics.artifact import RunArtifact
-from alert_forensics.contracts import Alert, RunOutcome
+from alert_forensics.contracts import Alert, ModelLimits, RunOutcome, ToolCallRecord
 from alert_forensics.fixtures import ATTACK_EXCERPT, DEFAULT_FIXTURES_DIR
 from alert_forensics.tools import (
     ROLES,
@@ -27,7 +33,10 @@ from alert_forensics.tools.live.attack import AttackStixAdapter
 from alert_forensics.tools.runner import AnyAdapter
 
 SCRIPTED_MODEL_ID = "scripted:demo"
-EXIT_OK, EXIT_FAILED_RUN, EXIT_USAGE = 0, 1, 2
+EXIT_OK, EXIT_FAILED_RUN, EXIT_USAGE, EXIT_PROVIDER = 0, 1, 2, 3
+"""3 is the provider refusing to serve: a rate limit, a quota, an overloaded model. It
+is separate from 1 because it is the provider's capacity, not the run's fault."""
+DEFAULT_TIMEOUT_S, DEFAULT_MAX_RETRIES = 60.0, 1
 
 
 class CliError(Exception):
@@ -68,6 +77,23 @@ def _parser() -> argparse.ArgumentParser:
     triage.add_argument("--max-corrections", type=int, default=1)
     triage.add_argument("--fixtures", type=Path, default=DEFAULT_FIXTURES_DIR)
     triage.add_argument("--recursion-limit", type=int, default=50)
+    triage.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT_S,
+        metavar="SECONDS",
+        help="bound on each model call, passed to the provider client (default 60)",
+    )
+    triage.add_argument(
+        "--max-retries",
+        type=int,
+        default=DEFAULT_MAX_RETRIES,
+        help="retries the provider client may make per call (default 1; Google counts "
+        "attempts, so 1 there is no retry)",
+    )
+    triage.add_argument(
+        "--quiet", action="store_true", help="no progress on stderr while the run proceeds"
+    )
     decision = triage.add_mutually_exclusive_group()
     decision.add_argument("--accept", action="store_true", help="accept the proposal")
     decision.add_argument("--reject", metavar="REASON", help="reject the proposal with a reason")
@@ -89,6 +115,7 @@ def _triage(args: argparse.Namespace) -> int:
     alert = _load_alert(args.alert)
     role = ROLES[args.role]
     decide = _decider(args)
+    limits: ModelLimits | None = None
     if args.scripted:
         model_id = SCRIPTED_MODEL_ID
         model: Any = ScriptedChatModel(
@@ -98,7 +125,8 @@ def _triage(args: argparse.Namespace) -> int:
         if not args.model:
             raise CliError("pass --model provider:name, or --scripted to run without a model")
         model_id = args.model
-        model = _init_model(model_id)
+        limits = _limits(args)
+        model = _init_model(model_id, limits)
     adapters = default_adapters(args.fixtures, scripted=args.scripted)
     output: Path = args.output
     raw_dir = output.with_name(f"{output.stem}.raw")
@@ -113,6 +141,8 @@ def _triage(args: argparse.Namespace) -> int:
         decide=decide,
         max_corrections=args.max_corrections,
         recursion_limit=args.recursion_limit,
+        model_limits=limits,
+        on_tool_call=None if args.quiet else _progress,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(artifact.model_dump_json(indent=2), encoding="utf-8")
@@ -120,7 +150,51 @@ def _triage(args: argparse.Namespace) -> int:
     print(f"{artifact.outcome.value}  verdict: {verdict}  artifact: {output}  raw: {raw_dir}")
     if artifact.error is not None:
         print(f"error: {artifact.error.kind}: {artifact.error.message}")
-    return EXIT_OK if artifact.outcome is RunOutcome.completed else EXIT_FAILED_RUN
+    if artifact.outcome is RunOutcome.completed:
+        return EXIT_OK
+    if artifact.error is not None and artifact.error.kind in PROVIDER_REFUSALS:
+        print(
+            f"alert-forensics: {_refusal(model_id, limits, artifact.error.kind)}", file=sys.stderr
+        )
+        return EXIT_PROVIDER
+    return EXIT_FAILED_RUN
+
+
+def _limits(args: argparse.Namespace) -> ModelLimits:
+    try:
+        return ModelLimits(timeout_s=args.timeout, max_retries=args.max_retries)
+    except ValidationError as exc:
+        raise CliError(f"--timeout is above zero and --max-retries is zero or more: {exc}") from exc
+
+
+def _progress(record: ToolCallRecord) -> None:
+    """One line per journalled tool call, on stderr, so stdout stays the result alone."""
+    print(
+        f"  step {record.step}  {record.tool_name:<26} {record.outcome.value:<7} "
+        f"{record.duration_us / 1000:.1f} ms",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+def _refusal(model_id: str, limits: ModelLimits | None, kind: str) -> str:
+    provider, _, name = model_id.partition(":")
+    if not name:
+        provider, name = "the provider inferred for it", model_id
+    retries = (
+        "no retry budget"
+        if limits is None
+        else f"{limits.max_retries} retr{'y' if limits.max_retries == 1 else 'ies'}"
+    )
+    what = (
+        "rate limit or quota exhausted"
+        if kind == "rate_limit"
+        else "the model is overloaded and the provider refused the call"
+    )
+    return (
+        f"{provider} would not serve {name}: {what}, after {retries}. This is the "
+        "provider's capacity, not a bug in the run; wait, or raise the quota, and rerun."
+    )
 
 
 def _load_alert(path: Path) -> Alert:
@@ -136,11 +210,13 @@ def _load_alert(path: Path) -> Alert:
         raise CliError(f"{path} is not a Graph security.alert v2 object: {exc}") from exc
 
 
-def _init_model(model_id: str) -> Any:
+def _init_model(model_id: str, limits: ModelLimits) -> Any:
+    """Every model call is bounded. Left on its defaults, a client retries a rate limit
+    with exponential backoff in silence; both bounds are recorded on the artifact."""
     from langchain.chat_models import init_chat_model
 
     try:
-        return init_chat_model(model_id)
+        return init_chat_model(model_id, timeout=limits.timeout_s, max_retries=limits.max_retries)
     except ImportError as exc:
         raise CliError(
             f"the provider for {model_id!r} is not installed: {exc}. Install the extra, "

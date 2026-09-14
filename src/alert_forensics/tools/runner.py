@@ -39,6 +39,7 @@ class ToolRunner:
         store: RawResponseStore,
         investigation_id: str,
         clock: Callable[[], datetime] | None = None,
+        on_record: Callable[[ToolCallRecord], None] | None = None,
     ) -> None:
         self.adapters: dict[str, AnyAdapter] = {}
         for adapter in adapters:
@@ -51,6 +52,9 @@ class ToolRunner:
         self.investigation_id = investigation_id
         self.clock = clock or (lambda: datetime.now(UTC))
         self.records: list[ToolCallRecord] = []
+        self.on_record = on_record
+        """Called with each record as it is journalled. A view over the journal, for
+        progress; the journal itself is ``records``."""
         self._lock = threading.Lock()
         """One call at a time: the journal is a sequence, and a duplicate id is caught
         before anything runs even when a caller invokes from several threads."""
@@ -87,6 +91,8 @@ class ToolRunner:
             raw_response_sha256=stored.sha256,
         )
         self.records.append(record)
+        if self.on_record is not None:
+            self.on_record(record)
         return record
 
     def _execute(

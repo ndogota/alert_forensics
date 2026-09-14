@@ -281,3 +281,21 @@ def test_the_runner_journals_one_call_at_a_time(store):
         t.join()
     assert sorted(r.tool_call_id for r in runner.records) == ["tc-0", "tc-1", "tc-2", "tc-3"]
     assert len(errors) == 4 and all("already journalled" in str(e) for e in errors)
+
+
+def test_every_journalled_record_reaches_the_callback_in_journal_order(store):
+    seen = []
+    runner = ToolRunner(
+        adapters=[ScriptedAdapter("lookup_ioc", raw=IOC_RAW)],
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        store=store,
+        investigation_id="inv-1",
+        clock=lambda: T0,
+        on_record=seen.append,
+    )
+    runner.invoke(
+        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "1.2.3.4"}
+    )
+    runner.invoke(tool_call_id="tc-2", step=1, tool_name="no_such_tool", arguments={})
+    assert seen == runner.records
+    assert [r.outcome for r in seen] == [ToolOutcome.ok, ToolOutcome.error]

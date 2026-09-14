@@ -116,3 +116,19 @@ def test_a_correction_means_two_passes(trace, grounded_result):
             error=RunError(kind="x", message="y"),
             corrections=[correction],
         )
+
+
+def test_model_limits_sit_beside_the_model_and_round_trip(trace, grounded_result):
+    from alert_forensics.contracts import ModelLimits
+
+    report = validate_grounding(grounded_result, trace)
+    limits = ModelLimits(timeout_s=60, max_retries=1)
+    artifact = make_artifact(trace, report, model_limits=limits)
+    assert artifact.model_limits == limits
+    assert RunArtifact.model_validate_json(artifact.model_dump_json()) == artifact
+    # The scripted client makes no network call: nothing bounded it, and it says so.
+    assert make_artifact(trace, report).model_limits is None
+    with pytest.raises(ValidationError):
+        ModelLimits(timeout_s=0, max_retries=1)
+    with pytest.raises(ValidationError):
+        ModelLimits(timeout_s=60, max_retries=-1)

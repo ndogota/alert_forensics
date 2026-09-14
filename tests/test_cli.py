@@ -153,3 +153,145 @@ def test_replay_of_a_missing_raw_store_says_so(alert_file, tmp_path, capsys):
     shutil.rmtree(tmp_path / "run.raw")
     assert main(["replay", str(out)]) == 2
     assert "raw store" in capsys.readouterr().err
+
+
+# --- Bounded model calls, progress on stderr, provider refusals ----------------------
+
+
+def _fake_init(model, seen):
+    """Stands in for ``init_chat_model``: records its keyword arguments, returns ``model``."""
+
+    def init(model_id, **kwargs):
+        seen.append((model_id, kwargs))
+        return model
+
+    return init
+
+
+def test_timeout_and_max_retries_pass_through_and_are_recorded(alert_file, tmp_path, monkeypatch):
+    from alert_forensics.agent import ScriptedChatModel, demo_script
+    from alert_forensics.contracts import Alert, ModelLimits
+
+    alert = Alert.model_validate(json.loads(alert_file.read_text()))
+    seen = []
+    scripted = ScriptedChatModel(
+        script=demo_script(alert), profile={"structured_output": True}, model_id="fake:model"
+    )
+    monkeypatch.setattr("langchain.chat_models.init_chat_model", _fake_init(scripted, seen))
+    out = tmp_path / "run.json"
+    argv = ["triage", str(alert_file), "--model", "fake:model", "--accept", "-o", str(out)]
+    assert main([*argv, "--timeout", "30", "--max-retries", "2"]) == 0
+    assert seen == [("fake:model", {"timeout": 30.0, "max_retries": 2})]
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert artifact.model_limits == ModelLimits(timeout_s=30, max_retries=2)
+    # The defaults: a minute, one retry.
+    seen.clear()
+    scripted = ScriptedChatModel(
+        script=demo_script(alert), profile={"structured_output": True}, model_id="fake:model"
+    )
+    monkeypatch.setattr("langchain.chat_models.init_chat_model", _fake_init(scripted, seen))
+    assert main(argv) == 0
+    assert seen == [("fake:model", {"timeout": 60.0, "max_retries": 1})]
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert artifact.model_limits == ModelLimits(timeout_s=60, max_retries=1)
+
+
+def test_a_scripted_run_records_no_limits(alert_file, tmp_path):
+    out = tmp_path / "run.json"
+    assert main(["triage", str(alert_file), "--scripted", "--accept", "-o", str(out)]) == 0
+    assert RunArtifact.model_validate_json(out.read_text()).model_limits is None
+
+
+def test_progress_is_one_stderr_line_per_tool_call_and_stdout_is_the_result(
+    alert_file, tmp_path, capsys
+):
+    out = tmp_path / "run.json"
+    assert main(["triage", str(alert_file), "--scripted", "--accept", "-o", str(out)]) == 0
+    captured = capsys.readouterr()
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    lines = captured.err.splitlines()
+    assert len(lines) == len(artifact.trace.records) >= 3
+    for line, record in zip(lines, artifact.trace.records, strict=True):
+        assert f"step {record.step}" in line
+        assert record.tool_name in line
+        assert record.outcome.value in line
+        assert "ms" in line
+    assert captured.out.count("\n") == 1 and captured.out.startswith("completed")
+
+
+def test_quiet_suppresses_the_progress_and_nothing_else(alert_file, tmp_path, capsys):
+    out = tmp_path / "run.json"
+    argv = ["triage", str(alert_file), "--scripted", "--accept", "-o", str(out), "--quiet"]
+    assert main(argv) == 0
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert captured.out.startswith("completed")
+
+
+def test_a_provider_refusal_is_named_on_stderr_and_exits_3(
+    alert_file, tmp_path, monkeypatch, capsys
+):
+    from langchain_core.exceptions import ModelRateLimitError
+
+    from conftest import RefusingChatModel
+
+    refusing = RefusingChatModel(
+        exc=ModelRateLimitError(
+            "Error calling model 'gemini-3.8-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED"
+        )
+    )
+    monkeypatch.setattr("langchain.chat_models.init_chat_model", _fake_init(refusing, []))
+    out = tmp_path / "run.json"
+    code = main(
+        [
+            "triage",
+            str(alert_file),
+            "--model",
+            "google_genai:gemini-3.8-flash",
+            "--accept",
+            "-o",
+            str(out),
+        ]
+    )
+    assert code == 3
+    err = capsys.readouterr().err
+    assert "google_genai" in err and "gemini-3.8-flash" in err
+    assert "quota" in err and "not a bug" in err
+    assert "1 retr" in err
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert artifact.outcome is RunOutcome.failed_error
+    assert artifact.error.kind == "rate_limit"
+
+
+def test_an_overloaded_provider_is_named_the_same_way(alert_file, tmp_path, monkeypatch, capsys):
+    from conftest import RefusingChatModel
+
+    class GoogleAPIError(Exception):
+        pass
+
+    refusing = RefusingChatModel(
+        exc=GoogleAPIError(
+            "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently "
+            "experiencing high demand. Spikes in demand are usually temporary. Please try "
+            "again later.', 'status': 'UNAVAILABLE'}}"
+        )
+    )
+    monkeypatch.setattr("langchain.chat_models.init_chat_model", _fake_init(refusing, []))
+    out = tmp_path / "run.json"
+    argv = ["triage", str(alert_file), "--model", "google_genai:gemini-3.8-flash", "--accept"]
+    assert main([*argv, "-o", str(out)]) == 3
+    err = capsys.readouterr().err
+    assert "google_genai" in err and "overloaded" in err and "not a bug" in err
+    assert RunArtifact.model_validate_json(out.read_text()).error.kind == "overloaded"
+
+
+def test_any_other_failure_keeps_exit_1(alert_file, tmp_path, monkeypatch, capsys):
+    from conftest import RefusingChatModel
+
+    refusing = RefusingChatModel(exc=RuntimeError("wire fell out"))
+    monkeypatch.setattr("langchain.chat_models.init_chat_model", _fake_init(refusing, []))
+    out = tmp_path / "run.json"
+    argv = ["triage", str(alert_file), "--model", "fake:model", "--accept", "-o", str(out)]
+    assert main(argv) == 1
+    captured = capsys.readouterr()
+    assert "RuntimeError" in captured.out and "not a bug" not in captured.err

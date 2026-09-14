@@ -231,3 +231,28 @@ def _no_network(monkeypatch, tmp_path):
 
 def load_recorded(*parts: str) -> JsonValue:
     return json.loads(RECORDED_DIR.joinpath(*parts).read_text())
+
+
+# --- A model that refuses ---------------------------------------------------------------
+
+from typing import Any  # noqa: E402
+
+from langchain_core.language_models.chat_models import BaseChatModel  # noqa: E402
+from langchain_core.messages import BaseMessage  # noqa: E402
+from langchain_core.outputs import ChatResult  # noqa: E402
+
+
+class RefusingChatModel(BaseChatModel):
+    """Raises the given exception on every call: a provider that will not serve."""
+
+    exc: Exception
+
+    @property
+    def _llm_type(self) -> str:
+        return "refusing"
+
+    def bind_tools(self, tools: Any, **kwargs: Any) -> Any:
+        return self.bind(**kwargs)
+
+    def _generate(self, messages: list[BaseMessage], **kwargs: Any) -> ChatResult:
+        raise self.exc
