@@ -46,7 +46,7 @@ contract to port to. Nothing here talks to a production SIEM or EDR out of the b
 | `get_related_alerts` | Graph `security/alerts_v2` | fixture-backed |
 | `get_process_tree` | `DeviceProcessEvents` through the hunting API | fixture-backed |
 | `search_runbook` | internal knowledge base | fixture-backed |
-| `get_attack_technique` | ATT&CK enterprise STIX bundle | **live**, no key; the bundle is cached under `~/.cache/alert-forensics/attack/` |
+| `get_attack_technique` | ATT&CK enterprise STIX bundle | **live**, no key; cached under `~/.cache/alert-forensics/attack/`, with a recorded excerpt as the offline fallback |
 | `propose_alert_disposition` | the project's own shape | local, no upstream: records a proposal for the analyst and writes nothing |
 
 Every definition carries its live contract (endpoint, auth, permission) in code, so a
@@ -56,19 +56,36 @@ through an in-memory transport, see [tests/recorded/README.md](tests/recorded/RE
 
 ## Using it
 
+Without a key, replay a recorded run:
+
 ```
 uv sync
+uv run alert-forensics replay runs/atypical_travel/run.json
+```
+
+`replay` reads a committed artifact, verifies every raw tool response beside it against
+the recorded hashes, states the model and the date, and prints the result: verdict,
+grounded facts with their citations, assumptions, missing context, human decisions.
+What it prints is a recording of a real model run, not a live one: nothing is called,
+nothing is generated. **There is no recorded run committed yet.** The first, scenario 1
+on a real model, is produced with the command under "With a model" below, written to
+`runs/atypical_travel/run.json` with its `run.raw/` beside it, and committed. A
+recording of the scripted client is refused by the test suite: a fake demo is worse
+than none.
+
+A plumbing check, no key and no model:
+
+```
 uv run alert-forensics triage examples/atypical_travel.alert.json --scripted -o run.json
 uv run alert-forensics show run.json
 ```
 
-The first command runs the whole graph on the scripted client: no key, no network. The
-proposal interrupt is answered on the terminal, or ahead of time with `--accept` or
-`--reject REASON`. It writes `run.json`, the run artifact, and `run.raw/`, the raw tool
-responses the trace's refs resolve under. A scripted run's verdict is `inconclusive` by
-construction: the script replays tool calls and reasons about nothing. What it shows is
-the mechanism: every call journalled, every fact cited and resolved, the interrupt, the
-artifact.
+This runs the whole graph on the scripted client. The proposal interrupt is answered on
+the terminal, or ahead of time with `--accept` or `--reject REASON`. It writes
+`run.json`, the artifact, and `run.raw/`, the raw responses the trace's refs resolve
+under. A scripted run's verdict is `inconclusive` by construction: the script replays
+tool calls and reasons about nothing. It shows the mechanism, every call journalled and
+every fact resolved, and it is not a demonstration of triage.
 
 With a model:
 
@@ -78,10 +95,12 @@ ANTHROPIC_API_KEY=... uv run alert-forensics triage ALERT.json --model anthropic
 ```
 
 `--model provider:name` goes through `init_chat_model`; the provider package is an extra
-(`anthropic`, `openai`, `google`, `ollama`). `get_attack_technique` is then live against
-the public bundle, and `lookup_ioc` is live when `VIRUSTOTAL_API_KEY` is set. The
-artifact's `adapters` field records which adapter served each tool. `--role tier1` runs
-under the restricted role. `--max-corrections` bounds the correction loop, default one.
+(`anthropic`, `openai`, `google`, `ollama`). `get_attack_technique` is live against the
+public ATT&CK bundle in every mode, `--scripted` included, since it needs no key; when
+the bundle cannot be fetched, the recorded excerpt shipped in the package serves and the
+artifact's `adapters` field says `recorded` instead of `live`. `lookup_ioc` is live when
+`VIRUSTOTAL_API_KEY` is set. `--role tier1` runs under the restricted role.
+`--max-corrections` bounds the correction loop, default one.
 
 Nothing in this repository has been run against a real model yet: the build runs
 entirely on the scripted client, as the spec's cost discipline requires. The first
