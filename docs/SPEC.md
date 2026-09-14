@@ -634,7 +634,9 @@ alert-forensics triage ALERT.json --model anthropic:claude-sonnet-5 --role analy
 alert-forensics triage ALERT.json --scripted -o run.json
 alert-forensics show run.json
 alert-forensics replay run.json
-alert-forensics eval
+alert-forensics eval --scripted
+alert-forensics eval --model anthropic:claude-sonnet-5 --runs 3
+alert-forensics eval-report results/
 ```
 
 - `triage` reads a real Microsoft Graph `security.alert` v2 export, runs the
@@ -671,8 +673,8 @@ alert-forensics eval
   `show`. Recorded runs live under `runs/<scenario>/`, and each is a recording of a
   real model run, never of the scripted client: a recording of the scripted client
   would be a fake demo, which is worse than none. A test refuses a committed recording
-  whose model is the scripted client. The viewer over the same artifacts, and `eval`,
-  are the next slice.
+  whose model is the scripted client. `eval` and `eval-report` are described under
+  "Evaluation"; the viewer over the same artifacts is the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
 - `--timeout SECONDS` (default 60) and `--max-retries N` (default 1) bound every model
@@ -727,20 +729,192 @@ That last view is the argument in one screen. The matrix page carries the rest.
 
 ## Evaluation
 
-- Verdict accuracy, evidence recall, missing-context recall, escalation precision and
-  recall.
-- Failure rate, split by `RunOutcome`, reported beside accuracy as a first-class number.
-  A failed run scores zero on every accuracy metric and is never counted as
-  `inconclusive`.
-- `ungrounded_claim_rate`, enforced to zero.
-- Cost and latency per investigation, from `usage_metadata` aggregated by
-  `UsageMetadataCallbackHandler`, the provider-agnostic path.
-- N runs per cell, Wilson 95 percent intervals. Failed runs stay in the denominator, so
-  a model cannot look good by staying silent or by failing quietly.
-- Capture and replay: fixtures are frozen, so a run is deterministic up to model
-  sampling and a regression is a real regression. Recorded runs under `runs/` are the
-  captures; `replay` reads them and needs no key.
-- A deterministic scripted client runs the whole suite with no API key.
+The harness produces the numbers the project exists for. Every decision below was taken
+before the seven remaining scenarios were written, because the scorers decide what a
+scenario file must contain: seven ground truths written against a schema nobody had
+exercised would all be rewritten once the first score came out.
+
+### Ground truth as a contract
+
+One `GroundTruth` file per scenario, beside its alert: `examples/<scenario>.alert.json`
+and `examples/<scenario>.truth.json` share the stem, and the stem is the scenario's name
+everywhere else, under `runs/` and under the results directory.
+
+```
+GroundTruth
+  scenario           the file stem; the loader refuses a file whose stem disagrees
+  alert_id           the alert's id; the loader refuses a pair whose ids disagree
+  verdict            Verdict, the label from the table under "Scenarios"
+  escalate           whether the investigation is expected to escalate
+  required_findings  [{name, tools: [tool_name], tokens}]
+  missing_context    [{name, tokens}]
+
+tokens               [token], each token a string or a list of alternative strings
+```
+
+- `alert_id` is on the truth so that the pairing is checked, not assumed: a truth file
+  copied beside the wrong alert fails to load rather than scoring the wrong scenario.
+- `tools` names tools from the tool surface, validated against the registry; the write
+  action is refused there, since its record is never evidence and a finding resting on
+  it could never be carried by a grounded fact. One entry is the common case. Several
+  entries mean the same fact can be established from more than one system, as the
+  ownership of scenario 1's egress address can be read from VirusTotal's `as_owner` or
+  from the runbook; the finding is reached through any of them.
+- Names are unique within a file and appear in the score, so a miss is reported by name.
+
+**A required finding is matched against an emitted fact by tool and by tokens, never by
+a model.** A finding cannot reference a `tool_call_id`, which is generated per run, so
+the match is defined on what a run does preserve: which tool a fact cites, and what its
+statement says. A finding is reached when at least one observed fact satisfies both:
+
+1. The fact is grounded, and among the calls it cites there is one whose `tool_name` is
+   in the finding's `tools`. Grounding is required first: only a grounded fact carries a
+   finding, so a fact that says the right thing on a citation that does not resolve is
+   not credited. The tool is read from the trace record the citation resolves to, never
+   from the statement.
+2. The fact's statement contains every token. Matching is a case-insensitive substring
+   test on whitespace-normalised text. A token that is a list of alternatives is
+   satisfied by any one of them, so `["SASE", "VPN", "gateway"]` reads "one of these";
+   the list is small on purpose and is written out in the file where a reviewer sees it.
+
+The match is deterministic and a human can see why it passed or failed: the score names
+the finding, the tokens it missed, and the facts it examined. A model judge would put a
+model back inside the measurement, which is the thing this project exists to avoid, and
+its misses would not be inspectable. The cost is that tokens are a literal floor: a fact
+that establishes the finding in words the tokens did not anticipate is a recall miss.
+That miss is visible by name, and widening the tokens is a decision a person reviews in
+a diff. A judge's miss is neither.
+
+An expected missing-context entry is matched the same way, on tokens alone: an entry is
+named when at least one `missing_context` item contains every token across its `what`,
+`why_it_matters` and `how_to_obtain` joined by a space. There is no tool to anchor to,
+since missing context is by definition what no call established.
+
+### Scorers
+
+Each run is scored on its own into a `RunScore`, from its artifact and the scenario's
+ground truth, and the cell numbers are built from the run scores. A `RunScore` is fully
+derived: it can be recomputed from the artifact and the truth file at any time, which is
+what `eval-report` does, so a ground truth corrected after a cell was run re-scores the
+cell without running the model again.
+
+- **Verdict accuracy.** Exact match of the four values, no partial credit. A run scores 1
+  or 0, and the cell number is the proportion of runs scoring 1.
+- **Evidence recall.** Required findings reached over required findings, counting only
+  findings carried by a grounded fact. The cell number pools the pairs: reached
+  findings summed over runs, over required findings times runs.
+- **Missing-context recall.** Expected entries named over expected entries, pooled the
+  same way.
+- **Escalation precision and recall.** A run is a predicted escalation when it completed
+  and its result escalates; it is an expected escalation when its ground truth says so.
+  Recall is correct predictions over expected escalations; precision is correct
+  predictions over predicted escalations. A failed run predicts nothing, so it never
+  enters the precision denominator, and it is a missed escalation wherever one was
+  expected. A cell with no expected escalation has no recall, and one with no predicted
+  escalation has no precision; both are reported as absent, never as zero or one.
+- **`ungrounded_claim_rate`.** Zero on a completed run by construction: the artifact
+  refuses to validate otherwise. It is reported anyway, pooled over the facts of the
+  completed runs, as the check that the loop did its job, and the summary carries a flag
+  that says whether it held.
+
+The pooled proportions treat every (finding, run) pair as one trial. Pairs from one run
+are not independent, so the interval on a pooled recall is narrower than the truth; it is
+reported as such, and the run count beside it says how much weight to give it.
+
+### Failure is a first-class number
+
+A run whose outcome is `failed_ungrounded` or `failed_error` scores zero on every
+metric: verdict wrong, no finding reached, no missing context named, no escalation
+predicted. It stays in every denominator. The failure rate is reported beside accuracy,
+split by outcome and, for `failed_error`, by error kind, and it is never folded into
+accuracy and never dropped. A model that fails a third of its runs cannot show a clean
+accuracy on the rest: its accuracy denominator is all of its runs.
+
+### Statistics
+
+N runs per cell, configurable with `--runs`, default 3: small, because the build runs on
+the scripted client and a real cell costs money, and the intervals say what three runs
+are worth. A cell is one model under one role on one scenario.
+
+Every proportion is reported as a `Proportion`: numerator, denominator, point estimate,
+and the Wilson 95 percent interval. The interval is computed in code, with the formula
+in the docstring, and never approximated with a normal interval: at n of 3 the normal
+interval is meaningless and the Wilson interval is not. A proportion with an empty
+denominator has no estimate and no interval, and is reported as absent. The interval
+appears everywhere the point estimate does, in the summary file and in the printed
+report, so a number cannot be read without its width.
+
+### Cost and latency
+
+Both per investigation, and neither on the contracts.
+
+- **Cost** is derived at report time from the trace's `ModelUsageRecord` entries and a
+  price table that lives in the evaluation package, keyed by the `provider:model` string,
+  with the rate per million tokens for input, output, cache reads and cache writes, and
+  the source and date of each row. The artifact carries tokens, never money, so a price
+  change never rewrites an artifact. A model absent from the table has no cost, and the
+  report says "no price for", never zero. The scripted client is in the table at zero,
+  explicitly.
+- **Latency** is the wall clock the harness measured around the investigation, recorded
+  in the harness's own per-run file. It is not on the artifact, because a `triage` run
+  answers the proposal interrupt on a terminal and its wall clock would include the
+  analyst's deliberation; the harness answers every proposal instantly, so its clock
+  measures the investigation alone. The proposal is accepted in every run: the human
+  decision is not what the harness measures, and rejecting it would change what the
+  model does next.
+
+### The CLI
+
+```
+alert-forensics eval --scripted [--runs N] [--results DIR] [--scenario NAME]
+alert-forensics eval --model provider:name [--role ROLE] [--runs N] [--results DIR] ...
+alert-forensics eval-report DIR
+```
+
+- `eval` runs every scenario under `examples/` (`--scenario` narrows it) N times each
+  and writes one directory per run: `DIR/<model>/<role>/<scenario>/<k>/` holding
+  `run.json`, the same artifact `triage` writes, readable by `show` and `replay`;
+  `run.raw/`, its raw store; `eval.json`, what only the harness knew, the scenario, the
+  cell, the index, and the measured wall clock; and `score.json`, the `RunScore`. The
+  model string is made a directory name by replacing the characters a path cannot carry.
+  Every run keeps its artifact, whatever its outcome, so a failed run is inspectable,
+  and a second invocation into the same directory continues the numbering rather than
+  overwriting: a cell accumulates, and nothing measured is lost to a rerun.
+- After the runs it writes `DIR/summary.json`, one `CellSummary` per cell found under
+  the directory, and prints the report. The summary is derived from the run directories
+  and can be recomputed at any time; `eval-report DIR` recomputes it, re-scoring every
+  run from its artifact and the current ground truth, rewrites `score.json` and
+  `summary.json`, and prints the report. Cells from several sessions in one directory
+  are summarised together, since the summary reads whatever is there.
+- `--scripted` runs the whole suite with no key and no network, on the built-in script,
+  which is how the test suite exercises it. Its verdict is `inconclusive` by
+  construction, so its verdict accuracy is zero on every scenario whose label is not
+  inconclusive; that is the floor the harness measures, not a defect in it.
+- `--model` runs it for real; `--timeout`, `--max-retries`, `--max-corrections` and
+  `--role` mean what they mean for `triage`. A provider refusal is a `failed_error` run
+  with kind `rate_limit` or `overloaded`, counted like any failure; the harness goes on
+  to the next run rather than stopping, and the summary shows the kind.
+
+### Scenario 1, the first ground truth
+
+Checked against the table under "Scenarios": the signal is two sign-ins geo-located to
+two cities, the assertion is that the person was in two places, and the assertion is
+false because both sign-ins egress from the group SASE gateway. Label `false_positive`,
+no escalation.
+
+- Required findings, three: the Paris sign-in from `203.0.113.7`, the Amsterdam sign-in
+  from `203.0.113.7`, each cited from `search_events`; and that the address is the SASE
+  gateway, cited from `lookup_ioc` or `search_runbook`. Two findings for the two sign-ins
+  rather than one for "both", because a fact that names each sign-in with its address
+  has established the shared egress in a form the tokens can see, while "both" has too
+  many spellings to enumerate honestly.
+- Expected missing context, two: the gateway or VPN session log that ties the user to
+  the gateway at both times, which no tool provides; and the MFA or device compliance
+  outcome, which the runbook checklist asks for and the sign-in view does not carry.
+- The committed recording under `runs/atypical_travel/` scores verdict 1, evidence
+  recall 3 of 3, missing context 0 of 2, escalation correct. The zero is the model's:
+  it named nothing it could not establish. The harness reports it rather than lowering
+  the bar.
 
 ## Cost discipline
 
