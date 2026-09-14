@@ -57,6 +57,43 @@ it. The only guaranteed identity link in a trace is
 A claim that cannot be attached to a tool call is not a fact. It belongs in
 `assumptions`, or it does not exist.
 
+## The correction loop
+
+When the validator rejects a result, the model is asked to repair it. Three decisions
+bound that loop. Each is a decision, not an option, and carries its reason.
+
+**One correction attempt, two model passes in total.** The attempt count is
+configurable (`max_corrections`, default 1). The defects the validator catches are
+invented ids and citations of failed calls. A model that cannot repair those with the
+problems spelled out in front of it will not repair them on a third pass, and an
+unbounded loop makes the measured cost and latency per investigation meaningless: a
+number that depends on how many times the harness was willing to retry is a property of
+the harness, not of the model.
+
+**The second pass receives a repair instruction, not the report.** For each offending
+fact it gets the statement, the offending evidence id, the problem kind, and the list of
+`tool_call_id`s actually present in the trace. It does not get the already-grounded
+facts, the trace, or the raw responses. The loop repairs citations; it is not a second
+chance to reason. If it were, the harness would measure the wrong pass: a verdict that
+is right only after the model was told which citations were fictional is not the verdict
+the first pass produced.
+
+**A run that leaves the loop still ungrounded is a failed run, never inconclusive.**
+
+```
+RunOutcome
+  completed          the loop ended with a grounded result
+  failed_ungrounded  the loop ended and the result is still ungrounded
+  failed_error       no result was produced: model error, unparseable output, budget
+```
+
+The evaluation reports the failure rate as a first-class number beside accuracy, split
+by outcome, and a failed run scores zero on every accuracy metric. `inconclusive` is a
+verdict an analyst is sometimes right to give: the evidence really was insufficient and
+the missing context says why. Laundering a failure into it would destroy the meaning of
+verdict accuracy, the same way collapsing `benign_true_positive` into `false_positive`
+loses the tuning decisions.
+
 ## Where conventional code wins
 
 Stated explicitly, because the judgement matters more than a blanket use of models.
@@ -106,19 +143,75 @@ tuning decisions get lost.
 
 ## Tool surface, read-only
 
-Shapes mimic real APIs so the code would port to a live environment.
+Every tool sits behind a `ToolAdapter` that declares its required scope and its
+response shape. Shapes follow the real APIs, so a fixture-backed tool is ported to a
+tenant by writing a new adapter, not by changing the shape the agent sees.
 
-| Tool | Modelled on |
-|---|---|
-| `search_events` | Defender advanced hunting, `schema[] {name,type}` plus `results[]` |
-| `search_siem` | Splunk search v2, sid then results, SPL string in |
-| `get_identity` | Splunk Asset and Identity framework, priority drives urgency |
-| `get_asset` | same framework, device compliance and criticality |
-| `lookup_ioc` | VirusTotal v3, JSON:API envelope, epoch dates, engine counters |
-| `get_related_alerts` | Microsoft Graph `security/alerts_v2` |
-| `get_process_tree` | `DeviceProcessEvents` lineage |
-| `search_runbook` | internal knowledge, the retrieval component |
-| `get_attack_technique` | ATT&CK STIX bundle, deterministic, not a model call |
+| Tool | Shape follows | Adapter |
+|---|---|---|
+| `search_events` | Graph `security/runHuntingQuery`, `schema[] {name,type}` plus `results[]` | fixture |
+| `search_siem` | Splunk search v2, sid then results, SPL string in | fixture |
+| `get_identity` | Splunk Asset and Identity framework, priority drives urgency | fixture |
+| `get_asset` | same framework, device compliance and criticality | fixture |
+| `lookup_ioc` | VirusTotal v3, JSON:API envelope, epoch dates, engine counters | **live**, free API key |
+| `get_related_alerts` | Microsoft Graph `security/alerts_v2` | fixture |
+| `get_process_tree` | `DeviceProcessEvents` lineage through the hunting API | fixture |
+| `search_runbook` | internal knowledge, the retrieval component | fixture |
+| `get_attack_technique` | ATT&CK STIX bundle, deterministic, not a model call | **live**, public bundle, no key |
+
+### The tool layer
+
+A tool call travels through one pipeline, whatever the adapter behind it:
+
+1. Scope check. The principal's scopes are compared with the tool's declared scope. A
+   miss produces a `ScopeDenial`, journalled with outcome `denied`. The adapter is never
+   called.
+2. Argument validation against the tool's request model. A miss is journalled as
+   outcome `error`, kind `invalid_arguments`, with the validation message, so the model
+   can correct the call.
+3. The adapter fetches the raw upstream response. Any upstream failure, including a
+   fixture that has no answer for the request, is journalled as outcome `error` with a
+   structured `ToolFailure`. Nothing raises into the agent.
+4. The raw response is stored out of context and referenced from the record by
+   `raw_response_ref` and `raw_response_sha256`. It is stored whether or not it
+   validates against the response shape: a malformed response is still evidence.
+5. The raw response is validated against the response shape, projected to the tool's
+   view, then passed through the generic redaction. The projection is what the model
+   sees, verbatim, as `redacted_response`.
+
+Decisions the pipeline rests on:
+
+- Scopes are the project's own strings (`hunting:read`, `siem:search`, `identity:read`,
+  `asset:read`, `ioc:lookup`, `alerts:read`, `runbook:read`, `attack:read`), each mapped
+  to the live permission in the adapter's documented contract. Two roles ship:
+  `analyst` holds every read scope; `tier1` holds all but `siem:search`, since raw SPL
+  is commonly gated above tier one, and a role that is really restricted is what makes
+  the denial path something the harness exercises rather than a theoretical branch.
+- Response shapes tolerate unknown fields, since real APIs add them. Views forbid them,
+  since a field the model sees that nobody declared is a redaction gap.
+- Projections cap tabular results at 50 rows and say so with a `truncated` flag. The
+  model is told the total row count.
+- Redaction is two-layered. The projection drops what the model has no use for: names,
+  phone numbers, coordinates, engine-by-engine verdicts. A generic pass then redacts
+  secrets by pattern (JWTs, bearer tokens, cloud access keys, private key blocks,
+  password assignments in command lines) and personal data by field name, in every
+  string of every view. Emails and user principal names are kept: they are the join keys
+  of the investigation, and an investigation that cannot name the account cannot triage
+  it.
+- A call to a tool that does not exist, or that has no adapter registered, is journalled
+  as an `error` of kind `unknown_tool` with source system `none`. The journal never files
+  a call under a system it did not reach.
+- Fixture adapters match a request against stubs: an exact value, `$contains` or
+  `$regex` per argument, with an optional default. A request no stub answers is an
+  `error` of kind `no_fixture`, never a silent empty result, so a fixture gap shows in
+  the trace instead of being read as absence of evidence.
+- Live adapters take an injected HTTP client. The test suite drives them through a
+  recorded response and a transport that never opens a socket. Nothing in the tests
+  reaches a live API.
+- VirusTotal "not found" is a successful call: an indicator unknown to VirusTotal is a
+  reading, and the projection says so. An ATT&CK id that does not exist is an error of
+  kind `not_found`: ids come from the alert or from the model, and an invented one must
+  fail loudly.
 
 Alerts follow the Microsoft Graph `security.alert` v2 shape, including the polymorphic
 `evidence[]` discriminated by `@odata.type` and `mitreTechniques` as `T####.###`
@@ -181,6 +274,35 @@ alerting.
 Seven and eight are the point of the exercise: the obvious signal points the wrong way
 in both directions.
 
+## Using it
+
+This is a tool, not only a demonstration. It installs as a console script and is usable
+by someone who is not the author.
+
+```
+alert-forensics triage ALERT.json --model anthropic:claude-sonnet-5
+alert-forensics replay RUN.json
+alert-forensics eval
+```
+
+- `triage` reads a real Microsoft Graph `security.alert` v2 export, runs the
+  investigation, and writes a run artifact holding the trace and the grounding report.
+- `replay` serves the viewer over that artifact.
+- `eval` runs the harness.
+- The model is chosen with `--model provider:name` through `init_chat_model`, so any
+  provider works, and so does a local model through Ollama.
+
+Every tool sits behind a `ToolAdapter` interface that declares its required scope and
+its response shape. Two adapters are genuinely live and need no SOC: `lookup_ioc`
+against the VirusTotal v3 API with a free key, and `get_attack_technique` against the
+public ATT&CK STIX bundle with no key at all. The other seven are fixture-backed and
+their live contract is documented, so someone with a Defender or Splunk tenant ports
+them rather than rewrites them.
+
+The README states, per tool, which is live-capable and which is fixture-backed.
+Claiming more than that is how this gets caught in an interview, and the honesty is
+worth more than the claim.
+
 ## Demonstration
 
 The harness produces numbers. The demonstration makes the mechanism visible.
@@ -203,11 +325,14 @@ That last view is the argument in one screen. The matrix page carries the rest.
 
 - Verdict accuracy, evidence recall, missing-context recall, escalation precision and
   recall.
+- Failure rate, split by `RunOutcome`, reported beside accuracy as a first-class number.
+  A failed run scores zero on every accuracy metric and is never counted as
+  `inconclusive`.
 - `ungrounded_claim_rate`, enforced to zero.
 - Cost and latency per investigation, from `usage_metadata` aggregated by
   `UsageMetadataCallbackHandler`, the provider-agnostic path.
-- N runs per cell, Wilson 95 percent intervals, failed runs counted as zero so a model
-  cannot look good by staying silent.
+- N runs per cell, Wilson 95 percent intervals. Failed runs stay in the denominator, so
+  a model cannot look good by staying silent or by failing quietly.
 - Capture and replay: fixtures are frozen, so a run is deterministic up to model
   sampling and a regression is a real regression.
 - A deterministic scripted client runs the whole suite with no API key.
@@ -227,8 +352,11 @@ All fixtures are synthetic, so no confidential data is involved at any point.
 Stated up front, because a careful reader will find them.
 
 - Read-only by design. This triages; it does not remediate.
-- Connectors are mimicked, not live. The shapes follow the real APIs and the port is
-  documented, but nothing here talks to a production SIEM.
+- Two connectors are live, seven are fixture-backed. `lookup_ioc` talks to VirusTotal
+  and `get_attack_technique` reads the public ATT&CK bundle. The other seven follow the
+  real API shapes and document their live contract, so a tenant owner ports them rather
+  than rewrites them, but nothing here talks to a production SIEM or EDR out of the box.
+  The README says which is which, per tool.
 - Eight scenarios and a finite taxonomy. Real alert queues are messier, noisier and
   ambiguous.
 - Single tenant, single language, no fine-tuning.
