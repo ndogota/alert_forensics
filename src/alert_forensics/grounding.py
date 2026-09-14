@@ -47,9 +47,15 @@ class GroundingReport(ContractModel):
     """The outcome of grounding one result against one trace.
 
     ``ungrounded_claim_rate`` is ungrounded facts over total facts when there are facts.
-    With zero facts the verdict itself is the only claim: it is ``1.0`` when the verdict
-    asserts something (anything but ``inconclusive``), because an unsupported verdict is
-    one claim, wholly ungrounded; it is ``0.0`` for ``inconclusive``, which claims nothing.
+    With zero facts the output as a whole is the only claim, and two rules decide it:
+
+    - A verdict other than ``inconclusive`` with no facts is an unsupported assertion:
+      not grounded, rate ``1.0``.
+    - An ``inconclusive`` verdict with no facts is grounded only when ``missing_context``
+      is non-empty: an investigation that names what it could not establish claims
+      nothing and scores ``0.0``; one that names nothing is not an investigation and
+      scores ``1.0``.
+
     Silence therefore never scores as grounded.
     """
 
@@ -60,6 +66,8 @@ class GroundingReport(ContractModel):
     ungrounded_count: int
     no_facts: bool
     """True when the result carries no observed facts at all."""
+    missing_context_count: int
+    """How many missing-context entries the result names. Decides the silent inconclusive case."""
     ungrounded_claim_rate: float
     is_grounded: bool
 
@@ -73,7 +81,7 @@ class GroundingReport(ContractModel):
 
     @model_validator(mode="after")
     def _summary_matches_facts(self) -> "GroundingReport":
-        expected = _summarise(self.verdict, self.facts)
+        expected = _summarise(self.verdict, self.facts, self.missing_context_count)
         actual = {name: getattr(self, name) for name in expected}
         if actual != expected:
             mismatched = sorted(name for name in expected if actual[name] != expected[name])
@@ -81,20 +89,28 @@ class GroundingReport(ContractModel):
         return self
 
 
-def _summarise(verdict: Verdict, facts: list[FactGrounding]) -> dict[str, object]:
+def _summarise(
+    verdict: Verdict, facts: list[FactGrounding], missing_context_count: int
+) -> dict[str, object]:
     total = len(facts)
     grounded_count = sum(1 for f in facts if f.grounded)
     ungrounded_count = total - grounded_count
     no_facts = total == 0
-    silent_assertion = no_facts and verdict is not Verdict.inconclusive
-    rate = ungrounded_count / total if total else (1.0 if silent_assertion else 0.0)
+    if no_facts:
+        honest_silence = verdict is Verdict.inconclusive and missing_context_count > 0
+        is_grounded = honest_silence
+        rate = 0.0 if honest_silence else 1.0
+    else:
+        is_grounded = ungrounded_count == 0
+        rate = ungrounded_count / total
     return {
         "total_facts": total,
         "grounded_count": grounded_count,
         "ungrounded_count": ungrounded_count,
         "no_facts": no_facts,
+        "missing_context_count": missing_context_count,
         "ungrounded_claim_rate": rate,
-        "is_grounded": ungrounded_count == 0 and not silent_assertion,
+        "is_grounded": is_grounded,
     }
 
 
@@ -104,29 +120,13 @@ def validate_grounding(result: TriageResult, trace: InvestigationTrace) -> Groun
     A fact is grounded only when every distinct id it cites resolves to a record whose
     outcome is ``ok``. A fact may cite records from several source systems; that is a
     correlation, not a defect. Assumptions and missing context are exempt: they carry no
-    evidence by design. A result with no facts and a verdict other than ``inconclusive``
-    is not grounded: silence must not score.
+    evidence by design. A result with no facts is grounded only when the verdict is
+    ``inconclusive`` and missing context is named: silence must not score.
     """
     index = {record.tool_call_id: record for record in trace.records}
     facts = [_ground_fact(i, fact, index) for i, fact in enumerate(result.observed_facts)]
-    summary = _summarise(result.verdict, facts)
+    summary = _summarise(result.verdict, facts, len(result.missing_context))
     return GroundingReport.model_validate({"verdict": result.verdict, "facts": facts, **summary})
-
-
-def attach_source_systems(result: TriageResult, report: GroundingReport) -> TriageResult:
-    """Return a copy of ``result`` whose facts carry the source systems the report derived.
-
-    This is the only way ``ObservedFact.source_systems`` is meant to be populated: from the
-    trace, deterministically, after grounding. The field is hidden from the model-facing
-    JSON schema and ignored by :func:`validate_grounding`.
-    """
-    if len(report.facts) != len(result.observed_facts):
-        raise ValueError("report and result do not describe the same facts")
-    facts = [
-        fact.model_copy(update={"source_systems": list(grounding.source_systems)})
-        for fact, grounding in zip(result.observed_facts, report.facts, strict=True)
-    ]
-    return result.model_copy(update={"observed_facts": facts})
 
 
 def _ground_fact(

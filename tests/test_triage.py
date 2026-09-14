@@ -24,12 +24,9 @@ def test_confidence_bounds(grounded_result):
             TriageResult.model_validate({**payload, "confidence": bad})
 
 
-def test_source_systems_is_closed_and_defaults_empty(grounded_result):
+def test_serialised_fact_has_exactly_the_spec_keys(grounded_result):
     payload = grounded_result.model_dump()
-    assert payload["observed_facts"][0]["source_systems"] == []
-    payload["observed_facts"][0]["source_systems"] = ["crowdstrike"]
-    with pytest.raises(ValidationError):
-        TriageResult.model_validate(payload)
+    assert set(payload["observed_facts"][0]) == {"statement", "evidence"}
 
 
 def test_mitre_pattern_on_result(grounded_result):
@@ -49,4 +46,3 @@ def test_unknown_fields_are_rejected(grounded_result):
 def test_evidence_dupes_are_tolerated_at_schema_level():
     f = ObservedFact(statement="s", evidence=["a", "a"])
     assert f.evidence == ["a", "a"]
-    assert f.source_systems == []

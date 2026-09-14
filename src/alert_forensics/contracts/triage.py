@@ -8,11 +8,9 @@ from enum import StrEnum
 from typing import Annotated
 
 from pydantic import Field
-from pydantic.json_schema import SkipJsonSchema
 
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr
 from alert_forensics.contracts.alert import MitreTechniqueId
-from alert_forensics.contracts.trace import SourceSystem
 
 
 class Verdict(StrEnum):
@@ -28,10 +26,8 @@ class ObservedFact(ContractModel):
 
     statement: NonEmptyStr
     evidence: Annotated[list[NonEmptyStr], Field(min_length=1)]
-    """Tool call ids this fact rests on. A fact may cite several source systems."""
-    source_systems: SkipJsonSchema[list[SourceSystem]] = Field(default_factory=list)
-    """Derived from the trace by ``attach_source_systems`` after grounding. Excluded from the
-    model-facing JSON schema and ignored by the validator: the model never declares it."""
+    """Tool call ids this fact rests on. A fact may cite several source systems; which
+    ones is resolved from the trace by the grounding validator, never declared here."""
 
 
 class Assumption(ContractModel):

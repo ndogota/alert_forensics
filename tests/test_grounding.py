@@ -1,7 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from alert_forensics import GroundingReport, attach_source_systems, validate_grounding
+import alert_forensics
+from alert_forensics import GroundingReport, validate_grounding
 from alert_forensics.contracts import (
     Assumption,
     InvestigationTrace,
@@ -59,29 +60,22 @@ def test_fact_correlating_two_source_systems_is_grounded(grounded_result, trace)
     assert only.source_systems == [SourceSystem.defender, SourceSystem.splunk]
 
 
-def test_source_systems_come_from_the_trace_not_the_model(grounded_result, trace):
-    lying = ObservedFact(
-        statement="a claim", evidence=["tc-events"], source_systems=[SourceSystem.attack]
-    )
-    report = validate_grounding(with_facts(grounded_result, [lying]), trace)
-    assert report.is_grounded
-    assert report.facts[0].source_systems == [SourceSystem.defender]
-    attached = attach_source_systems(with_facts(grounded_result, [lying]), report)
-    assert attached.observed_facts[0].source_systems == [SourceSystem.defender]
-    assert attached.observed_facts[0].evidence == ["tc-events"]
-
-
-def test_source_systems_hidden_from_model_schema():
-    schema = TriageResult.model_json_schema()
-    fact_schema = schema["$defs"]["ObservedFact"]
-    assert "source_systems" not in fact_schema["properties"]
-    assert set(fact_schema["properties"]) == {"statement", "evidence"}
-
-
-def test_attach_rejects_mismatched_report(grounded_result, trace):
-    report = validate_grounding(with_facts(grounded_result, []), trace)
-    with pytest.raises(ValueError, match="same facts"):
-        attach_source_systems(grounded_result, report)
+def test_source_systems_live_only_on_the_report():
+    # The fact carries no source system, declared or derived; the report is the one place.
+    assert set(ObservedFact.model_fields) == {"statement", "evidence"}
+    assert set(TriageResult.model_json_schema()["$defs"]["ObservedFact"]["properties"]) == {
+        "statement",
+        "evidence",
+    }
+    with pytest.raises(ValidationError):
+        ObservedFact.model_validate(
+            {"statement": "s", "evidence": ["tc-events"], "source_systems": ["defender"]}
+        )
+    with pytest.raises(ValidationError):
+        ObservedFact.model_validate(
+            {"statement": "s", "evidence": ["tc-events"], "source_system": "defender"}
+        )
+    assert not hasattr(alert_forensics, "attach_source_systems")
 
 
 def test_denied_call_cannot_support_a_fact(grounded_result, trace):
@@ -169,12 +163,49 @@ def test_silence_with_an_asserting_verdict_is_not_grounded(grounded_result, trac
     assert report.facts == []
 
 
-def test_silence_with_inconclusive_verdict_claims_nothing(grounded_result, trace):
+def test_inconclusive_silence_that_names_missing_context_is_grounded(grounded_result, trace):
     silent = with_facts(grounded_result, []).model_copy(update={"verdict": Verdict.inconclusive})
+    assert len(silent.missing_context) == 1
     report = validate_grounding(silent, trace)
     assert report.no_facts
+    assert report.missing_context_count == 1
     assert report.is_grounded
     assert report.ungrounded_claim_rate == 0.0
+
+
+def test_inconclusive_silence_that_names_nothing_is_not_grounded(grounded_result, trace):
+    empty = with_facts(grounded_result, []).model_copy(
+        update={"verdict": Verdict.inconclusive, "missing_context": [], "assumptions": []}
+    )
+    report = validate_grounding(empty, trace)
+    assert report.no_facts
+    assert report.missing_context_count == 0
+    assert not report.is_grounded
+    assert report.ungrounded_claim_rate == 1.0
+
+
+def test_assumptions_do_not_rescue_inconclusive_silence(grounded_result, trace):
+    empty = with_facts(grounded_result, []).model_copy(
+        update={"verdict": Verdict.inconclusive, "missing_context": []}
+    )
+    assert len(empty.assumptions) == 1
+    assert not validate_grounding(empty, trace).is_grounded
+
+
+def test_missing_context_does_not_rescue_an_asserting_verdict(grounded_result, trace):
+    for verdict in (Verdict.true_positive, Verdict.false_positive, Verdict.benign_true_positive):
+        silent = with_facts(grounded_result, []).model_copy(update={"verdict": verdict})
+        assert len(silent.missing_context) == 1
+        report = validate_grounding(silent, trace)
+        assert not report.is_grounded
+        assert report.ungrounded_claim_rate == 1.0
+
+
+def test_missing_context_does_not_change_a_result_with_facts(grounded_result, trace):
+    stripped = grounded_result.model_copy(update={"missing_context": []})
+    assert validate_grounding(stripped, trace).is_grounded
+    bad = with_facts(grounded_result, [fact(["tc-nope"])])
+    assert not validate_grounding(bad, trace).is_grounded
 
 
 def test_inconclusive_with_ungrounded_facts_is_still_ungrounded(grounded_result, trace):
@@ -200,10 +231,17 @@ def test_lying_report_is_rejected(grounded_result, trace):
     ):
         with pytest.raises(ValidationError, match=field):
             GroundingReport.model_validate({**payload, field: lie})
-    # Silence dressed up as grounded is caught too.
+    # Silence dressed up as grounded is caught too, in both its forms.
     silent = validate_grounding(with_facts(grounded_result, []), trace).model_dump()
     with pytest.raises(ValidationError, match="is_grounded"):
         GroundingReport.model_validate({**silent, "is_grounded": True})
+    empty = with_facts(grounded_result, []).model_copy(
+        update={"verdict": Verdict.inconclusive, "missing_context": []}
+    )
+    # Claiming missing context that was never named flips the silence rules, so it is caught.
+    empty_payload = validate_grounding(empty, trace).model_dump()
+    with pytest.raises(ValidationError, match="is_grounded"):
+        GroundingReport.model_validate({**empty_payload, "missing_context_count": 1})
     assert GroundingReport.model_validate(payload) == honest
 
 

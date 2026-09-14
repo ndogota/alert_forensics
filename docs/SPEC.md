@@ -43,8 +43,15 @@ it. The only guaranteed identity link in a trace is
   reaches the model.
 - The output schema requires `evidence: list[str]` of tool call ids on every observed
   fact.
-- A validator resolves every id against the actual trace. An id that does not resolve
-  makes the output invalid and the correction loop asks the model again.
+- A validator resolves every id against the actual trace. An id that does not resolve,
+  or that resolves to a denied or failed call, makes the output invalid and the
+  correction loop asks the model again.
+- A fact may correlate several source systems: a sign-in from Defender and an identity
+  from Splunk cited together is one fact, not a defect. The systems a fact rests on are
+  resolved from the cited records in the trace and reported on the grounding report as
+  `source_systems`. The model never asserts them.
+- Silence does not score. A result with no observed facts is grounded only when the
+  verdict is `inconclusive` and `missing_context` names what could not be established.
 - The metric `ungrounded_claim_rate` is enforced to zero rather than hoped for.
 
 A claim that cannot be attached to a tool call is not a fact. It belongs in
@@ -63,6 +70,8 @@ Stated explicitly, because the judgement matters more than a blanket use of mode
   `reputation` is a signed community vote, often zero on rarely seen objects. Both are
   read by code; the model receives the reading, not the raw temptation.
 - Deduplication and correlation on entity keys.
+- Source-system attribution of every observed fact: resolved from the cited tool calls
+  in the trace, never declared by the model.
 
 The model is used for what remains: hypothesis, pivot selection, weighing contradictory
 signals, and writing the summary.
@@ -74,12 +83,20 @@ TriageResult
   verdict            true_positive | false_positive | benign_true_positive | inconclusive
   confidence         float
   mitre_techniques   [T####.###]  resolved deterministically, not invented
-  observed_facts     [{statement, evidence: [tool_call_id], source_system}]
+  observed_facts     [{statement, evidence: [tool_call_id]}]
   assumptions        [{statement, why_unverified}]
   missing_context    [{what, why_it_matters, how_to_obtain}]
   recommended_action str
   escalate           bool
+
+GroundingReport      produced by the validator from a TriageResult and its trace
+  facts              [{index, statement, evidence_ids, resolved_ids,
+                       source_systems: [defender | splunk | ...], problems, grounded}]
+  ungrounded_claim_rate, is_grounded, no_facts, missing_context_count
 ```
+
+The source systems live on the report, not on the fact: they are derived from the trace
+and a result never travels without its report.
 
 `benign_true_positive` is a first-class verdict because a SOC needs it: the detection
 fired correctly and the intent was legitimate. Collapsing it into false positive is how
