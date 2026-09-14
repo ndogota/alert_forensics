@@ -1,6 +1,7 @@
 """Every example alert resolves offline through the default adapter set."""
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -97,6 +98,83 @@ def test_a_label_naming_no_present_scenario_is_stale(tmp_path):
     stub_file(tmp_path, "search_runbook", "nowhere", {"query": {"$contains": "x"}}, {"hits": []})
     stale = stale_labels(FixtureSet.load(tmp_path), SCENARIOS)
     assert len(stale) == 1 and "nowhere" in stale[0] and "search_runbook" in stale[0]
+
+
+# --- the probe's limit, and the questions real models actually asked ------------------
+
+from alert_forensics.evaluation import RecordedRequest, recorded_requests  # noqa: E402
+
+RUNS = Path("runs")
+RECORDINGS = recorded_requests(RUNS, SCENARIOS)
+
+INFRASTRUCTURE_WORDS = {"query": {"$regex": "(?i)egress|gateway|proxy|vpn"}}
+"""The exact shape of the defect that created the labelling rule."""
+
+
+def test_the_alert_probe_alone_misses_a_stub_keyed_on_infrastructure_words(tmp_path):
+    """No alert carries those words; the collision came from a model's question."""
+    stub_file(tmp_path, "search_runbook", "test", INFRASTRUCTURE_WORDS, {"hits": []})
+    assert fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS) == []
+
+
+def test_the_recording_probe_catches_it(tmp_path):
+    """The committed scenario 1 recording asked the runbook about "VPN SASE corporate
+    egress proxy Amsterdam Paris". Put to a stub that does not serve scenario 1, that
+    question is a collision, named with the recording it came from."""
+    stub_file(tmp_path, "search_runbook", "test", INFRASTRUCTURE_WORDS, {"hits": []})
+    found = fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS, requests=RECORDINGS)
+    assert [(c.tool, c.stub, c.label, c.scenario, c.probe) for c in found] == [
+        ("search_runbook", 0, "test", "atypical_travel", "recording")
+    ]
+    # The recording's own scenario is exempt, as it is for the alert probe.
+    stub_file(tmp_path, "search_runbook", "atypical_travel", INFRASTRUCTURE_WORDS, {"hits": []})
+    assert fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS, requests=RECORDINGS) == []
+
+
+def test_a_collision_from_the_alert_is_labelled_as_such(tmp_path):
+    stub_file(tmp_path, "get_identity", "test", {"identity": "jdoe"}, {"results": []})
+    found = fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS, requests=RECORDINGS)
+    assert [(c.tool, c.scenario, c.probe) for c in found] == [
+        ("get_identity", "atypical_travel", "alert")
+    ]
+
+
+def test_recorded_requests_are_every_request_of_every_committed_recording():
+    assert RECORDINGS, "the corpus is one run today; it must not be empty"
+    assert {r.scenario for r in RECORDINGS} == {p.parent.name for p in RUNS.glob("*/run.json")}
+    travel = [r for r in RECORDINGS if r.scenario == "atypical_travel"]
+    assert [r.tool for r in travel] == [
+        "search_events",
+        "lookup_ioc",
+        "get_identity",
+        "search_runbook",
+        "get_attack_technique",
+        "propose_alert_disposition",
+    ]
+    runbook = next(r for r in travel if r.tool == "search_runbook")
+    assert runbook.arguments == {"query": "VPN SASE corporate egress proxy Amsterdam Paris"}
+    assert isinstance(runbook, RecordedRequest)
+
+
+def test_a_recording_that_names_no_scenario_present_fails_the_check(tmp_path):
+    runs = tmp_path / "runs"
+    shutil.copytree(RUNS / "atypical_travel", runs / "nowhere")
+    with pytest.raises(ValueError, match="nowhere"):
+        recorded_requests(runs, SCENARIOS)
+
+
+def test_a_recording_beside_the_wrong_scenario_fails_the_check(tmp_path):
+    runs = tmp_path / "runs"
+    shutil.copytree(RUNS / "atypical_travel", runs / "password_spray")
+    with pytest.raises(ValueError, match="password_spray"):
+        recorded_requests(runs, SCENARIOS)
+
+
+def test_no_shipped_stub_answers_a_question_a_recording_asked():
+    found = fixture_collisions(
+        FixtureSet.load(DEFAULT_FIXTURES_DIR), SCENARIOS, requests=RECORDINGS
+    )
+    assert found == [], [f"{c.tool} stub {c.stub} ({c.label}) answers {c.scenario}" for c in found]
 
 
 # --- a tool is listed on a finding only when its reading carries the finding's words ----

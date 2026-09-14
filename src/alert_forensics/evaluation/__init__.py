@@ -3,8 +3,10 @@ intervals, failure as a first-class number, cost from a price table kept here.""
 
 from alert_forensics.evaluation.fixture_check import (
     Collision,
+    RecordedRequest,
     fixture_collisions,
     probe,
+    recorded_requests,
     stale_labels,
 )
 from alert_forensics.evaluation.harness import (
@@ -76,6 +78,7 @@ __all__ = [
     "Money",
     "Price",
     "Proportion",
+    "RecordedRequest",
     "RequiredFinding",
     "RunMeasurement",
     "RunScore",
@@ -92,6 +95,7 @@ __all__ = [
     "load_scenarios",
     "model_slug",
     "probe",
+    "recorded_requests",
     "render_summary",
     "report",
     "run_suite",
