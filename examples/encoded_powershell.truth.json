@@ -1,0 +1,141 @@
+{
+  "scenario": "encoded_powershell",
+  "alert_id": "da637551341122334455_-1188736402",
+  "verdict": "benign_true_positive",
+  "escalate": false,
+  "required_findings": [
+    {
+      "name": "an_encoded_powershell_command_ran_on_the_server",
+      "tools": [
+        "search_events",
+        "search_siem",
+        "get_process_tree"
+      ],
+      "tokens": [
+        [
+          "srv-prd-app01.contoso.com",
+          "srv-prd-app01",
+          "SRV-PRD-APP01"
+        ],
+        [
+          "EncodedCommand",
+          "encoded"
+        ],
+        [
+          "powershell.exe",
+          "PowerShell"
+        ]
+      ]
+    },
+    {
+      "name": "the_parent_is_the_configuration_agent",
+      "tools": [
+        "search_events",
+        "search_siem",
+        "get_process_tree"
+      ],
+      "tokens": [
+        [
+          "cfgagent.exe",
+          "cfgagent"
+        ],
+        [
+          "powershell.exe",
+          "PowerShell"
+        ]
+      ]
+    },
+    {
+      "name": "the_runbook_sanctions_the_agent",
+      "tools": [
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "cfgagent.exe",
+          "cfgagent",
+          "ConfigAgent"
+        ],
+        [
+          "configuration management",
+          "configuration agent",
+          "expected",
+          "documented",
+          "documents",
+          "sanctioned",
+          "approved",
+          "legitimate",
+          "known",
+          "runbook"
+        ]
+      ]
+    },
+    {
+      "name": "the_run_fell_inside_a_declared_maintenance_window",
+      "tools": [
+        "search_runbook",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "CHG0042117",
+          "02:00"
+        ],
+        [
+          "maintenance",
+          "window",
+          "change"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "what_the_encoded_command_does_decoded",
+      "tokens": [
+        [
+          "decoded",
+          "decode",
+          "decoding",
+          "plaintext",
+          "cleartext",
+          "content",
+          "contents",
+          "script",
+          "ScriptBlockText",
+          "scriptblock"
+        ],
+        [
+          "command",
+          "EncodedCommand",
+          "payload",
+          "PowerShell",
+          "powershell",
+          "base64"
+        ]
+      ]
+    },
+    {
+      "name": "the_agents_own_record_of_the_run",
+      "tokens": [
+        [
+          "cfgagent",
+          "ConfigAgent",
+          "agent",
+          "configuration management"
+        ],
+        [
+          "log",
+          "logs",
+          "record",
+          "records",
+          "job",
+          "run",
+          "report",
+          "execution",
+          "state"
+        ]
+      ]
+    }
+  ]
+}

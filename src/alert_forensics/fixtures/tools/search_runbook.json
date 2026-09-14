@@ -48,6 +48,58 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "query": {
+          "$regex": "(?i)forwarding rule|inbox forwarding|email forwarding|mail forwarding|auto-?forward|forward(ing|ed)? to (an )?external|contoso-invoices|ap\\.remittance|business email compromise|\\bBEC\\b|payment fraud|invoice fraud|adversary-in-the-middle|\\bAiTM\\b|session (token )?replay|token replay"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0331",
+            "title": "Inbox forwarding rules to external addresses",
+            "score": 0.94,
+            "source": "runbooks/email/inbox-forwarding.md",
+            "excerpt": "Automatic forwarding to external domains is blocked by transport rule for the whole group, so a client-side inbox rule whose ForwardTo is an external address is the one way mail leaves a mailbox by rule, and a rule filtered on invoice, IBAN, SWIFT or payment terms is business email compromise until shown otherwise. Do: remove the rule, revoke the user's refresh tokens and reset the password, block the destination address at the transport rule, pull the message trace for everything forwarded since the rule was created, and tell the payments desk to hold any change of beneficiary details received in the last 30 days. Escalate to the fraud desk and to IR."
+          },
+          {
+            "id": "RB-0338",
+            "title": "Adversary-in-the-middle phishing: replayed sessions",
+            "score": 0.71,
+            "source": "runbooks/identity/aitm.md",
+            "excerpt": "A sign-in that satisfies MFA from an address the user has never used, on an unmanaged device, minutes before an inbox rule appears, is the signature of a session token replayed from an adversary-in-the-middle phishing page. MFA satisfied is not evidence that the user signed in. Look for the phishing message and the URL click that preceded the first such sign-in."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "query": {
+          "$regex": "(?i)encoded ?powershell|encodedcommand|-enc\\b|maintenance[ -]?window|change[ -]?calendar|change[ -]?window|CHG0042117|cfgagent|ConfigAgent|configuration management|configuration agent|srv-prd-app01"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0410",
+            "title": "Configuration management on production Windows servers",
+            "score": 0.92,
+            "source": "runbooks/endpoint/configuration-management.md",
+            "excerpt": "Production Windows servers are managed by the Contoso configuration agent, cfgagent.exe, installed under C:\\Program Files\\Contoso\\ConfigAgent and running as SYSTEM under the ContosoConfigAgent service. It applies state by launching powershell.exe with -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand, so an encoded command whose parent is cfgagent.exe from that path, as SYSTEM, inside a declared maintenance window, is the expected shape of a run and the agent doing its job. Document the exception on the triplet (device, parent image path, account) in the detection's exclusions for that server; do not disable the rule, since an encoded command from any other parent, from any other path, as any other account, or outside a window is exactly what it exists to catch."
+          },
+          {
+            "id": "RB-0412",
+            "title": "Change calendar: CHG0042117",
+            "score": 0.88,
+            "source": "change-calendar/2026-09/CHG0042117.md",
+            "excerpt": "CHG0042117, standard change, approved. srv-prd-app01: IIS application pool recycling drift correction (PaymentsApi), applied by configuration management. Maintenance window 2026-09-14 02:00 to 04:00 UTC. Owner platform-ops@contoso.com."
+          }
+        ]
+      }
     }
   ]
 }

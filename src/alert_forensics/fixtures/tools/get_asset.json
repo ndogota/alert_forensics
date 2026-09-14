@@ -2,8 +2,8 @@
   "tool": "get_asset",
   "stubs": [
     {
-      "scenario": "test",
-      "match": {"asset": {"$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$"}},
+      "scenario": "encoded_powershell",
+      "match": {"asset": {"$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$|^10\\.20\\.30\\.40$"}},
       "response": {
         "sid": "1789300003.12348",
         "preview": false,

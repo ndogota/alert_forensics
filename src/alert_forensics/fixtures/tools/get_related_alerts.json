@@ -57,6 +57,282 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "user_principal_name": "amorel@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551318890123456_-1188736310",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:02:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "amorel@contoso.com",
+                  "azureAdUserId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "user_principal_name": "tkowalski@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551318890123456_-1188736311",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:09:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "tkowalski@contoso.com",
+                  "azureAdUserId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "user_principal_name": "lferreira@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551318890123456_-1188736312",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:18:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "lferreira@contoso.com",
+                  "azureAdUserId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "incident_id": "63"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551318890123456_-1188736310",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:02:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "amorel@contoso.com",
+                  "azureAdUserId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          },
+          {
+            "id": "da637551318890123456_-1188736311",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:09:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "tkowalski@contoso.com",
+                  "azureAdUserId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          },
+          {
+            "id": "da637551318890123456_-1188736312",
+            "title": "Unfamiliar sign-in properties",
+            "severity": "medium",
+            "status": "new",
+            "category": "InitialAccess",
+            "createdDateTime": "2026-09-14T05:18:59Z",
+            "detectionSource": "azureAdIdentityProtection",
+            "incidentId": "63",
+            "mitreTechniques": [
+              "T1078.004"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "lferreira@contoso.com",
+                  "azureAdUserId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.ipEvidence",
+                "ipAddress": "2001:db8:7a3c:1200::1f",
+                "countryLetterCode": "US"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "device_name": {
+          "$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549940000000000_-1188736377",
+            "title": "Encoded PowerShell command on a production server",
+            "severity": "medium",
+            "status": "resolved",
+            "category": "Execution",
+            "classification": "informationalExpectedActivity",
+            "determination": "lineOfBusinessApplication",
+            "createdDateTime": "2026-08-31T02:44:10Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "59",
+            "mitreTechniques": [
+              "T1059.001",
+              "T1027.010"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "srv-prd-app01.contoso.com",
+                "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "incident_id": "66"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549940000000000_-1188736377",
+            "title": "Encoded PowerShell command on a production server",
+            "severity": "medium",
+            "status": "resolved",
+            "category": "Execution",
+            "classification": "informationalExpectedActivity",
+            "determination": "lineOfBusinessApplication",
+            "createdDateTime": "2026-08-31T02:44:10Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "59",
+            "mitreTechniques": [
+              "T1059.001",
+              "T1027.010"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "srv-prd-app01.contoso.com",
+                "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

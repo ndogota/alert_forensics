@@ -1,0 +1,89 @@
+{
+  "id": "da637551341122334455_-1188736402",
+  "title": "Encoded PowerShell command on a production server",
+  "description": "powershell.exe was launched with an encoded command line (-EncodedCommand) on srv-prd-app01, a production server in the PCI zone. The parent process was cfgagent.exe running as SYSTEM.",
+  "severity": "medium",
+  "status": "new",
+  "category": "Execution",
+  "createdDateTime": "2026-09-14T02:49:30.7Z",
+  "lastUpdateDateTime": "2026-09-14T02:50:12Z",
+  "detectionSource": "microsoftDefenderForEndpoint",
+  "serviceSource": "microsoftDefenderForEndpoint",
+  "providerAlertId": "b7f04a2d",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "66",
+  "mitreTechniques": [
+    "T1059.001",
+    "T1027.010"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.deviceEvidence",
+      "createdDateTime": "2026-09-14T02:49:30.7Z",
+      "verdict": "unknown",
+      "roles": [
+        "contextual"
+      ],
+      "deviceDnsName": "srv-prd-app01.contoso.com",
+      "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c",
+      "osPlatform": "WindowsServer2022",
+      "healthStatus": "active",
+      "riskScore": "medium",
+      "rbacGroupName": "Production servers"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.processEvidence",
+      "createdDateTime": "2026-09-14T02:49:30.7Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "processId": 5216,
+      "parentProcessId": 1840,
+      "processCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+      "processCreationDateTime": "2026-09-14T02:47:12Z",
+      "parentProcessCreationDateTime": "2026-08-16T22:03:40Z",
+      "imageFile": {
+        "fileName": "powershell.exe",
+        "filePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+        "fileSize": 452608,
+        "filePublisher": "Microsoft Corporation",
+        "sha256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+        "signer": "Microsoft Windows",
+        "issuer": "Microsoft Windows Production PCA 2011"
+      },
+      "parentProcessImageFile": {
+        "fileName": "cfgagent.exe",
+        "filePath": "C:\\Program Files\\Contoso\\ConfigAgent",
+        "fileSize": 1873920,
+        "filePublisher": "Contoso Bank plc",
+        "sha256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+        "signer": "Contoso Bank plc",
+        "issuer": "Contoso Internal Code Signing CA"
+      },
+      "userAccount": {
+        "accountName": "SYSTEM",
+        "domainName": "NT AUTHORITY",
+        "userSid": "S-1-5-18"
+      },
+      "detectionStatus": "detected",
+      "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.fileEvidence",
+      "createdDateTime": "2026-09-14T02:49:30.7Z",
+      "verdict": "unknown",
+      "roles": [],
+      "fileDetails": {
+        "fileName": "cfgagent.exe",
+        "filePath": "C:\\Program Files\\Contoso\\ConfigAgent",
+        "fileSize": 1873920,
+        "filePublisher": "Contoso Bank plc",
+        "sha1": "1c9a4e7f2b5d8a0c3e6f9b1d4a7c0e2f5b8d1a3c",
+        "sha256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+        "signer": "Contoso Bank plc",
+        "issuer": "Contoso Internal Code Signing CA"
+      },
+      "detectionStatus": "detected",
+      "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+    }
+  ]
+}

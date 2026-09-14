@@ -122,6 +122,172 @@
           }
         }
       }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "indicator": "2001:db8:7a3c:1200::1f"
+      },
+      "response": {
+        "data": {
+          "id": "2001:db8:7a3c:1200::1f",
+          "type": "ip_address",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/ip_addresses/2001:db8:7a3c:1200::1f"
+          },
+          "attributes": {
+            "as_owner": "EXAMPLE-HOSTING-VPS",
+            "asn": 64502,
+            "country": "US",
+            "network": "2001:db8:7a3c::/48",
+            "last_analysis_date": 1789280000,
+            "last_analysis_stats": {
+              "harmless": 58,
+              "malicious": 3,
+              "suspicious": 1,
+              "undetected": 30,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": -2,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 2
+            },
+            "whois": "inet6num: 2001:db8:7a3c::/48\nphone: +1 555 0199\n"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "indicator": "contoso-invoices.example"
+      },
+      "response": {
+        "data": {
+          "id": "contoso-invoices.example",
+          "type": "domain",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/domains/contoso-invoices.example"
+          },
+          "attributes": {
+            "registrar": "Example Registrar, Inc.",
+            "creation_date": 1788608520,
+            "last_update_date": 1788608520,
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 63,
+              "malicious": 1,
+              "suspicious": 0,
+              "undetected": 30,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": 0,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
+            "categories": {},
+            "popularity_ranks": {},
+            "whois": "Domain Name: contoso-invoices.example\nRegistrar: Example Registrar, Inc.\nRegistrant Email: REDACTED FOR PRIVACY\n"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "indicator": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70"
+      },
+      "response": {
+        "error": {
+          "code": "NotFoundError",
+          "message": "File \"b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70\" not found"
+        }
+      }
+    },
+    {
+      "scenario": "shared",
+      "match": {
+        "indicator": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c"
+      },
+      "response": {
+        "data": {
+          "id": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+          "type": "file",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/files/de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c"
+          },
+          "attributes": {
+            "type_description": "Win32 EXE",
+            "type_tag": "peexe",
+            "size": 452608,
+            "sha256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "meaningful_name": "powershell.exe",
+            "names": [
+              "powershell.exe",
+              "PowerShell.exe"
+            ],
+            "first_submission_date": 1541030400,
+            "last_submission_date": 1789200000,
+            "last_analysis_date": 1789200000,
+            "times_submitted": 4120,
+            "unique_sources": 1930,
+            "last_analysis_stats": {
+              "harmless": 0,
+              "type-unsupported": 4,
+              "suspicious": 0,
+              "confirmed-timeout": 0,
+              "timeout": 0,
+              "failure": 0,
+              "malicious": 0,
+              "undetected": 72
+            },
+            "last_analysis_results": {
+              "Bkav": {
+                "category": "undetected",
+                "engine_name": "Bkav",
+                "result": null,
+                "method": "blacklist"
+              }
+            },
+            "reputation": 118,
+            "total_votes": {
+              "harmless": 12,
+              "malicious": 0
+            },
+            "signature_info": {
+              "product": "Microsoft Windows Operating System",
+              "verified": "Signed",
+              "description": "Windows PowerShell",
+              "signers": "Microsoft Windows; Microsoft Windows Production PCA 2011; Microsoft Root Certificate Authority 2010"
+            },
+            "tags": [
+              "peexe",
+              "signed",
+              "known-distributor"
+            ]
+          }
+        }
+      }
     }
   ]
 }

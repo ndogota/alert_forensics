@@ -207,7 +207,14 @@ def readings(fixture_set: FixtureSet, scenario: str, tool: str) -> list[str]:
         if stub.scenario != scenario or stub.error is not None:
             continue
         response = definition.response_model.model_validate(stub.response)
-        view = definition.projector(response, None)
+        request = None
+        if tool == "get_process_tree":
+            # The tree pivots on a request; the stub's first row is the pivot.
+            first = response.results[0]
+            request = definition.request_model(
+                device_name=first["DeviceName"], process_id=first["ProcessId"]
+            )
+        view = definition.projector(response, request)
         out.append(json.dumps(redact(view.model_dump(mode="json")), ensure_ascii=False))
     return out
 
@@ -227,7 +234,12 @@ def test_every_listed_tool_reading_carries_the_findings_words(scenario):
 
 # --- scenario 2 ---------------------------------------------------------------------------
 
-LABELS = {"atypical_travel": ("false_positive", False), "password_spray": ("true_positive", True)}
+LABELS = {
+    "atypical_travel": ("false_positive", False),
+    "password_spray": ("true_positive", True),
+    "forwarding_rule": ("true_positive", True),
+    "encoded_powershell": ("benign_true_positive", False),
+}
 
 
 def test_the_shipped_scenarios_are_labelled_as_the_table_says():

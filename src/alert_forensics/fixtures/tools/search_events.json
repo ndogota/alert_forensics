@@ -19,12 +19,112 @@
       }
     },
     {
-      "scenario": "test",
-      "match": {"query": {"$all": [{"$regex": "DeviceEvents\\s*\\|\\s*where\\s+ActionType"}, {"$contains": "AntivirusDetection"}]}},
+      "scenario": "encoded_powershell",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)\\bDeviceEvents\\b"
+            },
+            {
+              "$regex": "(?i)srv-prd-app01"
+            }
+          ]
+        }
+      },
       "response": {
-        "schema": [{"name": "Timestamp", "type": "DateTime"}, {"name": "ActionType", "type": "String"}, {"name": "AdditionalFields", "type": "String"}],
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "AdditionalFields",
+            "type": "Dynamic"
+          }
+        ],
         "results": [
-          {"Timestamp": "2026-09-14T08:00:00.000Z", "ActionType": "AntivirusDetection", "AdditionalFields": "{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\"}"}
+          {
+            "Timestamp": "2026-09-14T02:47:13.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "ActionType": "PowerShellCommand",
+            "InitiatingProcessFileName": "powershell.exe",
+            "InitiatingProcessId": 5216,
+            "InitiatingProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessParentFileName": "cfgagent.exe",
+            "InitiatingProcessParentId": 1840,
+            "ReportId": 4471140510,
+            "AdditionalFields": {
+              "Command": "Import-Module WebAdministration"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T02:47:14.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "ActionType": "PowerShellCommand",
+            "InitiatingProcessFileName": "powershell.exe",
+            "InitiatingProcessId": 5216,
+            "InitiatingProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessParentFileName": "cfgagent.exe",
+            "InitiatingProcessParentId": 1840,
+            "ReportId": 4471140511,
+            "AdditionalFields": {
+              "Command": "Set-ItemProperty 'IIS:\\AppPools\\PaymentsApi' -Name recycling.periodicRestart.time -Value '01:30:00'"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T02:47:15.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "ActionType": "PowerShellCommand",
+            "InitiatingProcessFileName": "powershell.exe",
+            "InitiatingProcessId": 5216,
+            "InitiatingProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessParentFileName": "cfgagent.exe",
+            "InitiatingProcessParentId": 1840,
+            "ReportId": 4471140512,
+            "AdditionalFields": {
+              "Command": "Restart-WebAppPool -Name 'PaymentsApi'"
+            }
+          }
         ]
       }
     },
@@ -468,6 +568,619 @@
               "192.0.2.196",
               "192.0.2.203"
             ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)amorel|tkowalski|lferreira"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "AuthenticationRequirement",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "IsManaged",
+            "type": "Bool"
+          },
+          {
+            "name": "IsCompliant",
+            "type": "Bool"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          },
+          {
+            "name": "UserAgent",
+            "type": "String"
+          },
+          {
+            "name": "Latitude",
+            "type": "Real"
+          },
+          {
+            "name": "Longitude",
+            "type": "Real"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T05:02:41.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "amorel@contoso.com",
+            "AccountObjectId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+            "Application": "OfficeHome",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IsManaged": false,
+            "IsCompliant": false,
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ErrorCode": 0,
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Latitude": 39.0438,
+            "Longitude": -77.4874
+          },
+          {
+            "Timestamp": "2026-09-14T05:09:17.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "tkowalski@contoso.com",
+            "AccountObjectId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+            "Application": "OfficeHome",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IsManaged": false,
+            "IsCompliant": false,
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ErrorCode": 0,
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Latitude": 39.0438,
+            "Longitude": -77.4874
+          },
+          {
+            "Timestamp": "2026-09-14T05:18:55.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "lferreira@contoso.com",
+            "AccountObjectId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+            "Application": "OfficeHome",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IsManaged": false,
+            "IsCompliant": false,
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ErrorCode": 0,
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Latitude": 39.0438,
+            "Longitude": -77.4874
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)CloudAppEvents|AuditLogs|IdentityDirectoryEvents|OfficeActivity"
+            },
+            {
+              "$regex": "(?i)amorel|tkowalski|lferreira|contoso-invoices|InboxRule|Forward|Set-Mailbox"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ObjectName",
+            "type": "String"
+          },
+          {
+            "name": "ObjectType",
+            "type": "String"
+          },
+          {
+            "name": "ActivityObjects",
+            "type": "Dynamic"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "RawEventData",
+            "type": "Dynamic"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T05:14:02.000Z",
+            "ActionType": "New-InboxRule",
+            "Application": "Microsoft Exchange Online",
+            "AccountUpn": "amorel@contoso.com",
+            "AccountObjectId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ObjectName": "..",
+            "ObjectType": "InboxRule",
+            "ActivityObjects": [
+              {
+                "Type": "User",
+                "Name": "amorel@contoso.com",
+                "Id": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "Name",
+                "Value": ".."
+              },
+              {
+                "Type": "Parameter",
+                "Name": "ForwardTo",
+                "Value": "ap.remittance@contoso-invoices.example"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "SubjectOrBodyContainsWords",
+                "Value": "invoice;IBAN;SWIFT;payment;remittance"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "MarkAsRead",
+                "Value": "True"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "StopProcessingRules",
+                "Value": "True"
+              }
+            ],
+            "ReportId": 4471130200,
+            "RawEventData": {
+              "Operation": "New-InboxRule",
+              "ResultStatus": "True",
+              "UserId": "amorel@contoso.com",
+              "ClientIP": "2001:db8:7a3c:1200::1f",
+              "ClientInfoString": "Client=OWA;Action=ViaProxy",
+              "SessionId": "7d3f1a09-5c2e-4b8a-9f0d-1e3c5a7b9d01",
+              "Parameters": [
+                {
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ]
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T05:20:36.000Z",
+            "ActionType": "New-InboxRule",
+            "Application": "Microsoft Exchange Online",
+            "AccountUpn": "tkowalski@contoso.com",
+            "AccountObjectId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ObjectName": "..",
+            "ObjectType": "InboxRule",
+            "ActivityObjects": [
+              {
+                "Type": "User",
+                "Name": "tkowalski@contoso.com",
+                "Id": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "Name",
+                "Value": ".."
+              },
+              {
+                "Type": "Parameter",
+                "Name": "ForwardTo",
+                "Value": "ap.remittance@contoso-invoices.example"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "SubjectOrBodyContainsWords",
+                "Value": "invoice;IBAN;SWIFT;payment;remittance"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "MarkAsRead",
+                "Value": "True"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "StopProcessingRules",
+                "Value": "True"
+              }
+            ],
+            "ReportId": 4471130207,
+            "RawEventData": {
+              "Operation": "New-InboxRule",
+              "ResultStatus": "True",
+              "UserId": "tkowalski@contoso.com",
+              "ClientIP": "2001:db8:7a3c:1200::1f",
+              "ClientInfoString": "Client=OWA;Action=ViaProxy",
+              "SessionId": "7d3f1a19-5c2e-4b8a-9f0d-1e3c5a7b9d11",
+              "Parameters": [
+                {
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ]
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T05:27:11.000Z",
+            "ActionType": "New-InboxRule",
+            "Application": "Microsoft Exchange Online",
+            "AccountUpn": "lferreira@contoso.com",
+            "AccountObjectId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+            "IPAddress": "2001:db8:7a3c:1200::1f",
+            "Country": "US",
+            "City": "Ashburn",
+            "ObjectName": "..",
+            "ObjectType": "InboxRule",
+            "ActivityObjects": [
+              {
+                "Type": "User",
+                "Name": "lferreira@contoso.com",
+                "Id": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "Name",
+                "Value": ".."
+              },
+              {
+                "Type": "Parameter",
+                "Name": "ForwardTo",
+                "Value": "ap.remittance@contoso-invoices.example"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "SubjectOrBodyContainsWords",
+                "Value": "invoice;IBAN;SWIFT;payment;remittance"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "MarkAsRead",
+                "Value": "True"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "StopProcessingRules",
+                "Value": "True"
+              }
+            ],
+            "ReportId": 4471130214,
+            "RawEventData": {
+              "Operation": "New-InboxRule",
+              "ResultStatus": "True",
+              "UserId": "lferreira@contoso.com",
+              "ClientIP": "2001:db8:7a3c:1200::1f",
+              "ClientInfoString": "Client=OWA;Action=ViaProxy",
+              "SessionId": "7d3f1a29-5c2e-4b8a-9f0d-1e3c5a7b9d21",
+              "Parameters": [
+                {
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)DeviceProcessEvents"
+            },
+            {
+              "$regex": "(?i)srv-prd-app01"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "ProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "ProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "ProcessCreationTime",
+            "type": "DateTime"
+          },
+          {
+            "name": "AccountName",
+            "type": "String"
+          },
+          {
+            "name": "AccountDomain",
+            "type": "String"
+          },
+          {
+            "name": "SHA256",
+            "type": "String"
+          },
+          {
+            "name": "ProcessIntegrityLevel",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFolderPath",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountDomain",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessSHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessSignerType",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessSignatureStatus",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T02:47:12.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "ProcessId": 5216,
+            "ProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "ProcessCreationTime": "2026-09-14T02:47:12.000Z",
+            "AccountName": "SYSTEM",
+            "AccountDomain": "nt authority",
+            "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "ProcessIntegrityLevel": "System",
+            "InitiatingProcessFileName": "cfgagent.exe",
+            "InitiatingProcessFolderPath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "InitiatingProcessId": 1840,
+            "InitiatingProcessCommandLine": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessAccountDomain": "nt authority",
+            "InitiatingProcessSHA256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "InitiatingProcessSignerType": "Unknown",
+            "InitiatingProcessSignatureStatus": "Valid",
+            "InitiatingProcessParentFileName": "services.exe",
+            "InitiatingProcessParentId": 704,
+            "ReportId": 4471140501
+          },
+          {
+            "Timestamp": "2026-08-31T02:41:37.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "ProcessId": 6120,
+            "ProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "ProcessCreationTime": "2026-08-31T02:41:37.000Z",
+            "AccountName": "SYSTEM",
+            "AccountDomain": "nt authority",
+            "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "ProcessIntegrityLevel": "System",
+            "InitiatingProcessFileName": "cfgagent.exe",
+            "InitiatingProcessFolderPath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "InitiatingProcessId": 1840,
+            "InitiatingProcessCommandLine": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessAccountDomain": "nt authority",
+            "InitiatingProcessSHA256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "InitiatingProcessSignerType": "Unknown",
+            "InitiatingProcessSignatureStatus": "Valid",
+            "InitiatingProcessParentFileName": "services.exe",
+            "InitiatingProcessParentId": 704,
+            "ReportId": 4469887342
           }
         ]
       }

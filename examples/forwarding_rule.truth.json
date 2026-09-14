@@ -1,0 +1,162 @@
+{
+  "scenario": "forwarding_rule",
+  "alert_id": "da637551318890123456_-1188736301",
+  "verdict": "true_positive",
+  "escalate": true,
+  "required_findings": [
+    {
+      "name": "the_rule_on_amorel_forwards_to_the_external_address",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "amorel@contoso.com",
+          "amorel"
+        ],
+        [
+          "ap.remittance@contoso-invoices.example",
+          "contoso-invoices.example"
+        ]
+      ]
+    },
+    {
+      "name": "the_rule_on_tkowalski_forwards_to_the_external_address",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "tkowalski@contoso.com",
+          "tkowalski"
+        ],
+        [
+          "ap.remittance@contoso-invoices.example",
+          "contoso-invoices.example"
+        ]
+      ]
+    },
+    {
+      "name": "the_rule_on_lferreira_forwards_to_the_external_address",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "lferreira@contoso.com",
+          "lferreira"
+        ],
+        [
+          "ap.remittance@contoso-invoices.example",
+          "contoso-invoices.example"
+        ]
+      ]
+    },
+    {
+      "name": "the_rules_filter_on_payment_terms",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "invoice;IBAN;SWIFT;payment;remittance",
+          "invoice",
+          "invoices",
+          "IBAN",
+          "SWIFT",
+          "payment",
+          "remittance"
+        ],
+        [
+          "New-InboxRule",
+          "InboxRule",
+          "inbox rule",
+          "forwarding rule",
+          "rule",
+          "rules"
+        ]
+      ]
+    },
+    {
+      "name": "the_rules_were_created_from_one_external_address",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        "2001:db8:7a3c:1200::1f",
+        [
+          "New-InboxRule",
+          "InboxRule",
+          "inbox rule",
+          "forwarding rule",
+          "rule",
+          "rules"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "what_was_forwarded_before_the_rules_were_found",
+      "tokens": [
+        [
+          "message trace",
+          "MessageTrace",
+          "EmailEvents",
+          "messages",
+          "message",
+          "mail",
+          "email",
+          "emails",
+          "invoices"
+        ],
+        [
+          "forwarded",
+          "forward",
+          "sent",
+          "delivered",
+          "left",
+          "received",
+          "intercepted",
+          "exfiltrated"
+        ]
+      ]
+    },
+    {
+      "name": "how_the_sessions_were_obtained",
+      "tokens": [
+        [
+          "phishing",
+          "phish",
+          "AiTM",
+          "adversary-in-the-middle",
+          "credential",
+          "credentials",
+          "session token",
+          "token",
+          "initial access",
+          "compromised"
+        ],
+        [
+          "email",
+          "mail",
+          "link",
+          "click",
+          "clicked",
+          "URL",
+          "UrlClickEvents",
+          "how",
+          "obtained",
+          "vector",
+          "source",
+          "origin"
+        ]
+      ]
+    }
+  ]
+}

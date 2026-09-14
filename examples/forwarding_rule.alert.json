@@ -1,0 +1,84 @@
+{
+  "id": "da637551318890123456_-1188736301",
+  "title": "Suspicious inbox forwarding rule to an external address",
+  "description": "Inbox rules forwarding mail to one external address were created on three mailboxes within 13 minutes. Each rule matches messages whose subject or body mentions invoices, IBAN, SWIFT or payment and forwards them to ap.remittance@contoso-invoices.example, a domain outside the organisation.",
+  "severity": "high",
+  "status": "new",
+  "category": "Collection",
+  "createdDateTime": "2026-09-14T05:31:08.2Z",
+  "lastUpdateDateTime": "2026-09-14T05:32:00Z",
+  "detectionSource": "microsoftDefenderForOffice365",
+  "serviceSource": "microsoftDefenderForOffice365",
+  "providerAlertId": "3e8d19c7",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "63",
+  "mitreTechniques": [
+    "T1114.003",
+    "T1078.004"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T05:31:08.2Z",
+      "verdict": "suspicious",
+      "roles": [
+        "compromised"
+      ],
+      "userAccount": {
+        "accountName": "amorel",
+        "domainName": "contoso",
+        "userPrincipalName": "amorel@contoso.com",
+        "displayName": "Amelie Morel",
+        "azureAdUserId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T05:31:08.2Z",
+      "verdict": "suspicious",
+      "roles": [
+        "compromised"
+      ],
+      "userAccount": {
+        "accountName": "tkowalski",
+        "domainName": "contoso",
+        "userPrincipalName": "tkowalski@contoso.com",
+        "displayName": "Tomasz Kowalski",
+        "azureAdUserId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T05:31:08.2Z",
+      "verdict": "suspicious",
+      "roles": [
+        "compromised"
+      ],
+      "userAccount": {
+        "accountName": "lferreira",
+        "domainName": "contoso",
+        "userPrincipalName": "lferreira@contoso.com",
+        "displayName": "Lucia Ferreira",
+        "azureAdUserId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.ipEvidence",
+      "createdDateTime": "2026-09-14T05:31:08.2Z",
+      "verdict": "suspicious",
+      "roles": [
+        "attacker"
+      ],
+      "ipAddress": "2001:db8:7a3c:1200::1f",
+      "countryLetterCode": "US"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.cloudApplicationEvidence",
+      "createdDateTime": "2026-09-14T05:31:08.2Z",
+      "appId": 20893,
+      "displayName": "Microsoft Exchange Online",
+      "instanceName": "Microsoft Exchange Online",
+      "saasAppId": 20893
+    }
+  ]
+}

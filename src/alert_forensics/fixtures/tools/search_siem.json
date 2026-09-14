@@ -248,6 +248,367 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(o365|m365|exchange|azuread|aad|audit)"
+            },
+            {
+              "$regex": "(?i)amorel|tkowalski|lferreira|contoso-invoices|InboxRule|Forward|Set-Mailbox"
+            },
+            {
+              "$regex": "(?i)InboxRule|Forward|Set-Mailbox|rule|audit|contoso-invoices|ap\\.remittance"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300020.12365",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "object"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "recipient"
+          },
+          {
+            "name": "object_attrs"
+          },
+          {
+            "name": "status"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T05:14:02.000+00:00",
+            "user": "amorel@contoso.com",
+            "src": "2001:db8:7a3c:1200::1f",
+            "action": "New-InboxRule",
+            "app": "Microsoft Exchange Online",
+            "object": "..",
+            "object_category": "inbox_rule",
+            "recipient": "ap.remittance@contoso-invoices.example",
+            "object_attrs": "Name: .., ForwardTo: ap.remittance@contoso-invoices.example, SubjectOrBodyContainsWords: invoice;IBAN;SWIFT;payment;remittance, MarkAsRead: True, StopProcessingRules: True",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T05:20:36.000+00:00",
+            "user": "tkowalski@contoso.com",
+            "src": "2001:db8:7a3c:1200::1f",
+            "action": "New-InboxRule",
+            "app": "Microsoft Exchange Online",
+            "object": "..",
+            "object_category": "inbox_rule",
+            "recipient": "ap.remittance@contoso-invoices.example",
+            "object_attrs": "Name: .., ForwardTo: ap.remittance@contoso-invoices.example, SubjectOrBodyContainsWords: invoice;IBAN;SWIFT;payment;remittance, MarkAsRead: True, StopProcessingRules: True",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T05:27:11.000+00:00",
+            "user": "lferreira@contoso.com",
+            "src": "2001:db8:7a3c:1200::1f",
+            "action": "New-InboxRule",
+            "app": "Microsoft Exchange Online",
+            "object": "..",
+            "object_category": "inbox_rule",
+            "recipient": "ap.remittance@contoso-invoices.example",
+            "object_attrs": "Name: .., ForwardTo: ap.remittance@contoso-invoices.example, SubjectOrBodyContainsWords: invoice;IBAN;SWIFT;payment;remittance, MarkAsRead: True, StopProcessingRules: True",
+            "status": "success"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)amorel|tkowalski|lferreira"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300021.12366",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "src_country"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "authentication_method"
+          },
+          {
+            "name": "mfa"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "user_agent"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T05:02:41.000+00:00",
+            "user": "amorel",
+            "src": "2001:db8:7a3c:1200::1f",
+            "src_country": "US",
+            "action": "success",
+            "app": "OfficeHome",
+            "authentication_method": "password",
+            "mfa": "satisfied",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+          },
+          {
+            "_time": "2026-09-14T05:09:17.000+00:00",
+            "user": "tkowalski",
+            "src": "2001:db8:7a3c:1200::1f",
+            "src_country": "US",
+            "action": "success",
+            "app": "OfficeHome",
+            "authentication_method": "password",
+            "mfa": "satisfied",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+          },
+          {
+            "_time": "2026-09-14T05:18:55.000+00:00",
+            "user": "lferreira",
+            "src": "2001:db8:7a3c:1200::1f",
+            "src_country": "US",
+            "action": "success",
+            "app": "OfficeHome",
+            "authentication_method": "password",
+            "mfa": "satisfied",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)srv-prd-app01|CHG0042117"
+            },
+            {
+              "$regex": "(?i)change[_ -]?calendar|maintenance[_ -]?window|change[_ -]?mgmt|change[_ -]?ticket|CHG0042117|itsm|inputlookup"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300030.12375",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "host"
+          },
+          {
+            "name": "dest"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "object"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "object_attrs"
+          },
+          {
+            "name": "status"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "vendor_product"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-12T16:20:00.000+00:00",
+            "host": "srv-prd-app01",
+            "dest": "srv-prd-app01.contoso.com",
+            "user": "platform-ops",
+            "object": "CHG0042117",
+            "object_category": "change",
+            "object_attrs": "type: standard, window_start: 2026-09-14T02:00:00Z, window_end: 2026-09-14T04:00:00Z, executor: cfgagent, description: IIS app pool recycling drift correction (PaymentsApi)",
+            "status": "approved",
+            "signature": "Maintenance window: IIS app pool recycling drift correction on srv-prd-app01 via configuration management",
+            "vendor_product": "Contoso change calendar"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)srv-prd-app01"
+            },
+            {
+              "$regex": "(?i)index=|sourcetype=|EventCode|process|powershell|4688|sysmon"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300031.12376",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "host"
+          },
+          {
+            "name": "dest"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "EventCode"
+          },
+          {
+            "name": "process_name"
+          },
+          {
+            "name": "process"
+          },
+          {
+            "name": "process_id"
+          },
+          {
+            "name": "process_path"
+          },
+          {
+            "name": "process_hash"
+          },
+          {
+            "name": "parent_process_name"
+          },
+          {
+            "name": "parent_process"
+          },
+          {
+            "name": "parent_process_id"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "vendor_product"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T02:47:12.000+00:00",
+            "host": "srv-prd-app01",
+            "dest": "srv-prd-app01.contoso.com",
+            "user": "SYSTEM",
+            "action": "allowed",
+            "EventCode": "4688",
+            "process_name": "powershell.exe",
+            "process": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "process_id": "5216",
+            "process_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "process_hash": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "parent_process_name": "cfgagent.exe",
+            "parent_process": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "parent_process_id": "1840",
+            "signature": "A new process has been created",
+            "vendor_product": "Microsoft Windows"
+          },
+          {
+            "_time": "2026-08-31T02:41:37.000+00:00",
+            "host": "srv-prd-app01",
+            "dest": "srv-prd-app01.contoso.com",
+            "user": "SYSTEM",
+            "action": "allowed",
+            "EventCode": "4688",
+            "process_name": "powershell.exe",
+            "process": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "process_id": "6120",
+            "process_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "process_hash": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "parent_process_name": "cfgagent.exe",
+            "parent_process": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "parent_process_id": "1840",
+            "signature": "A new process has been created",
+            "vendor_product": "Microsoft Windows"
+          }
+        ]
+      }
     }
   ]
 }

@@ -47,6 +47,155 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "device_name": {
+          "$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$"
+        },
+        "process_id": {
+          "$any": true
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "ProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "ProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "ProcessCreationTime",
+            "type": "DateTime"
+          },
+          {
+            "name": "AccountName",
+            "type": "String"
+          },
+          {
+            "name": "SHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFolderPath",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessCreationTime",
+            "type": "DateTime"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessSHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T02:47:12.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "ProcessId": 5216,
+            "ProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "ProcessCreationTime": "2026-09-14T02:47:12.000Z",
+            "AccountName": "SYSTEM",
+            "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "InitiatingProcessFileName": "cfgagent.exe",
+            "InitiatingProcessFolderPath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "InitiatingProcessId": 1840,
+            "InitiatingProcessCommandLine": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "InitiatingProcessCreationTime": "2026-08-16T22:03:40.000Z",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessSHA256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "InitiatingProcessParentFileName": "services.exe",
+            "InitiatingProcessParentId": 704
+          },
+          {
+            "Timestamp": "2026-08-16T22:03:40.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "FileName": "cfgagent.exe",
+            "FolderPath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "ProcessId": 1840,
+            "ProcessCommandLine": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "ProcessCreationTime": "2026-08-16T22:03:40.000Z",
+            "AccountName": "SYSTEM",
+            "SHA256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "InitiatingProcessFileName": "services.exe",
+            "InitiatingProcessFolderPath": "C:\\Windows\\System32",
+            "InitiatingProcessId": 704,
+            "InitiatingProcessCommandLine": "C:\\Windows\\system32\\services.exe",
+            "InitiatingProcessCreationTime": "2026-08-16T22:02:51.000Z",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessSHA256": "9a2d4e6c8f0b1a3c5e7d9f1b3a5c7e9d1f3b5a7c9e1d3f5b7a9c1e3d5f7b9a1c",
+            "InitiatingProcessParentFileName": "wininit.exe",
+            "InitiatingProcessParentId": 596
+          },
+          {
+            "Timestamp": "2026-08-31T02:41:37.000Z",
+            "DeviceName": "srv-prd-app01.contoso.com",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "ProcessId": 6120,
+            "ProcessCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+            "ProcessCreationTime": "2026-08-31T02:41:37.000Z",
+            "AccountName": "SYSTEM",
+            "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "InitiatingProcessFileName": "cfgagent.exe",
+            "InitiatingProcessFolderPath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "InitiatingProcessId": 1840,
+            "InitiatingProcessCommandLine": "\"C:\\Program Files\\Contoso\\ConfigAgent\\cfgagent.exe\" --service",
+            "InitiatingProcessCreationTime": "2026-08-16T22:03:40.000Z",
+            "InitiatingProcessAccountName": "SYSTEM",
+            "InitiatingProcessSHA256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "InitiatingProcessParentFileName": "services.exe",
+            "InitiatingProcessParentId": 704
+          }
+        ]
+      }
     }
   ]
 }

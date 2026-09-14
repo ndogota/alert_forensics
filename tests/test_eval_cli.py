@@ -229,7 +229,12 @@ def test_the_scripted_suite_hits_a_stub_on_every_call_of_every_shipped_scenario(
     results = tmp_path / "results"
     assert main(["eval", "--scripted", "--runs", "1", "--results", str(results)]) == 0
     summary = Summary.model_validate_json((results / "summary.json").read_text())
-    assert sorted(c.scenario for c in summary.cells) == ["atypical_travel", "password_spray"]
+    assert sorted(c.scenario for c in summary.cells) == [
+        "atypical_travel",
+        "encoded_powershell",
+        "forwarding_rule",
+        "password_spray",
+    ]
     for cell in summary.cells:
         assert cell.completed.numerator == 1, cell.scenario
         assert cell.calls.no_fixture.numerator == 0, (cell.scenario, cell.calls)

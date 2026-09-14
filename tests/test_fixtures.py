@@ -88,14 +88,19 @@ def test_exact_contains_and_regex_matchers(fixture_set):
     adapter = FixtureAdapter(
         DEFINITIONS["search_events"], fixture_set.for_tool("search_events"), fixture_set.labels
     )
-    kql = "DeviceEvents | where ActionType == 'AntivirusDetection'"
+    kql = (
+        "DeviceEvents | where DeviceName == 'srv-prd-app01.contoso.com' "
+        "| where ActionType == 'PowerShellCommand'"
+    )
     raw = adapter.fetch(DEFINITIONS["search_events"].request_model(query=kql))
-    assert raw["results"][0]["ActionType"] == "AntivirusDetection"
+    assert raw["results"][0]["ActionType"] == "PowerShellCommand"
     kql = "SigninLogs | where AccountUpn == 'jdoe@contoso.com' | take 5"
     raw = adapter.fetch(DEFINITIONS["search_events"].request_model(query=kql))
     assert len(raw["results"]) == 2
-    asset = FixtureAdapter(DEFINITIONS["get_asset"], fixture_set.for_tool("get_asset"), {"test"})
-    for spelling in ("SRV-PRD-APP01", "srv-prd-app01.contoso.com"):
+    asset = FixtureAdapter(
+        DEFINITIONS["get_asset"], fixture_set.for_tool("get_asset"), {"encoded_powershell"}
+    )
+    for spelling in ("SRV-PRD-APP01", "srv-prd-app01.contoso.com", "10.20.30.40"):
         raw = asset.fetch(DEFINITIONS["get_asset"].request_model(asset=spelling))
         assert raw["results"][0]["nt_host"] == "SRV-PRD-APP01"
 
@@ -106,7 +111,7 @@ def test_the_first_matching_stub_wins_in_file_order(fixture_set):
     )
     both = (
         "SigninLogs | where AccountUpn == 'jdoe@contoso.com' "
-        "| join DeviceEvents | where ActionType == 'AntivirusDetection'"
+        "| join DeviceEvents | where DeviceName == 'srv-prd-app01.contoso.com'"
     )
     raw = adapter.fetch(DEFINITIONS["search_events"].request_model(query=both))
     assert raw["results"][0]["AccountUpn"] == "jdoe@contoso.com"
@@ -290,18 +295,25 @@ def test_both_redaction_layers_apply_end_to_end(runner):
         assert leaked not in text
     assert identity.redacted_response["email"] == "jdoe@contoso.com"
     # Layer one again, the allowlist: AdditionalFields never reaches the view, and the
-    # model is told a column was dropped, not which.
+    # model is told a column was dropped, not which. On scenario 4's DeviceEvents rows
+    # that column carries the decoded PowerShell commands, where a script's embedded
+    # secrets would sit; the model gets the encoded command line and nothing decoded.
     events = runner.invoke(
         tool_call_id="tc-ev",
         step=1,
         tool_name="search_events",
-        arguments={"query": "DeviceEvents | where ActionType == 'AntivirusDetection'"},
+        arguments={
+            "query": "DeviceEvents | where DeviceName =~ 'srv-prd-app01.contoso.com' "
+            "| where ActionType == 'PowerShellCommand'"
+        },
         turn_siblings=[],
     )
     assert events.outcome is ToolOutcome.ok
-    assert "eyJhbGciOi" not in events.model_dump_json()
-    assert "AdditionalFields" not in events.model_dump_json()
-    assert set(events.redacted_response["rows"][0]) == {"Timestamp", "ActionType"}
+    text = events.model_dump_json()
+    assert "Restart-WebAppPool" not in text and "Set-ItemProperty" not in text
+    assert "AdditionalFields" not in text
+    assert "AdditionalFields" not in events.redacted_response["columns"]
+    assert "-EncodedCommand" in text
     assert events.redacted_response["dropped_columns"] == 1
     # Layer two, the generic pass: a password inside a command line is caught although
     # the projection passes the command line through, because it must.
@@ -503,14 +515,19 @@ def test_scenario_2_stubs_answer_the_requests_a_model_plausibly_makes(runner):
     assert "100 or more" in text and "25 or more" in text and "5 or more" in text
 
 
-def test_scenario_2_stubs_answer_nothing_about_another_account(runner):
+def test_scenario_2_stubs_answer_nothing_about_another_account(fixture_set, runner):
     """The audit stubs are the account's; the aggregate is keyed on the failure and the
-    aggregate, and a query that names a known account gets that account's rows."""
+    aggregate, and a query that names a known account gets that account's rows. Inbox
+    rules as a subject are scenario 3's since it arrived, so the two assertions that
+    name them hold under scenario 2's own binding, which is the weaker claim."""
     assert gap(runner, "search_events", query="CloudAppEvents | where AccountUpn == 'jdoe'")
-    assert gap(runner, "search_events", query="CloudAppEvents | where ActionType has 'InboxRule'")
-    assert gap(runner, "search_siem", search="index=o365 user=jdoe New-InboxRule")
+    spray = bound_runner(fixture_set, {"password_spray"}, "inv-spray-gaps")
+    assert gap(spray, "search_events", query="CloudAppEvents | where ActionType has 'InboxRule'")
+    assert gap(spray, "search_siem", search="index=o365 user=jdoe New-InboxRule")
     assert gap(runner, "search_siem", search="index=auth user=mmartin | stats count by src")
-    assert gap(runner, "search_runbook", query="inbox rule forwarding invoices outside the bank")
+    assert gap(
+        runner, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
+    )
     assert gap(runner, "lookup_ioc", indicator="192.0.2.99")
     # jdoe's failures, aggregated, are still jdoe's rows: scenario 1's stub comes first.
     query = (
@@ -537,11 +554,20 @@ def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
     assert fixture_set.scenarios == {
         "atypical_travel": ALERT_PAYLOAD["id"],
         "password_spray": "da637551302218456123_-1188736045",
+        "forwarding_rule": "da637551318890123456_-1188736301",
+        "encoded_powershell": "da637551341122334455_-1188736402",
     }
     assert fixture_set.in_view(Alert.model_validate(ALERT_PAYLOAD)) == {"shared", "atypical_travel"}
     unknown = Alert.model_validate({**ALERT_PAYLOAD, "id": "nobody-knows-this-alert"})
     assert fixture_set.in_view(unknown) == {"shared"}
-    assert fixture_set.labels >= {"shared", "test", "atypical_travel", "password_spray"}
+    assert fixture_set.labels == {
+        "shared",
+        "test",
+        "atypical_travel",
+        "password_spray",
+        "forwarding_rule",
+        "encoded_powershell",
+    }
 
 
 def test_an_aggregate_stub_answers_only_the_run_of_its_own_scenario(fixture_set):
@@ -567,7 +593,12 @@ def test_shared_stubs_are_always_offered_and_test_stubs_only_when_named(fixture_
     assert gap(nothing, "lookup_ioc", indicator="203.0.113.7")
     assert gap(nothing, "get_identity", identity="jdoe")
     tests = bound_runner(fixture_set, {"test"}, "inv-test")
-    assert ok(tests, "get_asset", asset="srv-prd-app01.contoso.com")["found"] is True
+    assert gap(tests, "get_asset", asset="srv-prd-app01.contoso.com")
+    tree = ok(tests, "get_process_tree", device_name="ws-fin-0042.contoso.com", process_id=4412)
+    assert tree["found"] is True
+    server = bound_runner(fixture_set, {"encoded_powershell"}, "inv-server")
+    assert ok(server, "get_asset", asset="srv-prd-app01.contoso.com")["found"] is True
+    assert gap(server, "get_process_tree", device_name="ws-fin-0042.contoso.com", process_id=4412)
 
 
 def test_a_withheld_stub_is_not_named_in_the_no_fixture_error(fixture_set):
@@ -604,3 +635,261 @@ def test_a_label_the_manifest_does_not_name_refuses_to_load(tmp_path):
     (tmp_path / "scenarios.json").write_text('["not", "a", "manifest"]')
     with pytest.raises(ValueError, match=r"scenarios\.json"):
         FixtureSet.load(tmp_path)
+
+
+# --- scenario 3, forwarding rule -----------------------------------------------------
+
+AP_USERS = ("amorel", "tkowalski", "lferreira")
+ATTACKER = "2001:db8:7a3c:1200::1f"
+DESTINATION = "ap.remittance@contoso-invoices.example"
+
+
+def test_scenario_3_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    # The three users' sign-ins, whichever table and whichever user the model names:
+    # one session each from the same address, unmanaged device, MFA reported satisfied.
+    tables = ("SigninLogs", "AADSignInEventsBeta", "IdentityLogonEvents")
+    for table, user in zip(tables, AP_USERS, strict=True):
+        view = ok(
+            runner, "search_events", query=f"{table} | where AccountUpn =~ '{user}@contoso.com'"
+        )
+        assert view["row_count"] == 3, (table, user)
+        assert {r["IPAddress"] for r in view["rows"]} == {ATTACKER}
+        assert {r["AccountUpn"] for r in view["rows"]} == {f"{u}@contoso.com" for u in AP_USERS}
+        assert {r["AuthenticationRequirement"] for r in view["rows"]} == {
+            "multiFactorAuthentication"
+        }
+        assert {r["IsManaged"] for r in view["rows"]} == {False}
+        assert "Latitude" not in view["columns"] and view["dropped_columns"] == 2
+    # The rules: by user, by destination, or as a tenant-wide listing of inbox rules.
+    for query in (
+        "CloudAppEvents | where AccountUpn == 'amorel@contoso.com' "
+        "| where ActionType == 'New-InboxRule'",
+        "OfficeActivity | where UserId has 'lferreira'",
+        f"CloudAppEvents | where ActivityObjects has '{DESTINATION}'",
+        "CloudAppEvents | where ActionType in ('New-InboxRule', 'Set-InboxRule', 'Set-Mailbox')",
+        "AuditLogs | where OperationName has 'InboxRule'",
+    ):
+        view = ok(runner, "search_events", query=query)
+        assert view["row_count"] == 3, query
+        assert {r["ActionType"] for r in view["rows"]} == {"New-InboxRule"}
+        assert {r["IPAddress"] for r in view["rows"]} == {ATTACKER}
+        assert "RawEventData" not in view["columns"] and view["dropped_columns"] == 1
+    text = json.dumps(view)
+    assert text.count(DESTINATION) == 3
+    assert "invoice;IBAN;SWIFT;payment;remittance" in text
+    # The same through the SIEM.
+    view = ok(runner, "search_siem", search="index=azuread user=amorel | table _time src action")
+    assert [r["action"] for r in view["rows"]] == ["success", "success", "success"]
+    assert {r["src"] for r in view["rows"]} == {ATTACKER}
+    for search in (
+        "index=o365 New-InboxRule | table user src object_attrs",
+        'index=o365 user="tkowalski@contoso.com" InboxRule',
+        f'index=exchange "{DESTINATION}"',
+    ):
+        view = ok(runner, "search_siem", search=search)
+        assert [r["action"] for r in view["rows"]] == ["New-InboxRule"] * 3, search
+        assert {r["src"] for r in view["rows"]} == {ATTACKER}
+    assert {r["recipient"] for r in view["rows"]} == {DESTINATION}
+    # Entities, every spelling the alert carries.
+    for user in AP_USERS:
+        for spelling in (user, f"{user}@contoso.com", user.upper()):
+            identity = ok(runner, "get_identity", identity=spelling)
+            assert identity["found"] is True, spelling
+            assert (
+                identity["business_unit"] == "Accounts Payable" and identity["priority"] == "high"
+            )
+        related = ok(runner, "get_related_alerts", user_principal_name=f"{user}@contoso.com")
+        assert related["count"] == 1 and "sign-in" in related["alerts"][0]["title"].lower()
+    assert ok(runner, "get_related_alerts", incident_id="63")["count"] == 3
+    reading = ok(runner, "lookup_ioc", indicator=ATTACKER)
+    assert reading["known"] is True and reading["indicator_type"] == "ip_address"
+    assert reading["engines"]["malicious"] > 0
+    reading = ok(runner, "lookup_ioc", indicator="contoso-invoices.example")
+    assert reading["known"] is True and reading["indicator_type"] == "domain"
+    assert reading["context"]["created_at"].startswith("2026-09-05")
+    # The runbook, on the alert type, the destination, or the adversary-in-the-middle
+    # entry's subject.
+    for query in (
+        "Suspicious inbox forwarding rule to an external address",
+        "email forwarding rule to an external address, business email compromise",
+        "invoice fraud playbook payments desk",
+        "AiTM session token replay with MFA satisfied",
+        "contoso-invoices.example",
+    ):
+        assert ok(runner, "search_runbook", query=query)["count"] >= 1, query
+    text = json.dumps(ok(runner, "search_runbook", query="inbox forwarding"))
+    assert "message trace" in text and "payments desk" in text and "beneficiary" in text
+
+
+def test_scenario_3_stubs_answer_nothing_about_another_account_and_hold_their_gaps(runner):
+    """The sign-in stub is the three users'. What no stub carries is carried by nothing:
+    the message trace and the phishing click are the expected missing context."""
+    assert gap(
+        runner, "search_events", query="SigninLogs | where AccountUpn == 'mmartin@contoso.com'"
+    )
+    assert gap(runner, "search_siem", search="index=azuread user=mmartin")
+    assert gap(
+        runner,
+        "search_events",
+        query=f"EmailEvents | where RecipientEmailAddress == '{DESTINATION}'",
+    )
+    assert gap(
+        runner, "search_events", query="UrlClickEvents | where AccountUpn == 'amorel@contoso.com'"
+    )
+    assert gap(
+        runner,
+        "search_siem",
+        search=f'index=msexchange recipient="{DESTINATION}" | table sender subject',
+    )
+    assert gap(runner, "lookup_ioc", indicator="2001:db8:7a3c:1200::2f")
+    assert gap(runner, "get_related_alerts", user_principal_name="mmartin@contoso.com")
+    assert gap(
+        runner, "search_runbook", query="6.2 GB upload to personal cloud storage by a leaver"
+    )
+
+
+# --- scenario 4, encoded PowerShell --------------------------------------------------
+
+SERVER = "srv-prd-app01.contoso.com"
+AGENT_SHA256 = "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70"
+POWERSHELL_SHA256 = "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c"
+
+
+def test_scenario_4_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    for spelling in ("srv-prd-app01", SERVER, "SRV-PRD-APP01", "10.20.30.40"):
+        asset = ok(runner, "get_asset", asset=spelling)
+        assert asset["found"] is True and asset["priority"] == "critical", spelling
+        assert "pci" in asset["categories"]
+    # The lineage around the alert's process, and around its parent.
+    tree = ok(runner, "get_process_tree", device_name=SERVER, process_id=5216)
+    assert [n["relation"] for n in tree["lineage"]] == ["grandparent", "parent", "self"]
+    grandparent, parent, me = tree["lineage"]
+    assert grandparent["file_name"] == "services.exe"
+    assert parent["file_name"] == "cfgagent.exe" and parent["account"] == "SYSTEM"
+    assert parent["folder_path"] == "C:\\Program Files\\Contoso\\ConfigAgent"
+    assert me["file_name"] == "powershell.exe" and "-EncodedCommand" in me["command_line"]
+    assert me["account"] == "SYSTEM" and me["sha256"] == POWERSHELL_SHA256
+    tree = ok(runner, "get_process_tree", device_name="SRV-PRD-APP01", process_id=1840)
+    assert [n["relation"] for n in tree["lineage"]] == [
+        "grandparent",
+        "parent",
+        "self",
+        "child",
+        "child",
+    ]
+    assert {n["file_name"] for n in tree["lineage"][3:]} == {"powershell.exe"}
+    # Process events on the device: today's run and the previous window's.
+    for query in (
+        f"DeviceProcessEvents | where DeviceName =~ '{SERVER}' "
+        "| where FileName =~ 'powershell.exe'",
+        "DeviceProcessEvents | where DeviceName startswith 'srv-prd-app01' "
+        "| where ProcessCommandLine has '-enc'",
+    ):
+        view = ok(runner, "search_events", query=query)
+        assert view["row_count"] == 2, query
+        assert {r["InitiatingProcessFileName"] for r in view["rows"]} == {"cfgagent.exe"}
+        assert {r["AccountName"] for r in view["rows"]} == {"SYSTEM"}
+        assert all("-EncodedCommand" in r["ProcessCommandLine"] for r in view["rows"])
+        assert view["dropped_columns"] == 0
+    view = ok(runner, "search_events", query=f"DeviceEvents | where DeviceName == '{SERVER}'")
+    assert view["row_count"] == 3 and {r["ActionType"] for r in view["rows"]} == {
+        "PowerShellCommand"
+    }
+    assert {r["InitiatingProcessParentFileName"] for r in view["rows"]} == {"cfgagent.exe"}
+    # The SIEM: process events, and the change calendar that declares the window.
+    for search in (
+        "index=wineventlog host=srv-prd-app01 EventCode=4688 process_name=powershell.exe",
+        f'index=endpoint dest="{SERVER}" parent_process_name=cfgagent.exe | table _time process',
+    ):
+        view = ok(runner, "search_siem", search=search)
+        assert [r["parent_process_name"] for r in view["rows"]] == ["cfgagent.exe"] * 2, search
+        assert {r["user"] for r in view["rows"]} == {"SYSTEM"}
+        assert all("-EncodedCommand" in r["process"] for r in view["rows"])
+    for search in (
+        '| inputlookup change_calendar where host="srv-prd-app01"',
+        f"index=change_mgmt dest={SERVER} maintenance window",
+        "index=itsm CHG0042117",
+    ):
+        view = ok(runner, "search_siem", search=search)
+        assert view["row_count"] == 1, search
+        row = view["rows"][0]
+        assert row["object"] == "CHG0042117" and row["object_category"] == "change"
+        assert row["status"] == "approved" and "2026-09-14T02:00" in row["object_attrs"]
+    # The owner, the prior alert on the device, and the two hashes.
+    owner = ok(runner, "get_identity", identity="platform-ops@contoso.com")
+    assert owner["found"] is True and owner["business_unit"] == "Infrastructure"
+    for arguments in (
+        {"device_name": SERVER},
+        {"device_name": "SRV-PRD-APP01"},
+        {"incident_id": "66"},
+    ):
+        related = ok(runner, "get_related_alerts", **arguments)
+        assert related["count"] == 1, arguments
+        prior = related["alerts"][0]
+        assert prior["classification"] == "informationalExpectedActivity"
+        assert prior["determination"] == "lineOfBusinessApplication"
+        assert prior["created_date_time"].startswith("2026-08-31")
+    reading = ok(runner, "lookup_ioc", indicator=AGENT_SHA256)
+    assert reading["known"] is False
+    reading = ok(runner, "lookup_ioc", indicator=POWERSHELL_SHA256)
+    assert reading["known"] is True and reading["context"]["signed"] is True
+    assert "Microsoft" in reading["context"]["signers"] and reading["engines"]["malicious"] == 0
+    # The runbook: the alert type, the agent, the server, the ticket, the window.
+    for query in (
+        "Encoded PowerShell command on a production server",
+        "cfgagent.exe configuration management agent expected parent",
+        "maintenance window srv-prd-app01",
+        "CHG0042117",
+        "powershell -EncodedCommand as SYSTEM on a production server, is it sanctioned",
+    ):
+        assert ok(runner, "search_runbook", query=query)["count"] >= 1, query
+    text = json.dumps(ok(runner, "search_runbook", query="encoded powershell"))
+    assert "triplet" in text and "do not disable" in text and "CHG0042117" in text
+
+
+def test_scenario_4_stubs_answer_nothing_about_another_device(runner):
+    assert gap(runner, "get_asset", asset="srv-prd-app02")
+    assert gap(runner, "get_process_tree", device_name="srv-prd-app02.contoso.com", process_id=5216)
+    assert gap(
+        runner, "search_events", query="DeviceProcessEvents | where DeviceName == 'srv-prd-app02'"
+    )
+    assert gap(
+        runner, "search_events", query="DeviceEvents | where ActionType == 'PowerShellCommand'"
+    )
+    assert gap(runner, "search_siem", search="index=wineventlog host=srv-prd-app02 powershell")
+    assert gap(
+        runner, "search_siem", search="| inputlookup change_calendar where host=srv-prd-app02"
+    )
+    assert gap(runner, "get_related_alerts", device_name="srv-prd-app02.contoso.com")
+    assert gap(runner, "lookup_ioc", indicator="0" * 64)
+
+
+# --- what carries which label -----------------------------------------------------------
+
+
+def test_the_only_test_stub_left_is_the_workstation_tree_scenario_7_will_claim(fixture_set):
+    remaining = [
+        (tool, index)
+        for tool in sorted(fixture_set.tools)
+        for index, stub in enumerate(fixture_set.tools[tool].stubs)
+        if stub.scenario == "test"
+    ]
+    assert remaining == [("get_process_tree", 0)]
+    stub = fixture_set.for_tool("get_process_tree").stubs[0]
+    assert stub.match["device_name"] == {"$regex": "(?i)^ws-fin-0042"}
+
+
+def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
+    from collections import Counter
+
+    counts = Counter(
+        stub.scenario for fixture in fixture_set.tools.values() for stub in fixture.stubs
+    )
+    assert counts == {
+        "atypical_travel": 6,
+        "password_spray": 11,
+        "forwarding_rule": 14,
+        "encoded_powershell": 11,
+        "shared": 5,
+        "test": 1,
+    }

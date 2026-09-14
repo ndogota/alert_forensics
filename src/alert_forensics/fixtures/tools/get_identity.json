@@ -80,6 +80,194 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^amorel(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789300022.12367",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "amorel|amorel@contoso.com|CONTOSO\\amorel",
+            "prefix": "",
+            "nick": "",
+            "first": "Amelie",
+            "last": "Morel",
+            "suffix": "",
+            "email": "amorel@contoso.com",
+            "phone": "+44 20 7946 0101",
+            "phone2": "",
+            "managedBy": "dchen@contoso.com",
+            "priority": "high",
+            "bunit": "Accounts Payable",
+            "category": "employee|payments",
+            "watchlist": "false",
+            "startDate": "2020-02-17",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB",
+            "work_lat": "51.5074",
+            "work_long": "-0.1278"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^tkowalski(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789300023.12368",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "tkowalski|tkowalski@contoso.com|CONTOSO\\tkowalski",
+            "prefix": "",
+            "nick": "",
+            "first": "Tomasz",
+            "last": "Kowalski",
+            "suffix": "",
+            "email": "tkowalski@contoso.com",
+            "phone": "+44 20 7946 0102",
+            "phone2": "",
+            "managedBy": "dchen@contoso.com",
+            "priority": "high",
+            "bunit": "Accounts Payable",
+            "category": "employee|payments",
+            "watchlist": "false",
+            "startDate": "2017-09-04",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB",
+            "work_lat": "51.5074",
+            "work_long": "-0.1278"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "forwarding_rule",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^lferreira(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789300024.12369",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "lferreira|lferreira@contoso.com|CONTOSO\\lferreira",
+            "prefix": "",
+            "nick": "",
+            "first": "Lucia",
+            "last": "Ferreira",
+            "suffix": "",
+            "email": "lferreira@contoso.com",
+            "phone": "+44 20 7946 0103",
+            "phone2": "",
+            "managedBy": "dchen@contoso.com",
+            "priority": "high",
+            "bunit": "Accounts Payable",
+            "category": "employee|payments",
+            "watchlist": "false",
+            "startDate": "2022-11-21",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB",
+            "work_lat": "51.5074",
+            "work_long": "-0.1278"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "encoded_powershell",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^platform-ops(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789300032.12377",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "platform-ops|platform-ops@contoso.com|CONTOSO\\platform-ops",
+            "prefix": "",
+            "nick": "",
+            "first": "",
+            "last": "",
+            "suffix": "",
+            "email": "platform-ops@contoso.com",
+            "phone": "",
+            "phone2": "",
+            "managedBy": "hkim@contoso.com",
+            "priority": "high",
+            "bunit": "Infrastructure",
+            "category": "group|service_owner",
+            "watchlist": "false",
+            "startDate": "2018-01-08",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB",
+            "work_lat": "51.5074",
+            "work_long": "-0.1278"
+          }
+        ]
+      }
     }
   ]
 }
