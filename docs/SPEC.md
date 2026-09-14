@@ -127,6 +127,8 @@ RunArtifact
   investigation_id
   outcome            RunOutcome
   model              the provider:model string the run was started with
+  model_limits       {timeout_s, max_retries} the model client was bounded with, or null
+                     for the scripted client, which makes no network call
   role               the role the tools ran under
   adapters           {tool: fixture | live | recorded | local}, what actually served each tool
   trace              InvestigationTrace: alert, every tool call, usage per model turn
@@ -141,6 +143,11 @@ RunArtifact
 
 - The result is not a separate field: the report carries it, and a report that
   disagrees with its result refuses to validate. `report.result` is the result.
+- `model_limits` sits beside `model` because the two numbers change the latency the
+  evaluation measures: a call that was allowed six retries with exponential backoff and
+  a call that was allowed one are not the same measurement, even on the same model.
+  The artifact records what was asked of the client, verbatim; what a provider does
+  with it is the provider's, see model independence.
 - Usage per model turn is read from `usage_metadata` on each `AIMessage`, the
   provider-agnostic field, and numbered by the message's position among the model turns.
   That is the same numbering a `ToolCallRecord.step` uses, so a record and the turn that
@@ -379,6 +386,27 @@ also decides `ProviderStrategy` versus `ToolStrategy` for structured output.
   `[openai]`, `[google]`, `[ollama]`. A missing provider fails at start-up with the
   package to install named, before any tool runs.
 
+- **Every model call is bounded.** `timeout` and `max_retries` are passed through
+  `init_chat_model` to the provider client, from `--timeout` (default 60 seconds) and
+  `--max-retries` (default 1). Without them the Google client retries a 429 or a 503
+  six times with exponential backoff and says nothing, and the first real run of this
+  project sat silent for minutes before failing: a rate limit, a slow call and a freeze
+  were indistinguishable. The two values are passed verbatim and recorded verbatim on
+  the artifact. Providers do not agree on what `max_retries` counts: Anthropic and
+  OpenAI count retries after the first attempt, Google counts attempts including the
+  first, so `1` there means no retry at all, and Ollama accepts neither knob and runs
+  unbounded. The harness does not translate between them; a translation table would
+  be a guess per provider, and the artifact would then record a number the client
+  never saw.
+- **A provider refusal is named as such.** When the client raises after its retries
+  are spent because the provider would not serve the call, a rate limit or quota
+  (HTTP 429, `ModelRateLimitError`) or an overloaded model (HTTP 503 or 529), the
+  run is `failed_error` with the error kind `rate_limit` or `overloaded`, not the
+  exception's class name. The classification reads the LangChain error class first,
+  then the status code the exception carries, then the message, in that order, so a
+  provider whose client does not yet map onto LangChain's error classes is still
+  named. Any other exception keeps its class name as the kind, as before.
+
 The harness is not tied to a vendor.
 
 ## The agent graph
@@ -417,7 +445,12 @@ finish       set the outcome: completed, failed_ungrounded, or failed_error when
 - The graph runs under a recursion limit. Exceeding it is `failed_error` of kind
   `budget`. Any exception out of the graph, a provider error, unparseable structured
   output, an exhausted script, is `failed_error` with the exception's kind and message,
-  and the artifact is still written with the trace as it stood.
+  and the artifact is still written with the trace as it stood. A provider refusal is
+  the one exception whose kind is not its class name: `rate_limit` or `overloaded`,
+  see model independence.
+- The runner accepts a callback that receives every `ToolCallRecord` as it is
+  journalled. That is how the console script shows progress: the runner already holds
+  every record, so progress is a view over the journal, not a second source of truth.
 
 ## The scripted client
 
@@ -524,6 +557,22 @@ alert-forensics eval
   are the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
+- `--timeout SECONDS` (default 60) and `--max-retries N` (default 1) bound every model
+  call, passed through to the provider client and recorded on the artifact as
+  `model_limits`. They exist because the alternative was verified: a client left on its
+  defaults retries a rate limit in silence for minutes.
+- While the investigation runs, one line per journalled tool call goes to stderr: the
+  step, the tool name, the outcome and the duration. stdout carries the result line
+  alone, so `triage ... | jq` and redirection keep working. `--quiet` suppresses the
+  progress. Nothing is printed between launch and the first tool call, and nothing
+  between the last and the result line; that is why the model call itself is bounded.
+- A run the provider refused to serve, a rate limit, a quota, or an overloaded model,
+  after the retries were spent, ends with a message on stderr naming the provider, the
+  model, and the fact that it is the provider's capacity and not a bug in the run, and
+  the exit code is 3. The artifact is still written, with `error.kind` `rate_limit` or
+  `overloaded`. Exit codes: 0 completed, 1 the run failed on its own account
+  (`failed_ungrounded`, or `failed_error` of any other kind), 2 usage or configuration,
+  3 the provider refused. A silent wait is the one behaviour a CLI must never have.
 
 Every tool sits behind a `ToolAdapter` interface that declares its required scope and
 its response shape. Two adapters are genuinely live and need no SOC: `lookup_ioc`
