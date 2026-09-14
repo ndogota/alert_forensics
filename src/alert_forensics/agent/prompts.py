@@ -33,10 +33,12 @@ a log line really was written. The verdict turns on the assertion, never on the 
 
 - true_positive: the assertion is true and the activity is malicious or unauthorised.
 - benign_true_positive: the assertion is true and the intent was legitimate and
-  authorised. The rule worked; document an exception, do not tune.
+  authorised. The rule worked.
 - false_positive: the assertion is false. The signal may be perfectly real and still
-  support no such conclusion. Tune.
+  support no such conclusion.
 - inconclusive: the evidence does not decide, and missing_context names what would.
+
+A verdict states what is true. What the SOC should do belongs in recommended_action.
 """
 
 REPAIR_SYSTEM_PROMPT = """\

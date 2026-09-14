@@ -16,6 +16,16 @@ def test_the_prompt_defines_every_verdict_by_the_claim_discriminator():
     assert "The signal may be perfectly real and still support no such conclusion" in flat
     assert "legitimate and authorised" in flat
     assert "missing_context names what would" in flat.split("- inconclusive:")[1]
+    assert "What the SOC should do belongs in recommended_action" in flat
+
+
+def test_the_prompt_judges_truth_and_never_prescribes_tuning():
+    """A verdict states what is true; the action lives in recommended_action. A rule
+    that fires on a departing employee pushing 6.2 GB to personal storage is doing its
+    job even when the folder is photographs, and a definition that said "tune" could
+    not say so."""
+    assert re.search(r"\btun(e|ed|ing)\b", SYSTEM_PROMPT, re.IGNORECASE) is None
+    assert re.search(r"\bexception\b", SYSTEM_PROMPT, re.IGNORECASE) is None
 
 
 def test_the_prompt_carries_the_taxonomy_and_not_the_answer_to_any_scenario():
