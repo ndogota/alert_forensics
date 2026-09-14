@@ -14,9 +14,10 @@ from alert_forensics.agent.scripted import (
 )
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import Alert, RunOutcome, Verdict
-from alert_forensics.evaluation import GroundTruth, contains_tokens, score_run
+from alert_forensics.evaluation import CallOutcomes, GroundTruth, contains_tokens, score_run
 from alert_forensics.tools import (
     ANALYST_ROLE,
+    TIER1_ROLE,
     DispositionAdapter,
     FixtureSet,
     InMemoryRawStore,
@@ -85,7 +86,7 @@ def fixture_set():
     return FixtureSet.load(FIXTURE_TOOLS_DIR)
 
 
-def run(script, fixture_set, max_corrections=1):
+def run(script, fixture_set, max_corrections=1, role=ANALYST_ROLE):
     model = ScriptedChatModel(
         script=script, profile={"structured_output": True}, model_id="scripted:test"
     )
@@ -93,7 +94,7 @@ def run(script, fixture_set, max_corrections=1):
         alert=Alert.model_validate(ALERT_PAYLOAD),
         model=model,
         model_id="scripted:test",
-        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        principal=Principal(name="analyst", role=role),
         adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
         store=InMemoryRawStore(),
         raw_store="mem",
@@ -295,3 +296,48 @@ def test_the_recorded_real_run_scores_as_the_spec_says():
     assert score.context_named == 0 and score.context_expected == 2
     assert score.escalation_correct is True
     assert score.ungrounded_facts == 0
+    assert score.calls == CallOutcomes(
+        total=6, ok=6, error=0, denied=0, no_fixture=0, error_kinds={}, denial_kinds={}
+    )
+
+
+# --- tool outcomes on the score ---------------------------------------------------------
+
+
+def test_tool_outcomes_are_counted_on_the_score_from_the_trace(fixture_set):
+    """A completed run that hit two fixture gaps says so on its score, by kind."""
+    gaps = ToolCallsTurn(
+        tool_calls=[
+            *INVESTIGATION.tool_calls,
+            call("tc-gap-1", "search_events", query="EmailEvents | where Subject has 'invoice'"),
+            call("tc-gap-2", "search_runbook", query="printer toner"),
+            call("tc-missing", "get_attack_technique", technique_id="T9999"),
+        ]
+    )
+    artifact = run([gaps, PROPOSAL, result_turn([(PARIS, ["tc-signins"])])], fixture_set)
+    assert artifact.outcome is RunOutcome.completed
+    calls = score_run(artifact, TRUTH).calls
+    assert (calls.total, calls.ok, calls.error, calls.denied) == (7, 4, 3, 0)
+    assert calls.no_fixture == 2
+    assert calls.error_kinds == {"no_fixture": 2, "not_found": 1}
+    assert calls.denial_kinds == {}
+
+
+def test_denials_are_counted_apart_from_errors(fixture_set):
+    siem = ToolCallsTurn(
+        tool_calls=[*INVESTIGATION.tool_calls, call("tc-siem", "search_siem", search="index=auth")]
+    )
+    script = [siem, PROPOSAL, result_turn([(PARIS, ["tc-signins"])])]
+    artifact = run(script, fixture_set, role=TIER1_ROLE)
+    assert artifact.outcome is RunOutcome.completed
+    calls = score_run(artifact, TRUTH).calls
+    assert (calls.total, calls.ok, calls.error, calls.denied) == (5, 3, 0, 2)
+    assert calls.denial_kinds == {"scope_denied": 2}
+    assert calls.no_fixture == 0 and calls.error_kinds == {}
+
+
+def test_a_failed_run_still_counts_its_calls(fixture_set):
+    artifact = run([INVESTIGATION], fixture_set)
+    assert artifact.outcome is RunOutcome.failed_error
+    calls = score_run(artifact, TRUTH).calls
+    assert (calls.total, calls.ok) == (3, 3)

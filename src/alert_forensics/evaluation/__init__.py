@@ -15,14 +15,17 @@ from alert_forensics.evaluation.harness import (
 )
 from alert_forensics.evaluation.prices import PRICES, Price, cost_usd, unpriced_models
 from alert_forensics.evaluation.scoring import (
+    CallOutcomes,
     ContextMatch,
     FindingMatch,
     RunScore,
     contains_tokens,
+    count_calls,
     score_run,
 )
 from alert_forensics.evaluation.stats import Z_95, Proportion, wilson
 from alert_forensics.evaluation.summary import (
+    CellCalls,
     CellSummary,
     Money,
     RunMeasurement,
@@ -54,6 +57,8 @@ __all__ = [
     "SCORE_FILE",
     "SUMMARY_FILE",
     "Z_95",
+    "CallOutcomes",
+    "CellCalls",
     "CellSummary",
     "ContextMatch",
     "ExpectedContext",
@@ -74,6 +79,7 @@ __all__ = [
     "collect",
     "contains_tokens",
     "cost_usd",
+    "count_calls",
     "load_scenario",
     "load_scenarios",
     "model_slug",

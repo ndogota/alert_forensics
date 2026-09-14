@@ -6,10 +6,18 @@ closest candidate lacked. No model is asked anything. A failed run scores zero o
 metric.
 """
 
-from pydantic import Field
+from collections import Counter
+
+from pydantic import Field, model_validator
 
 from alert_forensics.artifact import RunArtifact
-from alert_forensics.contracts import InvestigationTrace, MissingContext, RunOutcome, Verdict
+from alert_forensics.contracts import (
+    InvestigationTrace,
+    MissingContext,
+    RunOutcome,
+    ToolOutcome,
+    Verdict,
+)
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr, StrictNonNegativeInt
 from alert_forensics.evaluation.truth import (
     ExpectedContext,
@@ -64,6 +72,59 @@ class ContextMatch(ContractModel):
     entry_index: int | None
 
 
+class CallOutcomes(ContractModel):
+    """The tool calls of one run, counted from the trace whatever the run's outcome.
+
+    ``no_fixture`` stands on its own because it has two causes the count cannot tell
+    apart, a bad question and a fixture gap, and only the trace's arguments say which.
+    It is reported beside the recall, never turned into a threshold.
+    """
+
+    total: StrictNonNegativeInt
+    ok: StrictNonNegativeInt
+    error: StrictNonNegativeInt
+    denied: StrictNonNegativeInt
+    no_fixture: StrictNonNegativeInt
+    error_kinds: dict[str, int]
+    """Errors by kind, ``no_fixture`` included."""
+    denial_kinds: dict[str, int]
+    """Denials by kind: ``scope_denied`` or ``order_denied``."""
+
+    @model_validator(mode="after")
+    def _counts_agree(self) -> "CallOutcomes":
+        if self.total != self.ok + self.error + self.denied:
+            raise ValueError("total is ok plus error plus denied")
+        if self.error != sum(self.error_kinds.values()):
+            raise ValueError("error is the sum of the error kinds")
+        if self.denied != sum(self.denial_kinds.values()):
+            raise ValueError("denied is the sum of the denial kinds")
+        if self.no_fixture != self.error_kinds.get("no_fixture", 0):
+            raise ValueError("no_fixture is the no_fixture error kind")
+        return self
+
+
+def count_calls(trace: InvestigationTrace) -> CallOutcomes:
+    ok = 0
+    errors: Counter[str] = Counter()
+    denials: Counter[str] = Counter()
+    for record in trace.records:
+        if record.outcome is ToolOutcome.ok:
+            ok += 1
+        elif record.outcome is ToolOutcome.error:
+            errors[record.failure_kind or "unknown"] += 1
+        else:
+            denials[record.failure_kind or "unknown"] += 1
+    return CallOutcomes(
+        total=len(trace.records),
+        ok=ok,
+        error=sum(errors.values()),
+        denied=sum(denials.values()),
+        no_fixture=errors.get("no_fixture", 0),
+        error_kinds=dict(sorted(errors.items())),
+        denial_kinds=dict(sorted(denials.items())),
+    )
+
+
 class RunScore(ContractModel):
     """The score of one run. Fully derived from the artifact and the ground truth."""
 
@@ -87,6 +148,8 @@ class RunScore(ContractModel):
     total_facts: StrictNonNegativeInt
     ungrounded_facts: StrictNonNegativeInt
     error_kind: str | None
+    """The run's own error kind, on a failed_error run. Tool calls are under ``calls``."""
+    calls: CallOutcomes
 
 
 def score_run(artifact: RunArtifact, truth: GroundTruth) -> RunScore:
@@ -128,6 +191,7 @@ def score_run(artifact: RunArtifact, truth: GroundTruth) -> RunScore:
         total_facts=report.total_facts if report is not None else 0,
         ungrounded_facts=report.ungrounded_count if report is not None else 0,
         error_kind=artifact.error.kind if artifact.error is not None else None,
+        calls=count_calls(artifact.trace),
     )
 
 

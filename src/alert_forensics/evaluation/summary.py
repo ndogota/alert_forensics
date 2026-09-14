@@ -43,6 +43,20 @@ class Money(ContractModel):
     total: float
 
 
+class CellCalls(ContractModel):
+    """Tool calls pooled over a cell's runs. ``no_fixture`` is a proportion of all calls,
+    reported beside the recall; ``runs_with_gaps`` says how many runs had at least one."""
+
+    total: StrictNonNegativeInt
+    ok: StrictNonNegativeInt
+    error: StrictNonNegativeInt
+    denied: StrictNonNegativeInt
+    no_fixture: Proportion
+    runs_with_gaps: StrictNonNegativeInt
+    error_kinds: dict[str, int]
+    denial_kinds: dict[str, int]
+
+
 class CellSummary(ContractModel):
     model: NonEmptyStr
     role: NonEmptyStr
@@ -53,6 +67,8 @@ class CellSummary(ContractModel):
     failed_ungrounded: Proportion
     failed_error: Proportion
     error_kinds: dict[str, int]
+    """The runs' own error kinds, on failed_error runs. Tool calls are under ``calls``."""
+    calls: CellCalls
     verdict_accuracy: Proportion
     evidence_recall: Proportion
     """Pooled: findings reached over required findings times runs."""
@@ -105,6 +121,23 @@ def _cell(
     facts = sum(s.total_facts for s in completed)
     ungrounded_facts = sum(s.ungrounded_facts for s in completed)
     walls = [r.measurement.wall_clock_s for r in runs]
+    calls = [s.calls for s in scores]
+    error_kinds: Counter[str] = Counter()
+    denial_kinds: Counter[str] = Counter()
+    for c in calls:
+        error_kinds.update(c.error_kinds)
+        denial_kinds.update(c.denial_kinds)
+    total_calls = sum(c.total for c in calls)
+    pooled_calls = CellCalls(
+        total=total_calls,
+        ok=sum(c.ok for c in calls),
+        error=sum(c.error for c in calls),
+        denied=sum(c.denied for c in calls),
+        no_fixture=Proportion.of(sum(c.no_fixture for c in calls), total_calls),
+        runs_with_gaps=sum(1 for c in calls if c.no_fixture),
+        error_kinds=dict(sorted(error_kinds.items())),
+        denial_kinds=dict(sorted(denial_kinds.items())),
+    )
     # The cell's own model is checked by name, not through its usage: a run the provider
     # refused before any turn has no usage at all, and would otherwise price at zero.
     unpriced = sorted(
@@ -128,6 +161,7 @@ def _cell(
         failed_ungrounded=Proportion.of(ungrounded, n),
         failed_error=Proportion.of(errored, n),
         error_kinds=dict(sorted(Counter(s.error_kind for s in scores if s.error_kind).items())),
+        calls=pooled_calls,
         verdict_accuracy=Proportion.of(sum(1 for s in scores if s.verdict_correct), n),
         evidence_recall=Proportion.of(
             sum(s.findings_reached for s in scores), sum(s.findings_required for s in scores)
@@ -159,13 +193,27 @@ def render_summary(summary: Summary) -> str:
             f"Cell: {cell.model}  role: {cell.role}  scenario: {cell.scenario}  runs: {cell.runs}"
         )
         kinds = ", ".join(f"{k} {v}" for k, v in cell.error_kinds.items())
+        calls = cell.calls
+        gaps = calls.no_fixture.numerator
+        other_errors = ", ".join(
+            f"{k} {v}" for k, v in calls.error_kinds.items() if k != "no_fixture"
+        )
+        denials = ", ".join(f"{k} {v}" for k, v in calls.denial_kinds.items())
         rows: list[tuple[str, str]] = [
             ("completed", cell.completed.render()),
             ("failed", cell.failed.render()),
             ("  failed_ungrounded", cell.failed_ungrounded.render()),
             ("  failed_error", cell.failed_error.render() + (f"  ({kinds})" if kinds else "")),
             ("verdict accuracy", cell.verdict_accuracy.render()),
-            ("evidence recall", cell.evidence_recall.render()),
+            (
+                "evidence recall",
+                cell.evidence_recall.render()
+                + (
+                    f"  {gaps} no_fixture call{'' if gaps == 1 else 's'}: a floor, see tool calls"
+                    if gaps
+                    else ""
+                ),
+            ),
             ("missing context recall", cell.missing_context_recall.render()),
             ("escalation precision", cell.escalation_precision.render()),
             ("escalation recall", cell.escalation_recall.render()),
@@ -178,6 +226,16 @@ def render_summary(summary: Summary) -> str:
                     else "  THE LOOP DID NOT HOLD"
                 ),
             ),
+            (
+                "tool calls",
+                f"total {calls.total}  ok {calls.ok}  error {calls.error}  denied {calls.denied}",
+            ),
+            (
+                "  no_fixture",
+                calls.no_fixture.render() + f"  in {calls.runs_with_gaps} of {cell.runs} runs",
+            ),
+            ("  other errors", other_errors or "none"),
+            ("  denied", denials or "none"),
             (
                 "wall clock s",
                 f"mean {cell.wall_clock_s.mean:.2f}  min {cell.wall_clock_s.min:.2f}  "

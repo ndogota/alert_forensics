@@ -73,6 +73,18 @@ class ToolCallRecord(ContractModel):
     """Stable key into the out-of-context artifact store holding the raw response."""
     raw_response_sha256: Sha256Hex
 
+    @property
+    def failure_kind(self) -> str | None:
+        """The kind of a failed call, read from its failure view: the ``error`` field of
+        the structured failure or denial the model received, ``no_fixture``,
+        ``invalid_arguments``, ``scope_denied`` and so on. ``None`` on ``ok``;
+        ``unknown`` when the view carries no such field."""
+        if self.outcome is ToolOutcome.ok:
+            return None
+        view = self.redacted_response
+        kind = view.get("error") if isinstance(view, dict) else None
+        return kind if isinstance(kind, str) else "unknown"
+
 
 class InputTokenDetails(ContractModel):
     audio: StrictNonNegativeInt = 0

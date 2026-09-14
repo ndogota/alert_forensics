@@ -8,6 +8,7 @@ from alert_forensics.contracts import ModelUsageRecord, RunOutcome, Verdict
 from alert_forensics.contracts.trace import InputTokenDetails
 from alert_forensics.evaluation import (
     PRICES,
+    CallOutcomes,
     ContextMatch,
     FindingMatch,
     Price,
@@ -33,6 +34,7 @@ def score(
     facts=3,
     ungrounded=0,
     error_kind=None,
+    calls=None,
 ):
     failed = outcome is not RunOutcome.completed
     return RunScore(
@@ -66,6 +68,23 @@ def score(
         total_facts=facts,
         ungrounded_facts=ungrounded,
         error_kind=error_kind,
+        calls=calls if calls is not None else outcomes(ok=6),
+    )
+
+
+def outcomes(ok, no_fixture=0, errors=None, denials=None):
+    error_kinds = {**(errors or {})}
+    if no_fixture:
+        error_kinds["no_fixture"] = no_fixture
+    denial_kinds = denials or {}
+    return CallOutcomes(
+        total=ok + sum(error_kinds.values()) + sum(denial_kinds.values()),
+        ok=ok,
+        error=sum(error_kinds.values()),
+        denied=sum(denial_kinds.values()),
+        no_fixture=no_fixture,
+        error_kinds=dict(sorted(error_kinds.items())),
+        denial_kinds=dict(sorted(denial_kinds.items())),
     )
 
 
@@ -213,3 +232,42 @@ def test_the_report_prints_every_estimate_with_its_interval():
         if "verdict accuracy" in line:
             assert "[" in line and "]" in line
     assert "cost" in text and "wall clock" in text
+
+
+def test_tool_outcomes_are_pooled_per_cell_and_no_fixture_is_separated():
+    runs = [
+        scored(0, score(calls=outcomes(ok=5))),
+        scored(
+            1,
+            score(calls=outcomes(ok=3, no_fixture=2, errors={"invalid_arguments": 1})),
+        ),
+        scored(
+            2,
+            score(
+                outcome=RunOutcome.failed_error,
+                error_kind="rate_limit",
+                calls=outcomes(ok=1, denials={"scope_denied": 1}),
+            ),
+        ),
+    ]
+    cell = summarise(runs).cells[0]
+    calls = cell.calls
+    assert (calls.total, calls.ok, calls.error, calls.denied) == (13, 9, 3, 1)
+    assert (calls.no_fixture.numerator, calls.no_fixture.denominator) == (2, 13)
+    assert calls.no_fixture.low is not None
+    assert calls.error_kinds == {"invalid_arguments": 1, "no_fixture": 2}
+    assert calls.denial_kinds == {"scope_denied": 1}
+    assert calls.runs_with_gaps == 1
+    # The run's own error kind is still its own number, not mixed with the calls.
+    assert cell.error_kinds == {"rate_limit": 1}
+
+
+def test_the_report_marks_the_recall_line_when_the_cell_has_fixture_gaps():
+    gaps = render_summary(summarise([scored(0, score(calls=outcomes(ok=4, no_fixture=2)))]))
+    assert "tool calls" in gaps and "no_fixture" in gaps and "2/6" in gaps
+    recall = next(line for line in gaps.splitlines() if "evidence recall" in line)
+    assert "2 no_fixture" in recall and "floor" in recall
+    clean = render_summary(summarise([scored(0, score())]))
+    recall = next(line for line in clean.splitlines() if "evidence recall" in line)
+    assert "no_fixture" not in recall
+    assert "tool calls" in clean and "0/6" in clean

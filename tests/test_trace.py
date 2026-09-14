@@ -174,3 +174,24 @@ def test_hash_raw_response_is_canonical():
     assert len(a) == 64
     assert a == hash_raw_response({"b": [1, 2], "a": {"y": None, "x": "é"}})
     assert hash_raw_response({"b": [2, 1]}) != hash_raw_response({"b": [1, 2]})
+
+
+def test_failure_kind_is_read_from_the_failure_view():
+    ok = make_record("tc-ok", "search_events", SourceSystem.defender)
+    assert ok.failure_kind is None
+    gap = ok.model_copy(
+        update={
+            "outcome": ToolOutcome.error,
+            "redacted_response": {"error": "no_fixture", "tool": "search_events", "detail": "x"},
+        }
+    )
+    assert gap.failure_kind == "no_fixture"
+    denied = ok.model_copy(
+        update={
+            "outcome": ToolOutcome.denied,
+            "redacted_response": {"error": "scope_denied", "role": "tier1"},
+        }
+    )
+    assert denied.failure_kind == "scope_denied"
+    shapeless = ok.model_copy(update={"outcome": ToolOutcome.error, "redacted_response": "?"})
+    assert shapeless.failure_kind == "unknown"

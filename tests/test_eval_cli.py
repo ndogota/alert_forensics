@@ -63,8 +63,11 @@ def test_eval_scripted_writes_every_run_and_a_derived_summary(scenarios, tmp_pat
     assert cell_summary.verdict_accuracy.numerator == 0
     assert cell_summary.evidence_recall.denominator == 6
     assert cell_summary.cost_usd is not None and cell_summary.cost_usd.total == 0.0
+    assert cell_summary.calls.total == 2 * score.calls.total > 0
+    assert cell_summary.calls.no_fixture.numerator == 0 and cell_summary.calls.runs_with_gaps == 0
     captured = capsys.readouterr()
     assert "verdict accuracy" in captured.out and "0/2" in captured.out
+    assert "tool calls" in captured.out
     assert "[" in captured.out
     # Progress, one line per run, on stderr.
     assert captured.err.count("atypical_travel") == 2

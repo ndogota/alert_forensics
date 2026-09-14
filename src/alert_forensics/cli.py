@@ -414,9 +414,12 @@ def _run_progress(measurement: RunMeasurement, score: RunScore) -> None:
     """One line per run, on stderr, so stdout stays the report alone."""
     verdict = score.verdict_observed.value if score.verdict_observed else "none"
     kind = f" ({score.error_kind})" if score.error_kind else ""
+    calls = score.calls
+    gaps = f", {calls.no_fixture} no_fixture" if calls.no_fixture else ""
     print(
         f"  {measurement.scenario}  run {measurement.index}  {score.outcome.value}{kind}  "
-        f"verdict: {verdict}  {measurement.wall_clock_s:.2f} s",
+        f"verdict: {verdict}  calls {calls.total}, {calls.ok} ok{gaps}  "
+        f"{measurement.wall_clock_s:.2f} s",
         file=sys.stderr,
         flush=True,
     )
