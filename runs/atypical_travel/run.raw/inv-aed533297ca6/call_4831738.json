@@ -1,8 +1,0 @@
-{
- "escalate": false,
- "proposed_at": "2026-09-14T16:04:51Z",
- "recommended_action": "Close the alert as benign true positive because the sign-ins from different locations originated from the exact same corporate SASE IP address within a short interval, indicating standard corporate proxy/VPN routing.",
- "status": "proposed",
- "summary": "The alert fired due to two successful sign-ins by user jdoe@contoso.com appearing to originate from Paris, France and Amsterdam, Netherlands within 40 minutes. However, investigation of the sign-in logs shows that both sign-ins came from the identical IP address 203.0.113.7, which belongs to a corporate SASE network (EXAMPLE-SASE-NET). This geographic discrepancy is a known artifact of corporate proxy routing where exits change rapidly, and does not indicate malicious impossible travel.",
- "verdict": "benign_true_positive"
-}

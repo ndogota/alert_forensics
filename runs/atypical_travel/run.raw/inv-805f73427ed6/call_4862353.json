@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-14T16:39:39Z",
+ "recommended_action": "Close the alert as a false positive due to corporate proxy / VPN routing behavior where two distinct geo-locations (Paris and Amsterdam) map to the same enterprise SASE network IP address (203.0.113.7).",
+ "status": "proposed",
+ "summary": "The atypical travel alert triggered due to sign-ins from Paris and Amsterdam within 40 minutes using the exact same IP address (203.0.113.7), which belongs to a corporate SASE/VPN network range (EXAMPLE-SASE-NET). Both sign-ins were successful and originated from the same trusted egress node, indicating routine proxy routing rather than malicious credential compromise or impossible travel by an individual user.",
+ "verdict": "false_positive"
+}
