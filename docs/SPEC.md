@@ -195,7 +195,9 @@ Stated explicitly, because the judgement matters more than a blanket use of mode
 - MITRE ATT&CK technique resolution: lookup in the official STIX bundle by
   `external_references.external_id`, never asked of the model.
 - Playbook thresholds: password spray is 100 or more accounts, 5 or more countries, 25
-  or more source IPs. That is arithmetic, and arithmetic does not hallucinate.
+  or more source IPs. That is arithmetic, and arithmetic does not hallucinate. Not yet
+  built: scenario 2 is the scenario that exercises it, and its section under
+  "Evaluation" says what the model is handed instead until it is.
 - VirusTotal interpretation: `last_analysis_stats` is a dict of engine counters and
   `reputation` is a signed community vote, often zero on rarely seen objects. Both are
   read by code; the model receives the reading, not the raw temptation.
@@ -469,6 +471,29 @@ Decisions the pipeline rests on:
   stub is checked against it; nothing rests on each scenario bringing its own promise.
   File order still decides between two stubs of one scenario, which is that scenario's
   own business.
+- **What the collision probe holds, and what it does not.** The probe above is built
+  from the alert's text, and the collision that created the rule did not come from an
+  alert. It came from a model's question: the runbook stub keyed on infrastructure
+  words answered "VPN SASE corporate egress proxy Amsterdam Paris", and no alert
+  carries those words. Verified before this was written: a runbook stub matching
+  `(?i)egress|gateway|proxy|vpn`, the exact shape of the defect, produces no collision
+  under the alert probe, because no alert under `examples/` contains any of them. So
+  the alert probe is stated for what it is. Held: no stub answers a question made of
+  the entities another alert names, its title, its description, its evidence and its
+  techniques. Not held: no stub answers a question a model would ask about another
+  alert, because the loader cannot read what a model would ask. The nearest thing to
+  that corpus is the questions models have actually asked, and those are committed:
+  every recording under `runs/<scenario>/` holds every request its model made, with
+  the tool and the arguments verbatim. The probe therefore also puts every request of
+  every committed recording to every stub that does not serve that recording's
+  scenario, as the request was sent, through the same matcher the adapter uses; a
+  stub that would answer is a collision, named with the recording it came from. The
+  corpus is one run today and grows with every recording, which is the point: a
+  scenario is checked against the questions real models asked about every other one,
+  and a stub that widens later is checked against every question already on file. A
+  recording whose directory names no scenario present cannot be attributed and fails
+  the check rather than being skipped. This is still best effort, and said so: the
+  questions a future model asks are not on file until it asks them.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -746,8 +771,9 @@ alert-forensics eval-report results/
   included: it is live-capable and needs no key, so a fixture there is a gap the
   example would fall into. When the bundle cannot be fetched the adapter falls back to
   the recorded excerpt that ships in the package, cut from the real bundle and holding
-  every technique the eight scenarios declare, and the artifact's `adapters` field says
-  `recorded` instead of `live`. A cached bundle counts as live: it is the real bundle.
+  every technique the eight scenarios declare, and every follow-on technique a scenario's
+  investigation is expected to resolve, which scenario 2 names under "Evaluation"; the
+  artifact's `adapters` field says `recorded` instead of `live`. A cached bundle counts as live: it is the real bundle.
   `lookup_ioc` is live when `VIRUSTOTAL_API_KEY` is set and fixture-backed otherwise.
 - No example alert declares a technique the default adapter set cannot resolve
   offline. A test enforces it, so a scenario that lands with a technique missing from
@@ -1108,6 +1134,79 @@ no escalation.
   a real run and this one is the run that found the defect. The missing-context zero is
   the model's: it named nothing it could not establish, and it had been told the runbook
   was empty and the identity unknown without naming either as unobtained.
+
+### Scenario 2, password spray
+
+Checked against the table under "Scenarios". The signal is many failed sign-ins across
+many accounts from few sources, then one success: what the rule's logic measured, and
+true. The assertion is that credentials were guessed at scale and an account was taken
+over, at the granularity of T1110.003 and of the account it reached. It is true: the
+one success is followed, from the same address, by a new authentication method and a
+new inbox rule on the account, neither of which the account's owner made. Intent
+decides only between `true_positive` and `benign_true_positive`, and nothing here is
+authorised. Label `true_positive`, escalation expected.
+
+The story the fixtures tell, all synthetic, in the documentation range `192.0.2.0/24`
+because the other two are scenario 1's: 137 accounts received a single password each
+from 31 addresses in 12 countries between 06:02 and 06:42 UTC, through the legacy
+ROPC flow whose user agent is `BAV2ROPC`, which is not subject to interactive MFA. One
+attempt succeeded, `rbennett@contoso.com` from `192.0.2.44`; an interactive sign-in
+from the same address followed, the registration interrupt was answered with a new
+Microsoft Authenticator method, and a `New-InboxRule` named "." was created that moves
+mail mentioning password, MFA, security or sign-in to RSS Feeds and marks it read.
+The account is a Treasury Operations identity of high priority. The techniques the
+alert declares are `T1110.003` and `T1078.004`; the follow-on techniques the
+investigation is expected to resolve, `T1556.006` and `T1564.008`, are not on the alert
+and are added to the packaged excerpt, cut verbatim from the same bundle, so a model
+that names them offline resolves them.
+
+- Required findings, four, each cited from the hunting API or the SIEM, since the two
+  readings carry the same words; checked by reading the projected views, not the
+  fixture files, and held by a test that projects every stub of the scenario and
+  requires each listed tool's reading to carry every token as whole words.
+  The scale of the spray: `137`, `31` and `12`, which the hunting aggregate carries as
+  `dcount_AccountUpn`, `dcount_IPAddress` and `dcount_Country` and the SIEM as `dc(user)`,
+  `dc(src)` and `dc(src_country)`. The success: the account, `192.0.2.44`, and one of
+  `LogonSuccess`, the hunting reading's word, or `success`, the SIEM's, with
+  `successful`, `successfully` and `succeeded` as the restatements a model plausibly
+  writes. The new method: the account and one of `security info`, the audit action's
+  words, `Authenticator`, the method's, or the restatements `authentication method`
+  and `MFA method`. The rule: the account and one of `New-InboxRule`, the action, or
+  `inbox rule` and `mailbox rule`. The account token is the pair `rbennett@contoso.com`
+  or `rbennett`, since the UPN is one word under the whole-word rule and a model may
+  write either. The playbook thresholds are not a required finding: the playbook is
+  guidance about what to do, not evidence about what happened, and the four findings
+  above are what the verdict rests on.
+- The runbook entry for the scenario carries the three thresholds the design names
+  under "Where conventional code wins", and the deterministic path that would apply
+  them does not exist yet. What the model is handed instead: the three distinct counts,
+  read from an aggregate the hunting API or the SIEM returns as one row, so the numbers
+  are read and not computed; the comparison against the playbook is the model's. That
+  is the gap this scenario exercises, stated here so the number it produces is read as
+  one until the path is built.
+- Stubs, all labelled `password_spray`, each keyed on the entities of the rows it
+  returns: the account's sign-ins, its audit events and its identity on `rbennett`;
+  its related alerts on the UPN; the two addresses the account's rows name on
+  VirusTotal; the runbook on the alert type, `password spray` or `spraying`, or the
+  user agent the entry explains. One stub is keyed on an action rather than an
+  account, and said so: the tenant-wide aggregate of failed sign-ins is about 137
+  accounts and 31 addresses the model cannot name before it asks, so its match names
+  the sign-in table, a failure marker such as `ErrorCode`, `FailureReason` or
+  `failure`, and an aggregate such as `summarize`, `dcount` or `stats`. The account
+  stubs precede it in file order, so a failure aggregate that names a known account
+  gets that account's rows. The residual is stated: a failure aggregate naming an
+  account no scenario knows is answered with the tenant aggregate, since the matcher
+  has no negation and the loader cannot read whom a query is about. No stub already
+  labelled `test` belongs to this scenario: the three that exist serve a production
+  server, a workstation's process tree and a redaction case, none of which this
+  scenario names.
+- Expected missing context, two: what was done in the mailbox after the rule, which no
+  fixture carries; and whether any of the other sprayed accounts also had a success,
+  which the failure aggregate cannot say.
+- The scripted cell over this scenario is a plumbing check and its numbers are the
+  floor the harness measures: every call the script makes hits a stub, so the tool
+  calls block shows no `no_fixture`, and the evidence recall is zero because the script
+  states no fact in the findings' words. No real model has run it yet.
 
 ## Cost discipline
 
