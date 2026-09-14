@@ -33,6 +33,53 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^rbennett(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789300013.12358",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "rbennett|rbennett@contoso.com|CONTOSO\\rbennett",
+            "prefix": "",
+            "nick": "",
+            "first": "Rowan",
+            "last": "Bennett",
+            "suffix": "",
+            "email": "rbennett@contoso.com",
+            "phone": "+44 20 7946 0000",
+            "phone2": "",
+            "managedBy": "kpatel@contoso.com",
+            "priority": "high",
+            "bunit": "Treasury Operations",
+            "category": "employee|payments",
+            "watchlist": "false",
+            "startDate": "2021-06-14",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB",
+            "work_lat": "51.5074",
+            "work_long": "-0.1278"
+          }
+        ]
+      }
     }
   ]
 }

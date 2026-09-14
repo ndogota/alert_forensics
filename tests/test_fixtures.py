@@ -336,7 +336,7 @@ def test_a_runbook_query_on_another_subject_is_a_no_fixture_error(runner):
         "RMM tool blocked by EDR, is the relay our IT provider egress",
         "kerberoasting 180 SPNs in 90 seconds credentialed vulnerability scanner",
         "corporate egress proxy gateway VPN",
-        "password spray from Paris",
+        "DNS tunnelling over TXT records from a build agent",
     ):
         assert gap(runner, "search_runbook", query=query), query
 
@@ -404,3 +404,98 @@ def test_a_stub_names_its_scenario_and_a_shared_stub_is_exact(tmp_path):
         '"match": {"indicator": "x"}, "response": {"data": {}}}]}'
     )
     assert FixtureSet.load(tmp_path).for_tool("lookup_ioc").stubs[0].scenario == "shared"
+
+
+# --- scenario 2, password spray ------------------------------------------------------
+
+
+def ok(runner, name, **arguments):
+    record = runner.invoke(
+        tool_call_id=f"tc-{name}-{len(runner.records)}",
+        step=0,
+        tool_name=name,
+        arguments=arguments,
+        turn_siblings=[],
+    )
+    assert record.outcome is ToolOutcome.ok, record.redacted_response
+    return record.redacted_response
+
+
+RBENNETT = "rbennett@contoso.com"
+
+
+def test_scenario_2_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    # The account's sign-ins, whichever table the model chooses: one failure from a
+    # spray source, then the success and the interactive session from 192.0.2.44.
+    for table in ("SigninLogs", "AADSignInEventsBeta", "IdentityLogonEvents"):
+        view = ok(runner, "search_events", query=f"{table} | where AccountUpn == '{RBENNETT}'")
+        assert view["row_count"] == 3, table
+        actions = [r["ActionType"] for r in view["rows"]]
+        assert actions == ["LogonFailed", "LogonSuccess", "LogonSuccess"]
+        assert view["rows"][1]["IPAddress"] == "192.0.2.44"
+        assert "Latitude" not in view["columns"] and view["dropped_columns"] == 2
+    # The account's audit events: the new method and the inbox rule, from the same address.
+    for table in ("CloudAppEvents", "AuditLogs", "IdentityDirectoryEvents"):
+        view = ok(runner, "search_events", query=f"{table} | where AccountUpn =~ '{RBENNETT}'")
+        actions = [r["ActionType"] for r in view["rows"]]
+        assert actions == ["User registered security info", "New-InboxRule"], table
+        assert {r["IPAddress"] for r in view["rows"]} == {"192.0.2.44"}
+        assert "RawEventData" not in view["columns"] and view["dropped_columns"] == 1
+    text = json.dumps(view)
+    assert "RSS Feeds" in text and "password;MFA" in text, "the rule's parameters reach the model"
+    # The tenant-wide aggregate of failures: three distinct counts in one row, read, not
+    # computed.
+    for query in (
+        "AADSignInEventsBeta | where ErrorCode != 0 "
+        "| summarize dcount(AccountUpn), dcount(IPAddress), dcount(Country)",
+        "SigninLogs | where ResultType == 50126 | summarize count() by IPAddress, Country",
+        "IdentityLogonEvents | where ActionType == 'LogonFailed' "
+        "| summarize dcount(AccountUpn) by IPAddress",
+    ):
+        view = ok(runner, "search_events", query=query)
+        assert view["row_count"] == 1, query
+        row = view["rows"][0]
+        counts = (row["dcount_AccountUpn"], row["dcount_IPAddress"], row["dcount_Country"])
+        assert counts == (137, 31, 12)
+        assert len(row["make_set_IPAddress"]) == 31 and "192.0.2.44" in row["make_set_IPAddress"]
+        assert len(row["make_set_Country"]) == 12
+    # The same three readings through the SIEM.
+    view = ok(runner, "search_siem", search="search index=auth user=rbennett | table _time src")
+    assert [r["action"] for r in view["rows"]] == ["failure", "success", "success"]
+    audit = f'index=o365 user="{RBENNETT}" (New-InboxRule OR "security info")'
+    view = ok(runner, "search_siem", search=audit)
+    assert [r["action"] for r in view["rows"]] == ["User registered security info", "New-InboxRule"]
+    stats = "index=auth action=failure | stats dc(user) dc(src) dc(src_country) count"
+    row = ok(runner, "search_siem", search=stats)["rows"][0]
+    assert (row["dc(user)"], row["dc(src)"], row["dc(src_country)"]) == ("137", "31", "12")
+    # Entities, both spellings where the alert carries both.
+    for spelling in ("rbennett", RBENNETT, "RBENNETT"):
+        assert ok(runner, "get_identity", identity=spelling)["found"] is True, spelling
+    assert ok(runner, "get_identity", identity="rbennett")["priority"] == "high"
+    related = ok(runner, "get_related_alerts", user_principal_name=RBENNETT)
+    assert related["count"] == 1 and "inbox" in related["alerts"][0]["title"].lower()
+    for address in ("192.0.2.44", "192.0.2.17"):
+        reading = ok(runner, "lookup_ioc", indicator=address)
+        assert reading["known"] is True and reading["indicator"] == address
+    # The runbook, on the alert type or on the user agent the entry explains.
+    for query in ("password spray playbook thresholds", "Password Spraying", "what is BAV2ROPC"):
+        assert ok(runner, "search_runbook", query=query)["count"] >= 1, query
+    text = json.dumps(ok(runner, "search_runbook", query="password spray"))
+    assert "100 or more" in text and "25 or more" in text and "5 or more" in text
+
+
+def test_scenario_2_stubs_answer_nothing_about_another_account(runner):
+    """The audit stubs are the account's; the aggregate is keyed on the failure and the
+    aggregate, and a query that names a known account gets that account's rows."""
+    assert gap(runner, "search_events", query="CloudAppEvents | where AccountUpn == 'jdoe'")
+    assert gap(runner, "search_events", query="CloudAppEvents | where ActionType has 'InboxRule'")
+    assert gap(runner, "search_siem", search="index=o365 user=jdoe New-InboxRule")
+    assert gap(runner, "search_siem", search="index=auth user=mmartin | stats count by src")
+    assert gap(runner, "search_runbook", query="inbox rule forwarding invoices outside the bank")
+    assert gap(runner, "lookup_ioc", indicator="192.0.2.99")
+    # jdoe's failures, aggregated, are still jdoe's rows: scenario 1's stub comes first.
+    query = (
+        "SigninLogs | where AccountUpn == 'jdoe@contoso.com' | where ErrorCode != 0 "
+        "| summarize count() by IPAddress"
+    )
+    assert ok(runner, "search_events", query=query)["rows"][0]["AccountUpn"] == "jdoe@contoso.com"

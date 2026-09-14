@@ -34,6 +34,94 @@
       "scenario": "shared",
       "match": {"indicator": "broken.example"},
       "error": {"kind": "upstream_error", "detail": "VirusTotal returned HTTP 503"}
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "indicator": "192.0.2.44"
+      },
+      "response": {
+        "data": {
+          "id": "192.0.2.44",
+          "type": "ip_address",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/ip_addresses/192.0.2.44"
+          },
+          "attributes": {
+            "as_owner": "EXAMPLE-RESIDENTIAL-PROXY",
+            "asn": 64500,
+            "country": "NG",
+            "network": "192.0.2.0/24",
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 61,
+              "malicious": 4,
+              "suspicious": 2,
+              "undetected": 27,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": -3,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 3
+            },
+            "whois": "inetnum: 192.0.2.0 - 192.0.2.255\nphone: +1 555 0100\n"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "indicator": "192.0.2.17"
+      },
+      "response": {
+        "data": {
+          "id": "192.0.2.17",
+          "type": "ip_address",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/ip_addresses/192.0.2.17"
+          },
+          "attributes": {
+            "as_owner": "EXAMPLE-RESIDENTIAL-PROXY",
+            "asn": 64500,
+            "country": "BR",
+            "network": "192.0.2.0/24",
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 63,
+              "malicious": 2,
+              "suspicious": 1,
+              "undetected": 28,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": -1,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 1
+            },
+            "whois": "inetnum: 192.0.2.0 - 192.0.2.255\nphone: +1 555 0100\n"
+          }
+        }
+      }
     }
   ]
 }

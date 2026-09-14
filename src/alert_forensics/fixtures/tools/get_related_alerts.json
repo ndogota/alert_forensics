@@ -25,6 +25,38 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "user_principal_name": "rbennett@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551302218456123_-1188736099",
+            "title": "Suspicious inbox manipulation rule",
+            "severity": "medium",
+            "status": "new",
+            "category": "Persistence",
+            "createdDateTime": "2026-09-14T06:53:30Z",
+            "detectionSource": "microsoftCloudAppSecurity",
+            "incidentId": "57",
+            "mitreTechniques": [
+              "T1564.008"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "rbennett@contoso.com"
+                }
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

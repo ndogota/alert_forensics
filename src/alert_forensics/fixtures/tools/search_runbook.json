@@ -22,6 +22,32 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$regex": "(?i)password[ -]?spray|spraying|BAV2ROPC"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0207",
+            "title": "Password spray: playbook",
+            "score": 0.93,
+            "source": "runbooks/identity/password-spray.md",
+            "excerpt": "Treat the alert as a confirmed password spray when the failed sign-ins in the window reach any of: 100 or more distinct accounts, 5 or more countries, or 25 or more source IPs. Below all three, requalify as noise and tune. On any success from a spray source: reset the password, revoke refresh tokens, and review the account's audit log for authentication methods registered and inbox rules created after the success. Either is follow-on activity; escalate the incident to IR."
+          },
+          {
+            "id": "RB-0212",
+            "title": "Legacy authentication: BAV2ROPC",
+            "score": 0.71,
+            "source": "runbooks/identity/legacy-auth.md",
+            "excerpt": "The user agent BAV2ROPC is the resource owner password credentials flow used by spray tooling against Exchange Online. It is not subject to interactive MFA where legacy authentication is not blocked; a success through it is a password the attacker now holds."
+          }
+        ]
+      }
     }
   ]
 }

@@ -27,6 +27,450 @@
           {"Timestamp": "2026-09-14T08:00:00.000Z", "ActionType": "AntivirusDetection", "AdditionalFields": "{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\"}"}
         ]
       }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)rbennett"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "AuthenticationRequirement",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          },
+          {
+            "name": "FailureReason",
+            "type": "String"
+          },
+          {
+            "name": "UserAgent",
+            "type": "String"
+          },
+          {
+            "name": "Latitude",
+            "type": "Real"
+          },
+          {
+            "name": "Longitude",
+            "type": "Real"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T06:32:11.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.17",
+            "Country": "BR",
+            "City": "Sao Paulo",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": -23.5505,
+            "Longitude": -46.6333
+          },
+          {
+            "Timestamp": "2026-09-14T06:41:03.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:46:58.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)CloudAppEvents|AuditLogs|IdentityDirectoryEvents|OfficeActivity"
+            },
+            {
+              "$regex": "(?i)rbennett"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ObjectName",
+            "type": "String"
+          },
+          {
+            "name": "ObjectType",
+            "type": "String"
+          },
+          {
+            "name": "ActivityObjects",
+            "type": "Dynamic"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "RawEventData",
+            "type": "Dynamic"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T06:47:19.000Z",
+            "ActionType": "User registered security info",
+            "Application": "Microsoft Entra ID",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ObjectName": "Microsoft Authenticator (push notification and code)",
+            "ObjectType": "AuthenticationMethod",
+            "ActivityObjects": [
+              {
+                "Type": "User",
+                "Name": "rbennett@contoso.com",
+                "Id": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00"
+              },
+              {
+                "Type": "AuthenticationMethod",
+                "Name": "Microsoft Authenticator (push notification and code)"
+              }
+            ],
+            "ReportId": 4471120031,
+            "RawEventData": {
+              "Operation": "User registered security info",
+              "ResultStatus": "Success",
+              "UserId": "rbennett@contoso.com",
+              "ClientIP": "192.0.2.44",
+              "Actor": [
+                {
+                  "ID": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+                  "Type": 0
+                },
+                {
+                  "ID": "Rowan Bennett",
+                  "Type": 1
+                }
+              ],
+              "ExtendedProperties": [
+                {
+                  "Name": "resultReason",
+                  "Value": "User registered Authenticator App with Notification and Code"
+                }
+              ]
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T06:52:05.000Z",
+            "ActionType": "New-InboxRule",
+            "Application": "Microsoft Exchange Online",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ObjectName": ".",
+            "ObjectType": "InboxRule",
+            "ActivityObjects": [
+              {
+                "Type": "User",
+                "Name": "rbennett@contoso.com",
+                "Id": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "Name",
+                "Value": "."
+              },
+              {
+                "Type": "Parameter",
+                "Name": "SubjectOrBodyContainsWords",
+                "Value": "password;MFA;security;sign-in;suspicious;verify"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "MoveToFolder",
+                "Value": "RSS Feeds"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "MarkAsRead",
+                "Value": "True"
+              },
+              {
+                "Type": "Parameter",
+                "Name": "StopProcessingRules",
+                "Value": "True"
+              }
+            ],
+            "ReportId": 4471120388,
+            "RawEventData": {
+              "Operation": "New-InboxRule",
+              "ResultStatus": "True",
+              "UserId": "rbennett@contoso.com",
+              "ClientIP": "192.0.2.44",
+              "ClientInfoString": "Client=OWA;Action=ViaProxy",
+              "SessionId": "c2f1e0d9-8b7a-4c6d-9e5f-0a1b2c3d4e5f",
+              "Parameters": [
+                {
+                  "Name": "Name",
+                  "Value": "."
+                },
+                {
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "password;MFA;security;sign-in;suspicious;verify"
+                },
+                {
+                  "Name": "MoveToFolder",
+                  "Value": "RSS Feeds"
+                },
+                {
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)ErrorCode|ResultType|FailureReason|LogonFailed|failed|failure|50126"
+            },
+            {
+              "$regex": "(?i)summarize|dcount|count"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "min_Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "max_Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "dcount_AccountUpn",
+            "type": "Int64"
+          },
+          {
+            "name": "dcount_IPAddress",
+            "type": "Int64"
+          },
+          {
+            "name": "dcount_Country",
+            "type": "Int64"
+          },
+          {
+            "name": "count_",
+            "type": "Int64"
+          },
+          {
+            "name": "make_set_Country",
+            "type": "Dynamic"
+          },
+          {
+            "name": "make_set_IPAddress",
+            "type": "Dynamic"
+          }
+        ],
+        "results": [
+          {
+            "min_Timestamp": "2026-09-14T06:02:37.000Z",
+            "max_Timestamp": "2026-09-14T06:41:56.000Z",
+            "dcount_AccountUpn": 137,
+            "dcount_IPAddress": 31,
+            "dcount_Country": 12,
+            "count_": 152,
+            "make_set_Country": [
+              "NG",
+              "BR",
+              "VN",
+              "ID",
+              "IN",
+              "PK",
+              "TR",
+              "EG",
+              "CO",
+              "PH",
+              "BD",
+              "ZA"
+            ],
+            "make_set_IPAddress": [
+              "192.0.2.3",
+              "192.0.2.9",
+              "192.0.2.17",
+              "192.0.2.21",
+              "192.0.2.26",
+              "192.0.2.31",
+              "192.0.2.38",
+              "192.0.2.44",
+              "192.0.2.52",
+              "192.0.2.57",
+              "192.0.2.63",
+              "192.0.2.70",
+              "192.0.2.77",
+              "192.0.2.84",
+              "192.0.2.91",
+              "192.0.2.98",
+              "192.0.2.105",
+              "192.0.2.112",
+              "192.0.2.119",
+              "192.0.2.126",
+              "192.0.2.133",
+              "192.0.2.140",
+              "192.0.2.147",
+              "192.0.2.154",
+              "192.0.2.161",
+              "192.0.2.168",
+              "192.0.2.175",
+              "192.0.2.182",
+              "192.0.2.189",
+              "192.0.2.196",
+              "192.0.2.203"
+            ]
+          }
+        ]
+      }
     }
   ]
 }

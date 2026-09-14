@@ -8,8 +8,11 @@ these files are served through an in-memory HTTP transport.
   `enterprise-attack.json` (Enterprise ATT&CK 19.2, collection modified
   2026-08-05T21:33:58.496Z, full bundle sha256
   `dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4`) on 2026-09-14.
-  It keeps the collection object without its contents list, thirteen `attack-pattern`
-  objects verbatim, and the one `revoked-by` relationship between two of them.
+  It keeps the collection object without its contents list, fifteen `attack-pattern`
+  objects verbatim, and the one `revoked-by` relationship between two of them: thirteen
+  for the techniques the eight scenarios declare, and two, `T1556.006` and `T1564.008`,
+  for the follow-on techniques scenario 2's investigation resolves, cut from the same
+  bundle on the same day.
 - `virustotal/*.json`: written by hand to the documented VirusTotal v3 shapes, not
   captured from the API. Every indicator is from documentation ranges (TEST-NET-3,
   `example` names) and every hash is synthetic. A recording from the real API needs an

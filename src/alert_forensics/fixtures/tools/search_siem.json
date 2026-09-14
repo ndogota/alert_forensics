@@ -15,6 +15,239 @@
           {"_time": "2026-09-14T09:51:40.000+00:00", "user": "jdoe", "src": "203.0.113.7", "action": "success", "count": "1"}
         ]
       }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(o365|m365|exchange|azuread|aad|audit)"
+            },
+            {
+              "$regex": "(?i)rbennett"
+            },
+            {
+              "$regex": "(?i)inbox|rule|security ?info|mfa|authentication|register|audit"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300010.12355",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "object"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "object_attrs"
+          },
+          {
+            "name": "status"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T06:47:19.000+00:00",
+            "user": "rbennett@contoso.com",
+            "src": "192.0.2.44",
+            "action": "User registered security info",
+            "app": "Microsoft Entra ID",
+            "object": "Microsoft Authenticator (push notification and code)",
+            "object_category": "authentication_method",
+            "object_attrs": "resultReason=User registered Authenticator App with Notification and Code",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T06:52:05.000+00:00",
+            "user": "rbennett@contoso.com",
+            "src": "192.0.2.44",
+            "action": "New-InboxRule",
+            "app": "Microsoft Exchange Online",
+            "object": ".",
+            "object_category": "inbox_rule",
+            "object_attrs": "Name=.;SubjectOrBodyContainsWords=password;MFA;security;sign-in;suspicious;verify;MoveToFolder=RSS Feeds;MarkAsRead=True;StopProcessingRules=True",
+            "status": "success"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)rbennett"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300011.12356",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "src_country"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "authentication_method"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "user_agent"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T06:32:11.000+00:00",
+            "user": "rbennett",
+            "src": "192.0.2.17",
+            "src_country": "BR",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:41:03.000+00:00",
+            "user": "rbennett",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "success",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:46:58.000+00:00",
+            "user": "rbennett",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "success",
+            "app": "OfficeHome",
+            "authentication_method": "password",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)action\\s*(=|!=)|failure|failed|50126"
+            },
+            {
+              "$regex": "(?i)stats|dc\\(|count"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300012.12357",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "earliest(_time)"
+          },
+          {
+            "name": "latest(_time)"
+          },
+          {
+            "name": "dc(user)"
+          },
+          {
+            "name": "dc(src)"
+          },
+          {
+            "name": "dc(src_country)"
+          },
+          {
+            "name": "count"
+          },
+          {
+            "name": "values(src_country)"
+          }
+        ],
+        "results": [
+          {
+            "earliest(_time)": "2026-09-14T06:02:37.000+00:00",
+            "latest(_time)": "2026-09-14T06:41:56.000+00:00",
+            "dc(user)": "137",
+            "dc(src)": "31",
+            "dc(src_country)": "12",
+            "count": "152",
+            "values(src_country)": [
+              "NG",
+              "BR",
+              "VN",
+              "ID",
+              "IN",
+              "PK",
+              "TR",
+              "EG",
+              "CO",
+              "PH",
+              "BD",
+              "ZA"
+            ]
+          }
+        ]
+      }
     }
   ]
 }

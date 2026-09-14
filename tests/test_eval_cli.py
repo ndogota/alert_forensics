@@ -221,3 +221,16 @@ def test_eval_needs_a_model_or_scripted_and_a_known_scenario(scenarios, tmp_path
     assert "nope" in capsys.readouterr().err
     assert not results.exists()
     assert main(["eval", "--scripted", "--runs", "0", "--scenarios", str(scenarios)]) == 2
+
+
+def test_the_scripted_suite_hits_a_stub_on_every_call_of_every_shipped_scenario(tmp_path):
+    """A fixture gap in a new scenario is visible in the tool calls block before a real
+    model ever runs it."""
+    results = tmp_path / "results"
+    assert main(["eval", "--scripted", "--runs", "1", "--results", str(results)]) == 0
+    summary = Summary.model_validate_json((results / "summary.json").read_text())
+    assert sorted(c.scenario for c in summary.cells) == ["atypical_travel", "password_spray"]
+    for cell in summary.cells:
+        assert cell.completed.numerator == 1, cell.scenario
+        assert cell.calls.no_fixture.numerator == 0, (cell.scenario, cell.calls)
+        assert cell.calls.error == 0 and cell.calls.denied == 0, (cell.scenario, cell.calls)
