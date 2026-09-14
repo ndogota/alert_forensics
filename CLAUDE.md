@@ -48,8 +48,3 @@ and every decision in this repository is settled there.
 - Raw responses stay out of context, by ref and hash. Views are closed schemas
   and tabular views are allowlisted per tool.
 - The test suite opens no socket and reads no key.
-
-## Commits
-
-End every commit message with the `Co-Authored-By` and `Claude-Session`
-trailers, as the existing history does.
