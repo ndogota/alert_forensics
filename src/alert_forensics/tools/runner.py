@@ -5,6 +5,7 @@ shape, project, redact, journal. Nothing raises into the agent: every way a call
 fail ends as a ``ToolCallRecord`` with a structured response the model can read.
 """
 
+import threading
 import time
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
@@ -50,9 +51,18 @@ class ToolRunner:
         self.investigation_id = investigation_id
         self.clock = clock or (lambda: datetime.now(UTC))
         self.records: list[ToolCallRecord] = []
+        self._lock = threading.Lock()
+        """One call at a time: the journal is a sequence, and a duplicate id is caught
+        before anything runs even when a caller invokes from several threads."""
 
     def invoke(
         self, *, tool_call_id: str, step: int, tool_name: str, arguments: dict[str, JsonValue]
+    ) -> ToolCallRecord:
+        with self._lock:
+            return self._invoke(tool_call_id, step, tool_name, arguments)
+
+    def _invoke(
+        self, tool_call_id: str, step: int, tool_name: str, arguments: dict[str, JsonValue]
     ) -> ToolCallRecord:
         if any(r.tool_call_id == tool_call_id for r in self.records):
             raise ValueError(f"tool_call_id {tool_call_id!r} was already journalled")

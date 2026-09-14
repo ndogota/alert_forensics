@@ -255,3 +255,29 @@ def test_records_feed_the_trace_and_the_grounding_validator(alert, store):
     assert [f.grounded for f in report.facts] == [True, False]
     assert report.facts[1].problems[0].kind == "cites_unsuccessful_call"
     assert report.facts[0].source_systems == [SourceSystem.virustotal]
+
+
+def test_the_runner_journals_one_call_at_a_time(store):
+    import threading
+
+    runner = make_runner([ScriptedAdapter("lookup_ioc", raw=IOC_RAW)], store)
+    errors: list[Exception] = []
+
+    def call(n: int) -> None:
+        try:
+            runner.invoke(
+                tool_call_id=f"tc-{n % 4}",
+                step=0,
+                tool_name="lookup_ioc",
+                arguments={"indicator": "203.0.113.7"},
+            )
+        except ValueError as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=call, args=(n,)) for n in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert sorted(r.tool_call_id for r in runner.records) == ["tc-0", "tc-1", "tc-2", "tc-3"]
+    assert len(errors) == 4 and all("already journalled" in str(e) for e in errors)

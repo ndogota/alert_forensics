@@ -119,6 +119,8 @@ def matches(match: dict[str, JsonValue], arguments: dict[str, JsonValue]) -> boo
 
 
 class FixtureAdapter(ToolAdapter[Any, Any, Any]):
+    kind = "fixture"
+
     def __init__(self, definition: ToolDefinition[Any, Any, Any], fixture: ToolFixture) -> None:
         if fixture.tool != definition.name:
             raise ValueError(f"fixture for {fixture.tool!r} given to tool {definition.name!r}")

@@ -209,7 +209,9 @@ MINIMAL_ALERT_PAYLOAD = {
 
 import socket  # noqa: E402
 
-FIXTURE_TOOLS_DIR = Path(__file__).parent / "fixtures" / "tools"
+from alert_forensics.fixtures import DEFAULT_FIXTURES_DIR  # noqa: E402
+
+FIXTURE_TOOLS_DIR = DEFAULT_FIXTURES_DIR
 RECORDED_DIR = Path(__file__).parent / "recorded"
 
 

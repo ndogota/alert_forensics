@@ -3,9 +3,10 @@
 A tabular view keeps only the columns its tool declares and reports how many it dropped
 as a count, never by name: the model knows the row is a projection and cannot ask for a
 dropped column by name. ``AdditionalFields`` and ``_raw`` are on no allowlist; that is
-where nested JSON with service account passwords and NTLM hashes lives. Display-name
-columns are on no allowlist either: personal data stays in the artifact, the user
-principal name and email are the join keys and stay.
+where nested JSON with service account passwords and NTLM hashes lives. Display-name and
+coordinate columns are on no allowlist either: personal data stays in the artifact, the
+user principal name and email are the join keys and stay, and so do ``City`` and
+``Country``, the substance of a travel alert.
 
 Aggregates are allowed structurally: KQL names ``count_`` and ``<agg>_<column>``, SPL
 names ``count`` and ``<agg>(<field>)``, kept only when the underlying column is allowed.
@@ -57,8 +58,6 @@ HUNTING_COLUMNS: frozenset[str] = frozenset(
         "Country",
         "State",
         "City",
-        "Latitude",
-        "Longitude",
         # Network
         "IPAddress",
         "LocalIP",

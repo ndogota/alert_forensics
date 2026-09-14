@@ -44,14 +44,18 @@ def runner(fixture_set):
     )
 
 
-def test_the_fixture_set_covers_all_nine_tools(fixture_set):
-    assert sorted(fixture_set.tools) == sorted(TOOL_NAMES)
+READ_TOOL_NAMES = [n for n in TOOL_NAMES if n != "propose_alert_disposition"]
+
+
+def test_the_fixture_set_covers_the_nine_read_tools(fixture_set):
+    assert sorted(fixture_set.tools) == sorted(READ_TOOL_NAMES)
     adapters = fixture_adapters(fixture_set)
-    assert sorted(a.definition.name for a in adapters) == sorted(TOOL_NAMES)
+    assert sorted(a.definition.name for a in adapters) == sorted(READ_TOOL_NAMES)
     assert all(isinstance(a, FixtureAdapter) for a in adapters)
+    assert all(a.kind == "fixture" for a in adapters)
 
 
-@pytest.mark.parametrize("name", TOOL_NAMES)
+@pytest.mark.parametrize("name", READ_TOOL_NAMES)
 def test_each_tool_answers_through_its_fixture_adapter(name, runner):
     record = runner.invoke(
         tool_call_id=f"tc-{name}", step=0, tool_name=name, arguments=HAPPY_ARGUMENTS[name]

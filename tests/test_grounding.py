@@ -13,7 +13,7 @@ from alert_forensics.contracts import (
     TriageResult,
     Verdict,
 )
-from conftest import make_record, with_facts
+from conftest import T0, make_record, with_facts
 
 
 def fact(evidence: list[str]) -> ObservedFact:
@@ -315,3 +315,35 @@ def test_report_carries_its_result(grounded_result, trace):
     report = validate_grounding(grounded_result, trace)
     assert report.result == grounded_result
     assert GroundingReport.model_validate_json(report.model_dump_json()).result == grounded_result
+
+
+def test_a_proposal_record_is_not_evidence(alert, grounded_result):
+    trace = InvestigationTrace(
+        investigation_id="inv-1",
+        alert=alert,
+        started_at=T0,
+        records=[
+            make_record("tc-events", "search_events", SourceSystem.defender),
+            make_record(
+                "tc-propose",
+                "propose_alert_disposition",
+                SourceSystem.human,
+                required_scope="alerts:write",
+            ),
+        ],
+    )
+    result = with_facts(
+        grounded_result,
+        [
+            ObservedFact(statement="Gateway range.", evidence=["tc-events"]),
+            ObservedFact(statement="The alert is a false positive.", evidence=["tc-propose"]),
+            ObservedFact(statement="Correlated.", evidence=["tc-events", "tc-propose"]),
+        ],
+    )
+    report = validate_grounding(result, trace)
+    assert [f.grounded for f in report.facts] == [True, False, False]
+    assert report.facts[1].problems[0].kind == "cites_non_evidence"
+    assert report.facts[1].problems[0].evidence_id == "tc-propose"
+    assert report.facts[1].resolved_ids == ["tc-propose"]
+    assert report.facts[2].source_systems == [SourceSystem.defender, SourceSystem.human]
+    assert not report.is_grounded

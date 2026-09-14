@@ -20,9 +20,11 @@ def test_every_tool_declares_a_scope_and_the_analyst_holds_all_of_them():
     assert ANALYST_ROLE.name == "analyst"
 
 
-def test_tier1_lacks_only_raw_siem_search():
-    assert ALL_SCOPES - TIER1_ROLE.scopes == {"siem:search"}
+def test_tier1_lacks_raw_siem_search_and_the_write_scope():
+    assert ALL_SCOPES - TIER1_ROLE.scopes == {"siem:search", "alerts:write"}
     assert DEFINITIONS["search_siem"].required_scope == "siem:search"
+    assert DEFINITIONS["propose_alert_disposition"].required_scope == "alerts:write"
+    assert "alerts:write" in ANALYST_ROLE.scopes
 
 
 def test_check_scope_returns_a_denial_rather_than_raising():
@@ -44,7 +46,9 @@ def test_check_scope_passes_when_the_scope_is_held():
     analyst = Principal(name="analyst", role=ANALYST_ROLE)
     assert check_scope(analyst, DEFINITIONS["search_siem"]) is None
     tier1 = Principal(name="t1", role=TIER1_ROLE)
-    assert all(check_scope(tier1, d) is None for n, d in DEFINITIONS.items() if n != "search_siem")
+    gated = {"search_siem", "propose_alert_disposition"}
+    assert all(check_scope(tier1, d) is None for n, d in DEFINITIONS.items() if n not in gated)
+    assert check_scope(tier1, DEFINITIONS["propose_alert_disposition"]) is not None
 
 
 def test_roles_are_closed_values():

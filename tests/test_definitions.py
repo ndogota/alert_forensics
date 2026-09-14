@@ -17,7 +17,9 @@ EXPECTED = {
     "get_process_tree": (SourceSystem.defender, "hunting:read", "fixture"),
     "search_runbook": (SourceSystem.runbook, "runbook:read", "fixture"),
     "get_attack_technique": (SourceSystem.attack, "attack:read", "live"),
+    "propose_alert_disposition": (SourceSystem.human, "alerts:write", "local"),
 }
+FIXTURE_BACKED = sorted(n for n in EXPECTED if n != "propose_alert_disposition")
 
 
 def first_stub_response(name: str):
@@ -31,10 +33,11 @@ def first_stub_arguments(name: str):
     return {k: (v if not isinstance(v, dict) else "x") for k, v in match.items()}
 
 
-def test_the_nine_tools_are_registered_once_each():
+def test_the_ten_tools_are_registered_once_each():
     assert list(DEFINITIONS) == TOOL_NAMES
     assert set(TOOL_NAMES) == set(EXPECTED)
-    assert len(TOOL_NAMES) == 9
+    assert len(TOOL_NAMES) == 10
+    assert TOOL_NAMES[-1] == "propose_alert_disposition"
     for name, definition in DEFINITIONS.items():
         assert isinstance(definition, ToolDefinition)
         assert definition.name == name
@@ -56,7 +59,7 @@ def test_exactly_two_tools_are_live_capable():
     assert live == ["get_attack_technique", "lookup_ioc"]
 
 
-@pytest.mark.parametrize("name", sorted(EXPECTED))
+@pytest.mark.parametrize("name", FIXTURE_BACKED)
 def test_response_shape_accepts_its_fixture_and_projects_to_a_view(name):
     definition = DEFINITIONS[name]
     raw = first_stub_response(name)
@@ -68,7 +71,7 @@ def test_response_shape_accepts_its_fixture_and_projects_to_a_view(name):
     json.dumps(dumped)  # the view is plain JSON
 
 
-@pytest.mark.parametrize("name", sorted(EXPECTED))
+@pytest.mark.parametrize("name", FIXTURE_BACKED)
 def test_response_shapes_tolerate_unknown_fields_and_views_forbid_them(name):
     definition = DEFINITIONS[name]
     raw = first_stub_response(name)
@@ -80,11 +83,71 @@ def test_response_shapes_tolerate_unknown_fields_and_views_forbid_them(name):
         definition.view_model.model_validate({**view.model_dump(), "leak": "value"})
 
 
-@pytest.mark.parametrize("name", sorted(EXPECTED))
+@pytest.mark.parametrize("name", FIXTURE_BACKED)
 def test_request_model_rejects_unknown_arguments(name):
     definition = DEFINITIONS[name]
     with pytest.raises(ValidationError):
         definition.request_model.model_validate({**first_stub_arguments(name), "bogus": 1})
+
+
+def test_coordinates_are_not_on_the_hunting_allowlist_but_city_and_country_are():
+    from alert_forensics.tools.definitions._columns import hunting_column_allowed
+
+    assert not hunting_column_allowed("Latitude")
+    assert not hunting_column_allowed("Longitude")
+    assert hunting_column_allowed("City")
+    assert hunting_column_allowed("Country")
+    definition = DEFINITIONS["search_events"]
+    response = definition.response_model.model_validate(
+        {
+            "schema": [
+                {"name": n} for n in ("Timestamp", "City", "Country", "Latitude", "Longitude")
+            ],
+            "results": [
+                {
+                    "Timestamp": "2026-09-14T09:58:11Z",
+                    "City": "Paris",
+                    "Country": "FR",
+                    "Latitude": 48.8566,
+                    "Longitude": 2.3522,
+                }
+            ],
+        }
+    )
+    view = definition.project(response)
+    assert view.columns == ["Timestamp", "City", "Country"]
+    assert view.rows == [{"Timestamp": "2026-09-14T09:58:11Z", "City": "Paris", "Country": "FR"}]
+    assert view.dropped_columns == 2
+    assert "48.8566" not in json.dumps(view.model_dump(mode="json"))
+
+
+def test_the_proposal_tool_writes_nothing_and_says_so():
+    definition = DEFINITIONS["propose_alert_disposition"]
+    request = definition.request_model.model_validate(
+        {
+            "verdict": "false_positive",
+            "recommended_action": "Close; add the gateway range to the travel allowlist.",
+            "escalate": False,
+            "summary": "Both sign-ins come from the group SASE gateway.",
+        }
+    )
+    with pytest.raises(ValidationError):
+        definition.request_model.model_validate({"verdict": "closed", "recommended_action": "x"})
+    raw = {
+        "status": "proposed",
+        "verdict": "false_positive",
+        "recommended_action": request.recommended_action,
+        "escalate": False,
+        "summary": request.summary,
+        "proposed_at": "2026-09-14T10:00:00Z",
+    }
+    view = definition.project(definition.response_model.model_validate(raw), request)
+    dumped = view.model_dump(mode="json")
+    assert dumped["status"] == "proposed"
+    assert dumped["verdict"] == "false_positive"
+    assert "nothing was written" in dumped["note"].lower()
+    assert definition.live.status == "local"
+    assert not definition.live_capable
 
 
 def test_hunting_projection_caps_rows_and_reports_the_total():

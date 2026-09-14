@@ -17,9 +17,13 @@ ALL_SCOPES: frozenset[str] = frozenset(
         "alerts:read",
         "runbook:read",
         "attack:read",
+        "alerts:write",
     }
 )
 """Every scope a tool may declare. A role holding a scope outside this set is a typo."""
+
+WRITE_SCOPES: frozenset[str] = frozenset({"alerts:write"})
+"""The one write scope: proposing a disposition. Nothing behind it writes anywhere."""
 
 
 class Role(ContractModel):
@@ -36,10 +40,13 @@ class Role(ContractModel):
 
 
 ANALYST_ROLE = Role(name="analyst", scopes=ALL_SCOPES)
-"""The role the agent runs under by default: every read scope."""
+"""The role the agent runs under by default: every scope, the write scope included."""
 
-TIER1_ROLE = Role(name="tier1", scopes=ALL_SCOPES - {"siem:search"})
-"""A genuinely restricted role: raw SPL search is commonly gated above tier one."""
+TIER1_ROLE = Role(name="tier1", scopes=ALL_SCOPES - {"siem:search"} - WRITE_SCOPES)
+"""A genuinely restricted role: raw SPL search is commonly gated above tier one, and tier
+one escalates rather than disposes."""
+
+ROLES: dict[str, Role] = {role.name: role for role in (ANALYST_ROLE, TIER1_ROLE)}
 
 
 class Principal(ContractModel):

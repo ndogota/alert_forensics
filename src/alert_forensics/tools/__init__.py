@@ -12,6 +12,7 @@ from alert_forensics.tools.adapter import (
     UpstreamError,
 )
 from alert_forensics.tools.definitions import DEFINITIONS, TOOL_NAMES
+from alert_forensics.tools.disposition import DispositionAdapter
 from alert_forensics.tools.fixtures import (
     FixtureAdapter,
     FixtureSet,
@@ -24,7 +25,9 @@ from alert_forensics.tools.runner import ToolRunner
 from alert_forensics.tools.scope import (
     ALL_SCOPES,
     ANALYST_ROLE,
+    ROLES,
     TIER1_ROLE,
+    WRITE_SCOPES,
     Principal,
     Role,
     ScopeDenial,
@@ -42,9 +45,12 @@ __all__ = [
     "ALL_SCOPES",
     "ANALYST_ROLE",
     "DEFINITIONS",
+    "ROLES",
     "TIER1_ROLE",
     "TOOL_NAMES",
+    "WRITE_SCOPES",
     "DirectoryRawStore",
+    "DispositionAdapter",
     "FailureKind",
     "FixtureAdapter",
     "FixtureSet",

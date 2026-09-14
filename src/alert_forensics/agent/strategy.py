@@ -1,0 +1,25 @@
+"""Structured output strategy, decided from the model profile and nothing else."""
+
+from typing import Any
+
+from langchain.agents.structured_output import ProviderStrategy, ToolStrategy
+from langchain_core.language_models.chat_models import BaseChatModel
+from pydantic import BaseModel
+
+OutputStrategy = ProviderStrategy[Any] | ToolStrategy[Any]
+
+
+def output_strategy(model: BaseChatModel, schema: type[BaseModel]) -> OutputStrategy:
+    """``ProviderStrategy`` when the profile says the provider enforces a schema natively,
+    ``ToolStrategy`` otherwise.
+
+    LangChain's automatic choice falls back to matching model names when a profile is
+    missing. That fallback is not used: a strategy chosen from a name is a guess, and the
+    profile exists to replace the guess. A model with no profile gets ``ToolStrategy``,
+    which every tool-calling model supports. Neither strategy retries a malformed
+    output: unparseable structured output is a failed run, not a hidden extra pass.
+    """
+    profile = model.profile
+    if profile is not None and profile.get("structured_output") is True:
+        return ProviderStrategy(schema)
+    return ToolStrategy(schema, handle_errors=False)

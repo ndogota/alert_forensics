@@ -33,6 +33,9 @@ class SourceSystem(StrEnum):
     graph_security = "graph_security"
     attack = "attack"
     runbook = "runbook"
+    human = "human"
+    """A call addressed to the analyst rather than to a system: the disposition proposal.
+    A record from here is not evidence."""
     none = "none"
     """A call that reached no system: the tool does not exist or has no adapter."""
 

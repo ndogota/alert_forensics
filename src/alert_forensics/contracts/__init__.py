@@ -19,6 +19,13 @@ from alert_forensics.contracts.alert import (
     UserAccount,
     UserEvidence,
 )
+from alert_forensics.contracts.run import (
+    AdapterKind,
+    DispositionDecision,
+    HumanDecision,
+    RunError,
+    RunOutcome,
+)
 from alert_forensics.contracts.trace import (
     InputTokenDetails,
     InvestigationTrace,
@@ -38,6 +45,7 @@ from alert_forensics.contracts.triage import (
 )
 
 __all__ = [
+    "AdapterKind",
     "Alert",
     "AlertEvidence",
     "AlertEvidenceBase",
@@ -46,8 +54,10 @@ __all__ = [
     "Assumption",
     "CloudApplicationEvidence",
     "DeviceEvidence",
+    "DispositionDecision",
     "FileDetails",
     "FileEvidence",
+    "HumanDecision",
     "InputTokenDetails",
     "InvestigationTrace",
     "IpEvidence",
@@ -58,6 +68,8 @@ __all__ = [
     "ObservedFact",
     "OutputTokenDetails",
     "ProcessEvidence",
+    "RunError",
+    "RunOutcome",
     "SourceSystem",
     "ToolCallRecord",
     "ToolOutcome",

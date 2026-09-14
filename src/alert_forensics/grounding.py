@@ -18,7 +18,11 @@ from alert_forensics.contracts.trace import (
 )
 from alert_forensics.contracts.triage import ObservedFact, TriageResult, Verdict
 
-GroundingProblemKind = Literal["unknown_id", "cites_unsuccessful_call"]
+GroundingProblemKind = Literal["unknown_id", "cites_unsuccessful_call", "cites_non_evidence"]
+
+NON_EVIDENCE_SYSTEMS: frozenset[SourceSystem] = frozenset({SourceSystem.human, SourceSystem.none})
+"""Systems whose records are never evidence: the proposal addressed to the analyst, and a
+call that reached nothing. A fact resting on either rests on the model's own words."""
 
 
 class GroundingProblem(ContractModel):
@@ -145,10 +149,13 @@ def validate_grounding(result: TriageResult, trace: InvestigationTrace) -> Groun
     """Resolve every observed fact's evidence against the trace and report.
 
     A fact is grounded only when every distinct id it cites resolves to a record whose
-    outcome is ``ok``. A fact may cite records from several source systems; that is a
-    correlation, not a defect. Assumptions and missing context are exempt: they carry no
-    evidence by design. A result with no facts is grounded only when the verdict is
-    ``inconclusive`` and missing context is named: silence must not score.
+    outcome is ``ok`` and whose source system is one that returns evidence: the
+    disposition proposal is journalled like any call but is addressed to the analyst,
+    and citing it is ``cites_non_evidence``. A fact may cite records from several source
+    systems; that is a correlation, not a defect. Assumptions and missing context are
+    exempt: they carry no evidence by design. A result with no facts is grounded only
+    when the verdict is ``inconclusive`` and missing context is named: silence must not
+    score.
     """
     index = {record.tool_call_id: record for record in trace.records}
     facts = [_ground_fact(i, fact, index) for i, fact in enumerate(result.observed_facts)]
@@ -185,6 +192,17 @@ def _ground_fact(
                     detail=(
                         f"tool {record.tool_name!r} ended with outcome "
                         f"{record.outcome.value} and returned no data"
+                    ),
+                )
+            )
+        elif record.source_system in NON_EVIDENCE_SYSTEMS:
+            problems.append(
+                GroundingProblem(
+                    evidence_id=evidence_id,
+                    kind="cites_non_evidence",
+                    detail=(
+                        f"tool {record.tool_name!r} reads no system; its record is the "
+                        "model's own words, not evidence"
                     ),
                 )
             )
