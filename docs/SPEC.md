@@ -449,6 +449,26 @@ Decisions the pipeline rests on:
   the runbook asked about egress points without naming the travel alert or the SASE
   product, is a visible `no_fixture` error the model can rephrase, and that is the
   right side to err on.
+- **A stub names the scenario it serves, and no stub answers another scenario's
+  question.** Eight scenarios share nine fixture files and the first matching stub wins
+  in file order. The entity rule makes a collision unlikely and nothing prevented one,
+  so the check is made structural where it can be and run over whatever scenarios are
+  present where it cannot. Every stub carries `scenario`: the stem of the scenario it
+  was written for; `shared`, for a reading that does not depend on who asks, an ATT&CK
+  technique, an indicator VirusTotal has never seen; or `test`, for a stub that exists
+  for the test suite and no scenario. A `shared` stub may match only by exact value,
+  never by operator, so it can answer only the one entity it names; the loader refuses
+  anything else. For the rest, the suite builds a probe from every alert under
+  `examples/`: its title, its description, every string its evidence carries, and its
+  techniques. The probe is put to every stub that is not the alert's own, as the text
+  of every operator matcher and, entity by entity, as the value of every exact one; a
+  stub that would answer is a collision and the suite fails, naming the stub and the
+  scenario. A label that names no scenario present, and is not `shared` or `test`,
+  fails too, so a label cannot go stale. The test runs over the scenarios that exist,
+  so a new scenario is checked against every earlier one by arriving, and every earlier
+  stub is checked against it; nothing rests on each scenario bringing its own promise.
+  File order still decides between two stubs of one scenario, which is that scenario's
+  own business.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -920,6 +940,39 @@ predicted. It stays in every denominator. The failure rate is reported beside ac
 split by outcome and, for `failed_error`, by error kind, and it is never folded into
 accuracy and never dropped. A model that fails a third of its runs cannot show a clean
 accuracy on the rest: its accuracy denominator is all of its runs.
+
+### Tool outcomes are reported
+
+A score used to carry one error kind, the run's own, and the cell aggregated that same
+field, so a tool call that failed never reached either. A run that failed five calls
+with `no_fixture` and still produced a result was counted as completed, with a low
+evidence recall and nothing to say where the low number came from. The trace showed the
+gap, as the tool layer promises; the report did not read the trace for it.
+
+Every run score carries `calls`, counted from the trace whatever the run's outcome:
+the total, how many ended `ok`, `error` and `denied`, the error kinds and the denial
+kinds each by count, and `no_fixture` on its own line. Every cell pools those counts,
+reports `no_fixture` as a proportion of all calls with its interval, and counts the
+runs in which at least one occurred. The kind is read from the record's failure view:
+every failed record's redacted response is a structured failure whose `error` field
+names the kind, `no_fixture`, `invalid_arguments`, `upstream_error`, `not_found`,
+`malformed_response`, `unknown_tool`, or the denial, `scope_denied` or `order_denied`,
+and the trace contract exposes it as `failure_kind`. Denials are counted apart from
+errors because under `tier1` a denial is the scope working, not a gap.
+
+**A `no_fixture` count is reported beside the recall, never turned into a threshold.**
+A `no_fixture` call has two causes the summary cannot tell apart: a model that asked
+badly, and a fixture that does not cover what a reasonable model asks. Only the
+arguments in the trace say which, and a person reads them. A threshold above which the
+recall is declared uninterpretable would decide that question with a number the harness
+cannot justify, and below it would license reading the recall as if the gaps were not
+there. So the rule is the one scenario 1's recording already follows: the evidence
+recall of a cell with fixture gaps is a floor on what the model does with the evidence
+it was actually handed, and the printed report marks the recall line with the count
+whenever the cell has one, so the number cannot be read without it. Attribution is a
+decision, recorded as a fixture change with its test when the fixture was at fault,
+and left as the model's miss otherwise; the results directory keeps every artifact so
+it can be made after the fact.
 
 ### Statistics
 
