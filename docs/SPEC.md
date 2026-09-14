@@ -39,13 +39,18 @@ LangChain has no native mechanism linking a model claim to the tool call that pr
 it. The only guaranteed identity link in a trace is
 `AIMessage.tool_calls[i]["id"] == ToolMessage.tool_call_id`. So the grounding is built:
 
-- Each tool keeps its raw upstream response in `ToolMessage.artifact`, which never
-  reaches the model.
+- Each tool keeps its raw upstream response out of the model's context. The
+  `ToolMessage.artifact` carries the `ToolCallRecord` the runner journalled, whose
+  `raw_response_ref` and `raw_response_sha256` point at the raw in the store. The
+  artifact never reaches the model; the raw never enters the message history at all.
 - The output schema requires `evidence: list[str]` of tool call ids on every observed
   fact.
 - A validator resolves every id against the actual trace. An id that does not resolve,
   or that resolves to a denied or failed call, makes the output invalid and the
-  correction loop asks the model again.
+  correction loop asks the model again. So does an id that resolves to the disposition
+  proposal (problem kind `cites_non_evidence`): the proposal is addressed to the
+  analyst, it reads no system, and a fact resting on it rests on the model's own
+  words.
 - A fact may correlate several source systems: a sign-in from Defender and an identity
   from Splunk cited together is one fact, not a defect. The systems a fact rests on are
   resolved from the cited records in the trace and reported on the grounding report as
@@ -78,6 +83,24 @@ chance to reason. If it were, the harness would measure the wrong pass: a verdic
 is right only after the model was told which citations were fictional is not the verdict
 the first pass produced.
 
+Three details make that sentence precise, decided here because the sentence alone
+leaves them open:
+
+- The second pass is a fresh model call, not a continuation of the investigation
+  thread. Continuing the thread would hand the model every tool response again, which
+  is the trace in all but name. The instruction is the only user content it sees.
+- A bare id carries no meaning, so each present id is listed with the tool it called,
+  the arguments the model itself wrote, and the outcome. Never the response: what the
+  call returned is exactly what the model may not re-read.
+- The second pass returns citation repairs, not a result. For each offending fact, by
+  index, it either re-cites from the present ids or withdraws the fact, giving the
+  reason it could not be verified. The harness applies the repairs: a re-cited fact
+  keeps its statement with the new evidence, a withdrawn fact moves to `assumptions`,
+  a repair naming a fact that was not offending is ignored, and an offending fact the
+  repair does not mention stays as it was. Verdict, confidence, techniques, recommended
+  action, escalation, missing context and the grounded facts are the first pass's and
+  cannot be touched. The repaired result is validated again, by the same validator.
+
 **A run that leaves the loop still ungrounded is a failed run, never inconclusive.**
 
 ```
@@ -93,6 +116,45 @@ verdict an analyst is sometimes right to give: the evidence really was insuffici
 the missing context says why. Laundering a failure into it would destroy the meaning of
 verdict accuracy, the same way collapsing `benign_true_positive` into `false_positive`
 loses the tuning decisions.
+
+## The run artifact
+
+One investigation produces one artifact, and the outcome lives on it beside the trace
+and the report, not in a log line.
+
+```
+RunArtifact
+  investigation_id
+  outcome            RunOutcome
+  model              the provider:model string the run was started with
+  role               the role the tools ran under
+  adapters           {tool: fixture | live | local}, which adapter served each tool
+  trace              InvestigationTrace: alert, every tool call, usage per model turn
+  report             GroundingReport of the final result, or null when no result was produced
+  passes             model passes that produced a result: 1 plus the corrections made
+  corrections        [{instruction sent, repairs received, report before them}], one per pass
+  decisions          [{tool_call_id, proposal, decision: accepted | rejected, reason}]
+  error              {kind, message} on failed_error; on failed_ungrounded when the
+                     correction pass itself failed; never on completed
+  raw_store          directory the trace's raw_response_refs resolve under
+```
+
+- The result is not a separate field: the report carries it, and a report that
+  disagrees with its result refuses to validate. `report.result` is the result.
+- Usage per model turn is read from `usage_metadata` on each `AIMessage`, the
+  provider-agnostic field, and numbered by the message's position among the model turns.
+  That is the same numbering a `ToolCallRecord.step` uses, so a record and the turn that
+  emitted it agree.
+- `passes` counts model passes that produced a result. The trace's `usage` counts every
+  model turn, including the tool-calling turns; the two are different numbers on
+  purpose.
+- A correction pass that raises leaves the first pass's ungrounded result standing:
+  the outcome is `failed_ungrounded`, with the error recorded beside the report. It is
+  not `failed_error`, because a result was produced; it is not laundered either.
+- A correction pass that returns no repairs, prose instead of the schema, counts as an
+  empty repair: the result is validated again unchanged and fails as it stood.
+- On `failed_error` the trace still holds every call that was journalled before the
+  failure. The artifact is written whatever the outcome, so a failed run is inspectable.
 
 ## Where conventional code wins
 
@@ -141,11 +203,12 @@ the result and refuses to validate if its facts or summary disagree with it.
 fired correctly and the intent was legitimate. Collapsing it into false positive is how
 tuning decisions get lost.
 
-## Tool surface, read-only
+## Tool surface
 
-Every tool sits behind a `ToolAdapter` that declares its required scope and its
-response shape. Shapes follow the real APIs, so a fixture-backed tool is ported to a
-tenant by writing a new adapter, not by changing the shape the agent sees.
+Nine read-only tools and one gated write action. Every tool sits behind a `ToolAdapter`
+that declares its required scope and its response shape. Shapes follow the real APIs, so
+a fixture-backed tool is ported to a tenant by writing a new adapter, not by changing
+the shape the agent sees.
 
 | Tool | Shape follows | Adapter |
 |---|---|---|
@@ -158,6 +221,35 @@ tenant by writing a new adapter, not by changing the shape the agent sees.
 | `get_process_tree` | `DeviceProcessEvents` lineage through the hunting API | fixture |
 | `search_runbook` | internal knowledge, the retrieval component | fixture |
 | `get_attack_technique` | ATT&CK STIX bundle, deterministic, not a model call | **live**, public bundle, no key |
+| `propose_alert_disposition` | the project's own shape; there is no upstream | local, writes nothing |
+
+### The one write action
+
+"Human in the loop on every write action" is a promise until there is a write action to
+gate. `propose_alert_disposition` is that action, and it is deliberately the smallest one
+that can exist:
+
+- It takes a verdict, a recommended action, whether to escalate, and a one-paragraph
+  summary. It records the proposal in the journal like any other call and returns an
+  acknowledgement that says nothing was written. It changes no alert, no case, no
+  notification, anywhere. The sentence "the agent never closes an alert, it prepares
+  the investigation and proposes" is what this tool does, and the run artifact shows
+  it.
+- It requires the scope `alerts:write`. The `analyst` role holds it; `tier1` does not.
+  A tier1 run that proposes is journalled as `denied`, which is the same structured
+  denial every other out-of-scope call gets.
+- It always interrupts, whatever the arguments. The interrupt is the gate on the action
+  and the scope is the permission to perform it, checked in that order: a human who
+  accepts a tier1 proposal has not granted tier1 a scope, and the journal says
+  `denied`.
+- Its source system is `human`: it reaches no upstream, and its counterpart is the
+  analyst who accepts or rejects. A record from `human` is not evidence, and the
+  grounding validator says so.
+- Its live status is `local`: neither fixture nor live, complete as shipped.
+
+The agent is told to propose before it answers. A run in which the model never
+proposes still completes; the artifact's `decisions` list is empty and the evaluation
+can count that.
 
 ### The tool layer
 
@@ -182,11 +274,17 @@ A tool call travels through one pipeline, whatever the adapter behind it:
 Decisions the pipeline rests on:
 
 - Scopes are the project's own strings (`hunting:read`, `siem:search`, `identity:read`,
-  `asset:read`, `ioc:lookup`, `alerts:read`, `runbook:read`, `attack:read`), each mapped
-  to the live permission in the adapter's documented contract. Two roles ship:
-  `analyst` holds every read scope; `tier1` holds all but `siem:search`, since raw SPL
-  is commonly gated above tier one, and a role that is really restricted is what makes
-  the denial path something the harness exercises rather than a theoretical branch.
+  `asset:read`, `ioc:lookup`, `alerts:read`, `runbook:read`, `attack:read`, and the one
+  write scope `alerts:write`), each mapped to the live permission in the adapter's
+  documented contract. Two roles ship: `analyst` holds every scope; `tier1` holds every
+  read scope but `siem:search`, since raw SPL is commonly gated above tier one, and not
+  `alerts:write`, since tier one escalates rather than disposes. A role that is really
+  restricted is what makes the denial path something the harness exercises rather than
+  a theoretical branch.
+- The model is offered exactly the tools that have an adapter registered for the run,
+  in the registry's order. A tool with no adapter is not a tool the model can call
+  usefully, and offering it would journal `unknown_tool` errors for calls the harness
+  invited.
 - Response shapes tolerate unknown fields, since real APIs add them. Views forbid them,
   since a field the model sees that nobody declared is a redaction gap.
 - Tabular views are allowlisted per tool and capped at 50 rows; the model is told the
@@ -229,7 +327,9 @@ strings, which is the natural join to ATT&CK.
   row is a projection and cannot ask for a dropped column. `AdditionalFields` and `_raw`
   are on no allowlist; that is where nested JSON with service account passwords and NTLM
   hashes lives. Display names, given and family names, phone numbers and coordinates are
-  on no view. The user principal name and email are: they are the join keys of the
+  on no view: `Latitude` and `Longitude` are not on the hunting allowlist, so the
+  structural claim holds without the backstop; `City` and `Country` are, because a
+  sign-in's location is the substance of a travel alert. The user principal name and email are: they are the join keys of the
   investigation, and an investigation that cannot name the account cannot triage it.
 
   **Best effort by pattern.** A generic pass over every string of every view is the
@@ -248,9 +348,17 @@ strings, which is the natural join to ATT&CK.
 
 ## Human in the loop
 
-`HumanInTheLoopMiddleware` with `interrupt_on`. Read-only tools are auto-approved. Any
-write action, closing an alert, enriching a case, notifying, pauses the graph and waits
-for an analyst decision, resumed with `Command(resume=...)` on a checkpointer.
+`HumanInTheLoopMiddleware` with `interrupt_on` over `propose_alert_disposition`. The
+nine read-only tools are auto-approved. The proposal pauses the graph with the proposed
+verdict, action, escalation and summary in front of the analyst, and resumes with
+`Command(resume=...)` on a checkpointer.
+
+Two decisions are offered, accept and reject with an optional reason. Not edit: an
+edited proposal would be the analyst's verdict in the model's mouth, and the harness
+would then measure the analyst. On accept the tool runs and the proposal is journalled.
+On reject the tool does not run, the model is told so with the reason, and it may
+propose again or answer. Every decision is recorded on the run artifact with the
+proposal it answered, so the artifact shows what was proposed and what the human did.
 
 The agent never closes an alert. It prepares the investigation and proposes.
 
@@ -261,7 +369,78 @@ local model through Ollama, or any OpenAI-compatible server are interchangeable.
 Capability detection goes through `model.profile` rather than trial and error, which
 also decides `ProviderStrategy` versus `ToolStrategy` for structured output.
 
+- The decision is made once per model from `profile["structured_output"]`: true means
+  `ProviderStrategy`, anything else means `ToolStrategy`. LangChain's own automatic
+  choice falls back to matching model names when a profile is missing; that fallback is
+  not used here, because a strategy chosen from a name is a guess and a guess is what
+  the profile exists to replace. A model with no profile gets `ToolStrategy`, which every
+  tool-calling model supports.
+- Provider packages are optional extras, not dependencies: `alert-forensics[anthropic]`,
+  `[openai]`, `[google]`, `[ollama]`. A missing provider fails at start-up with the
+  package to install named, before any tool runs.
+
 The harness is not tied to a vendor.
+
+## The agent graph
+
+A LangGraph `StateGraph` with four nodes, built once per investigation around one
+`ToolRunner`, so every tool the model calls is journalled by the slice 2 pipeline by
+construction. The graph is compiled on a checkpointer so the interrupt can resume.
+
+```
+investigate  the create_agent subgraph: tools from the runner, the human-in-the-loop
+             middleware, TriageResult as the response format
+ground       validate_grounding(result, trace); route on the report
+repair       the correction pass: fresh model call, repair instruction in, repairs out,
+             applied to the result; back to ground
+finish       set the outcome: completed, failed_ungrounded, or failed_error when the
+             model produced no result
+```
+
+- The model sees the alert once, as the first user message, in its wire form after the
+  generic redaction pass. Display names in the alert's evidence are erased there.
+- Tools are exposed to the model with the request model's JSON schema and validated by
+  the runner, not by LangChain. A call with wrong arguments must reach the journal as
+  `invalid_arguments`; a validation error thrown before the runner would leave the call
+  unjournalled.
+- A `ToolCallRecord.step` is the index of the model turn that emitted the call, read
+  from the messages the tool node sees. The tool's `ToolMessage` content is the
+  record's `redacted_response`, verbatim, and its artifact is the record.
+- One turn's tool calls run one at a time, in the order the model emitted them. LangGraph
+  would run them on a thread pool, and then the journal order, the trace, and the raw
+  store's file order would vary from run to run for the same script. A run is
+  deterministic up to model sampling only if the harness adds no randomness of its own.
+  Parallel calls still share a `step`; the trace says so.
+- The checkpointer deserialises the project's own contract types and LangGraph's
+  built-ins, listed by class, and refuses anything else. A checkpoint is data, and data
+  does not get to name a class.
+- The graph runs under a recursion limit. Exceeding it is `failed_error` of kind
+  `budget`. Any exception out of the graph, a provider error, unparseable structured
+  output, an exhausted script, is `failed_error` with the exception's kind and message,
+  and the artifact is still written with the trace as it stood.
+
+## The scripted client
+
+The whole cost discipline rests on running without a model, and the graph is untestable
+without a stand-in, so the scripted client is part of the graph slice, not the
+evaluation slice.
+
+- It is a `BaseChatModel`. It replays a script of turns, each either a set of tool
+  calls with their ids, or a structured output payload. It implements `bind_tools` so
+  `create_agent` binds it like any provider model, and it renders a structured turn the
+  way the bound strategy expects: JSON content under `ProviderStrategy`, a call to the
+  structured-output tool under `ToolStrategy`. Both strategies are therefore exercised
+  by the same script.
+- It declares a `profile`, so the strategy decision above is exercised on it rather
+  than bypassed for it.
+- It emits deterministic `usage_metadata` on every turn, so the usage path of the trace
+  is exercised without a provider.
+- A turn may be a callable that receives the messages so far and returns the turn. That
+  is how the demo script cites the calls that succeeded rather than the calls it hoped
+  would.
+- A script that runs out is an error, and the run is `failed_error`. A script that
+  cites an id it never emitted is how the correction loop is tested on both outcomes.
+- No key, no network, nothing to configure.
 
 ## Scenarios
 
@@ -300,15 +479,36 @@ This is a tool, not only a demonstration. It installs as a console script and is
 by someone who is not the author.
 
 ```
-alert-forensics triage ALERT.json --model anthropic:claude-sonnet-5
-alert-forensics replay RUN.json
+alert-forensics triage ALERT.json --model anthropic:claude-sonnet-5 --role analyst -o run.json
+alert-forensics triage ALERT.json --scripted -o run.json
+alert-forensics show run.json
+alert-forensics replay run.json
 alert-forensics eval
 ```
 
 - `triage` reads a real Microsoft Graph `security.alert` v2 export, runs the
-  investigation, and writes a run artifact holding the trace and the grounding report.
-- `replay` serves the viewer over that artifact.
-- `eval` runs the harness.
+  investigation, and writes the run artifact: outcome, trace, grounding report, and the
+  raw store directory beside it, named after the artifact. `--role` is `analyst` or
+  `tier1`. `--max-corrections` overrides the default of one.
+- `--scripted` runs the same graph on the scripted client with a built-in script
+  derived from the alert's evidence. No key, no network. The verdict of a scripted run
+  is `inconclusive` by construction and its missing context says why: the script
+  replays calls, it reasons about nothing. What it demonstrates is the mechanism: the
+  journal, the grounding, the interrupt, the artifact.
+- The proposal interrupt is answered on the terminal, or ahead of time with `--accept`
+  or `--reject REASON` when there is no terminal. A run with neither and no terminal
+  stops with that message rather than deciding for the analyst.
+- The nine fixtures ship inside the package, so an installed tool runs without the
+  repository. `--fixtures DIR` points at another set.
+- Without `--scripted`, `get_attack_technique` is live against the public bundle, and
+  `lookup_ioc` is live when `VIRUSTOTAL_API_KEY` is set and fixture-backed otherwise.
+  The artifact's `adapters` field says which served each tool in that run.
+- `show` prints an artifact readably: outcome, verdict and confidence, each grounded
+  fact with its citations and the systems they resolved to, assumptions, missing
+  context, the recommended action, the human decisions, and the ungrounded facts when
+  the run failed.
+- `replay` serves the viewer over that artifact, and `eval` runs the harness. Both are
+  the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
 
@@ -371,7 +571,8 @@ All fixtures are synthetic, so no confidential data is involved at any point.
 
 Stated up front, because a careful reader will find them.
 
-- Read-only by design. This triages; it does not remediate.
+- Read-only by design, with one gated proposal that writes nothing. This triages; it
+  does not remediate.
 - Two connectors are live, seven are fixture-backed. `lookup_ioc` talks to VirusTotal
   and `get_attack_technique` reads the public ATT&CK bundle. The other seven follow the
   real API shapes and document their live contract, so a tenant owner ports them rather
