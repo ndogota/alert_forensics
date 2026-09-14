@@ -227,25 +227,34 @@ was a coin toss between two values that both sounded right. Until the definition
 a comparison matrix measures the ambiguity of the prompt, not the capability of the
 models.
 
-The discriminator is not whether the activity happened. It is whether the detection's
-claim about what happened is true.
+A detection produces a signal, which is what its logic measured, and an assertion,
+which is what it claims about the world. The signal is almost always true; a log line
+really was written. The verdict turns on the assertion, never on the signal.
 
-- `true_positive`: the detection's claim is true, and the activity is malicious or
+- `true_positive`: the assertion is true and the activity is malicious or
   unauthorised.
-- `benign_true_positive`: the claim is true, the activity happened as described, and
-  the intent was legitimate and authorised. The rule worked; the SOC documents an
-  exception or confirms a control, and does not tune the rule away.
-- `false_positive`: the claim is not true. Either the activity described did not
-  happen, or it happened but is not the thing the rule named. The rule misfired, on an
-  artifact or on a structurally mislabelled pattern, and the SOC tunes.
-- `inconclusive`: the evidence gathered does not decide between the above, and
-  `missing_context` names what would.
+- `benign_true_positive`: the assertion is true and the intent was legitimate and
+  authorised. The rule worked; document an exception, do not tune.
+- `false_positive`: the assertion is false. The signal may be perfectly real and still
+  support no such conclusion. Tune.
+- `inconclusive`: the evidence does not decide, and `missing_context` names what
+  would.
+
+The two are separated because a claim read at the level of the signal is almost always
+true, and a label that turns on it collapses false positives into benign true positives:
+two geo-IP locations far apart in a short window is a true computation, and the
+assertion drawn from it, that the person was in two places, is false. That is the error
+the first real run made. The assertion is the state of the world the rule is named for,
+at the granularity of the technique it detects, with intent left out: intent is the
+other axis, and an assertion that included it would leave no room for a benign true
+positive. The label must not depend on which sentence describes the alert.
 
 The definition is an analyst's, and it lives in the system prompt as the definition of
 the four values, in exactly these terms. Nothing scenario-specific goes beside it: the
 taxonomy belongs in the prompt, the answer to any given alert does not. Every scenario's
-ground-truth label is checked against this discriminator under "Scenarios"; a ground
-truth that contradicts its own discriminator makes every accuracy number meaningless.
+ground-truth label is checked against this discriminator under "Scenarios", with the
+signal and the assertion stated separately; a ground truth that contradicts its own
+discriminator makes every accuracy number meaningless.
 
 ## Tool surface
 
@@ -562,33 +571,48 @@ alerting.
    RMM tools in 2025. **True positive.**
 8. The reverse trap. 6.2 GB to personal cloud storage by an employee who has resigned.
    It is a personal photo folder, 94 percent image content type, no abnormal access to
-   sensitive shares. **Benign true positive**, an HR matter, not a security incident.
+   sensitive shares. **False positive**: the upload is real, and no organisational data
+   left, so exfiltration is not supported. Personal use of the corporate device is an
+   HR matter, not a security incident. See the table below for why this is not benign.
 
 Seven and eight are the point of the exercise: the obvious signal points the wrong way
 in both directions.
 
-Every label, checked against the discriminator under "The four verdicts". The question
-each time is what the rule claimed, whether that claim is true, and if so whether the
-intent was authorised.
+Every label, checked against the discriminator under "The four verdicts". The signal
+is what the rule's logic measured; the assertion is what it claims about the world, at
+the granularity of the technique it detects, with intent left out. The signal is true in
+every row. The verdict turns on the assertion, then on intent.
 
-| # | The detection's claim | Claim true? | Intent | Label |
-|---|---|---|---|---|
-| 1 | The user signed in from two places they cannot both have been | No: one egress, the SASE gateway | n/a | false_positive |
-| 2 | Many accounts were tried and one was taken over | Yes: one success, new MFA method, mailbox rule | Unauthorised | true_positive |
-| 3 | A rule forwards mail to an external address for a reason nobody sanctioned | Yes: three users, one destination, payment filters | Unauthorised, payment fraud | true_positive |
-| 4 | Obfuscated PowerShell ran on a server | Yes | Authorised: configuration management, declared window | benign_true_positive |
-| 5 | A process read LSASS memory | Yes, and was blocked | Authorised: red team, on the exercise list | benign_true_positive |
-| 6 | Service tickets were requested in bulk to crack offline | No: the SPNs were enumerated, by the credentialed scanner, not roasted | n/a | false_positive |
-| 7 | A remote-management tool ran and was blocked | Yes, the second attempt; the first ran | Unauthorised: not the IT provider's relay, `mshta.exe` from mail before it | true_positive |
-| 8 | An employee who is leaving moved company data to personal storage | Yes, the upload happened as described | Legitimate: personal photos, no sensitive shares touched | benign_true_positive |
+| # | Signal measured | Assertion made | Assertion true? | Intent | Label |
+|---|---|---|---|---|---|
+| 1 | Two sign-ins by one user whose source IPs geo-locate to Paris and Amsterdam, 40 minutes apart | The person, or their credentials, was used from two places they could not both have been | No: one egress, the SASE gateway; the geo-IP of a gateway is not where the person is | n/a | false_positive |
+| 2 | Many failed sign-ins across many accounts from few sources, then one success | Credentials were guessed at scale and an account was taken over | Yes: the success is followed by a new MFA method and a mailbox rule | Unauthorised | true_positive |
+| 3 | Inbox rules created that forward to one external address, filtering on payment terms | Mail is being diverted outside the organisation | Yes: three users, one destination, invoice and IBAN filters | Unauthorised, payment fraud | true_positive |
+| 4 | `powershell.exe` launched with an encoded command on a production server | An obfuscated command was executed on the server | Yes: the command was encoded, whoever ran it | Authorised: configuration management agent, declared window | benign_true_positive |
+| 5 | A process opened LSASS with read access and was blocked | A process attempted to read credentials from LSASS memory | Yes: the attempt was made, and prevented | Authorised: red team, account on the exercise list | benign_true_positive |
+| 6 | One account requested service tickets for 180 SPNs in 90 seconds | Service tickets were harvested to crack service-account passwords offline | No: the credentialed scanner obtained tickets to authenticate to the services it scans; nothing was harvested for cracking | n/a | false_positive |
+| 7 | The EDR blocked a signed remote-management binary with a clean reputation | A remote-management tool was executed on the endpoint | Yes: the block caught the second attempt; the first ran, to a relay that is not the IT provider's, six minutes after `mshta.exe` from the mail client | Unauthorised, initial access | true_positive |
+| 8 | 6.2 GB uploaded to a personal cloud storage domain by a user on the leaver list | Organisational data was moved out to personal storage by a departing employee | No: the folder is personal photographs, 94 percent image content type, and no sensitive share was touched | n/a | false_positive |
 
-None of the eight moves. Six is the label that the discriminator earns its keep on:
-the activity happened, but bulk enumeration by a scanner is not the thing the rule
-named, so it is a false positive to requalify, not a benign true positive to except.
-Seven is its mirror: a signed binary with a clean reputation makes the claim no less
-true. Eight is the closest call: the claim of the rule, data to personal storage by a
-departing employee, is true, and the intent is not against the company, so it is benign
-and the rule is not at fault; it is an HR matter.
+**One label moves: scenario 8, from benign true positive to false positive.** Read at
+the level of the signal, a departing employee did upload to personal storage, and that
+is the sentence under which the label was benign. Read at the level of the assertion,
+the rule is named for exfiltration, and exfiltration is organisational data leaving;
+none did. The signal is real and supports no such conclusion, which is the definition
+of a false positive here. The test is consistency with six, which is the same shape:
+a sanctioned actor produced the exact volume the rule measures without performing the
+technique the rule is named for. If eight were benign because the upload really
+happened, six would be benign because the tickets really were requested, and the spec
+has always called six a false positive to requalify. Both are tuning: content type or
+sensitivity labels on the upload rule, the scanner's account on the ticket rule. Eight
+stays the reverse trap: the obvious signal still points at an incident, and the
+finding is still an HR matter about personal use of a corporate device. It is not a
+security incident, and now the label says so for the right reason.
+
+Seven is the mirror of one: a signed binary and a clean reputation make the assertion
+no less true, as a gateway's geo-IP makes the travel no more real. Four holds because
+encoding is a property of the command, not of who ran it: the assertion is true and
+the intent decides. Five holds the same way.
 
 ## Using it
 
