@@ -77,8 +77,8 @@ the harness, not of the model.
 
 **The second pass receives a repair instruction, not the report.** For each offending
 fact it gets the statement, the offending evidence id, the problem kind, and the list of
-`tool_call_id`s actually present in the trace. It does not get the already-grounded
-facts, the trace, or the raw responses. The loop repairs citations; it is not a second
+`tool_call_id`s in the trace that a citation can succeed on. It does not get the
+already-grounded facts, the trace, or the raw responses. The loop repairs citations; it is not a second
 chance to reason. If it were, the harness would measure the wrong pass: a verdict that
 is right only after the model was told which citations were fictional is not the verdict
 the first pass produced.
@@ -92,6 +92,23 @@ leaves them open:
 - A bare id carries no meaning, so each present id is listed with the tool it called,
   the arguments the model itself wrote, and the outcome. Never the response: what the
   call returned is exactly what the model may not re-read.
+- **Present means citable.** The list holds only the calls whose outcome is `ok` and
+  whose source system returns evidence. A denied call, a failed call, and the
+  disposition proposal are left out. The list is the menu the second pass chooses from,
+  and one correction attempt is the whole budget, so an id offered there that the
+  validator will then refuse is the loop inviting the failure it exists to repair. The
+  proposal is the worst of them: its record carries the model's own summary restating
+  the verdict, which makes it the most tempting citation in the list and the one that is
+  never evidence. This was found on the committed scenario 1 recording, whose
+  instruction offered the proposal's id sixth; re-citing it would have ended the run
+  `failed_ungrounded` with no pass left. The alternative, listing every call with the
+  reason it cannot be cited, was rejected: the offending entries already say why each
+  refused id was refused, and the second pass has nothing to do with a call it may not
+  cite. The outcome stays on each entry and now reads `ok` throughout, because an
+  artifact recorded before this rule shows lists that offered denied calls and the
+  proposal, and the field is what lets a reader see that. A trace with no citable call
+  gives an empty list; the only repair left is to withdraw, and the run fails as it
+  should.
 - The second pass returns citation repairs, not a result. For each offending fact, by
   index, it either re-cites from the present ids or withdraws the fact, giving the
   reason it could not be verified. The harness applies the repairs: a re-cited fact
@@ -772,10 +789,29 @@ statement says. A finding is reached when at least one observed fact satisfies b
    finding, so a fact that says the right thing on a citation that does not resolve is
    not credited. The tool is read from the trace record the citation resolves to, never
    from the statement.
-2. The fact's statement contains every token. Matching is a case-insensitive substring
-   test on whitespace-normalised text. A token that is a list of alternatives is
-   satisfied by any one of them, so `["SASE", "VPN", "gateway"]` reads "one of these";
-   the list is small on purpose and is written out in the file where a reviewer sees it.
+2. The fact's statement contains every token, as whole words. Statement and token are
+   both read as a sequence of words: split on whitespace, each word stripped of the
+   punctuation at its ends, compared case-insensitively. A token is present when its
+   words occur contiguously among the statement's words. A token that is a list of
+   alternatives is satisfied by any one of them, so `["SASE", "VPN", "gateway"]` reads
+   "one of these"; the list is small on purpose and is written out in the file where a
+   reviewer sees it.
+
+**A token never matches inside a larger word.** The first version of this rule was a
+substring test, and it credited the committed scenario 1 recording with the gateway
+finding on the token `SASE` found inside `EXAMPLE-SASE-NET`, the ASN owner name
+VirusTotal returned. The model had copied a name; it never said gateway, and the finding
+that carries the whole verdict was reached on letters the model did not choose. Under a
+substring rule a token can be fitted to whatever the fixture happens to name, and a
+truth file written after a recording exists, as scenario 1's was, will be. Whole words
+make a token a claim the statement made. The cost is stated rather than hidden: a
+plural, a possessive and a hyphenated compound are different words, so `log` does not
+match `logs` and `SASE` does not match `EXAMPLE-SASE-NET`; where the truth author wants
+them, they are listed as alternatives, in the file, where a reviewer sees them.
+Punctuation at the ends of a word is stripped, so `Paris,` and `(EXAMPLE-SASE-NET)` are
+the words they wrap; punctuation inside a word is part of it, so `203.0.113.7` is one
+word that `203.0.113` does not match, and `T1078.004` is not `T1078`. A token that
+normalises to no word at all could never match, and the loader refuses it.
 
 The match is deterministic and a human can see why it passed or failed: the score names
 the finding, the tokens it missed, and the facts it examined. A model judge would put a
@@ -908,13 +944,25 @@ no escalation.
   rather than one for "both", because a fact that names each sign-in with its address
   has established the shared egress in a form the tokens can see, while "both" has too
   many spellings to enumerate honestly.
+- The gateway finding's tokens are the address or the runbook's range, `203.0.113.7` or
+  `203.0.113.0/24`, since VirusTotal names the one and the runbook the other; the word
+  `SASE`, which both sources carry; and one of `gateway`, `gateways`, `egress`, `proxy`,
+  the words in which either source says what the address is. Its first tokens were
+  `203.0.113` and `SASE`, fitted to the recording: the prefix matched inside the address
+  and `SASE` matched inside the owner name, and a fact that only copied the ASN owner was
+  credited with saying the address is a gateway. That is the case the whole-word rule
+  above was decided on.
 - Expected missing context, two: the gateway or VPN session log that ties the user to
   the gateway at both times, which no tool provides; and the MFA or device compliance
   outcome, which the runbook checklist asks for and the sign-in view does not carry.
 - The committed recording under `runs/atypical_travel/` scores verdict 1, evidence
-  recall 3 of 3, missing context 0 of 2, escalation correct. The zero is the model's:
-  it named nothing it could not establish. The harness reports it rather than lowering
-  the bar.
+  recall 2 of 3, missing context 0 of 2, escalation correct. The gateway finding is not
+  reached: the fact reads "IP address 203.0.113.7 belongs to the ASN 64496
+  (EXAMPLE-SASE-NET) network range", which names the owner and never says the address
+  is a gateway, and the model's runbook query returned no hit. Under the substring rule
+  it scored 3 of 3, on `SASE` inside the owner name. The miss and the zero are the
+  model's: it did not say what the address is, and it named nothing it could not
+  establish. The harness reports both rather than lowering the bar.
 
 ## Cost discipline
 
