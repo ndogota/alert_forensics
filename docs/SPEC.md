@@ -189,15 +189,12 @@ Decisions the pipeline rests on:
   the denial path something the harness exercises rather than a theoretical branch.
 - Response shapes tolerate unknown fields, since real APIs add them. Views forbid them,
   since a field the model sees that nobody declared is a redaction gap.
-- Projections cap tabular results at 50 rows and say so with a `truncated` flag. The
-  model is told the total row count.
-- Redaction is two-layered. The projection drops what the model has no use for: names,
-  phone numbers, coordinates, engine-by-engine verdicts. A generic pass then redacts
-  secrets by pattern (JWTs, bearer tokens, cloud access keys, private key blocks,
-  password assignments in command lines) and personal data by field name, in every
-  string of every view. Emails and user principal names are kept: they are the join keys
-  of the investigation, and an investigation that cannot name the account cannot triage
-  it.
+- Tabular views are allowlisted per tool and capped at 50 rows; the model is told the
+  total row count, a `truncated` flag, and the number of dropped columns. The tool
+  description tells the model to project to standard columns, so a query that returns
+  only dropped columns is a query it can rewrite.
+- Redaction is two-layered, with the guarantees stated under "Access control, sensitive
+  data, traceability": the projection is the guarantee, the generic pass is the backstop.
 - A call to a tool that does not exist, or that has no adapter registered, is journalled
   as an `error` of kind `unknown_tool` with source system `none`. The journal never files
   a call under a system it did not reach.
@@ -221,8 +218,31 @@ strings, which is the natural join to ATT&CK.
 
 - Every tool declares a required scope. The agent runs under an analyst role. A call
   outside scope returns a structured denial the agent must handle, not an exception.
-- Redaction runs before the model sees anything. Secrets, tokens and personal data stay
-  in `artifact`. The model receives a redacted projection.
+- Redaction runs before the model sees anything, in two layers whose guarantees differ,
+  stated the way the grounding report states its own:
+
+  **Guaranteed by structure.** A view is a closed schema: every field the model sees was
+  declared by name. Record views (identity, asset, IOC reading, ATT&CK, related alerts,
+  process lineage) name each field they carry. Tabular views (hunting, SIEM) keep only
+  the columns on the tool's allowlist, plus aggregates over allowlisted columns, and
+  report how many columns were dropped as a count, never by name, so the model knows the
+  row is a projection and cannot ask for a dropped column. `AdditionalFields` and `_raw`
+  are on no allowlist; that is where nested JSON with service account passwords and NTLM
+  hashes lives. Display names, given and family names, phone numbers and coordinates are
+  on no view. The user principal name and email are: they are the join keys of the
+  investigation, and an investigation that cannot name the account cannot triage it.
+
+  **Best effort by pattern.** A generic pass over every string of every view is the
+  backstop for what an allowlisted column carries in free text, a command line above
+  all: secrets by pattern (tokens, keys, private key blocks, password assignments and
+  flags), secret-bearing and personal fields by name at any depth, and the same inside
+  any string that is itself a JSON object or array. A secret that matches no pattern in a
+  command line reaches the model. That is the residual risk, and it is stated rather
+  than hidden.
+
+  **The raw holds everything else**, out of context, by ref and hash. Redaction is a
+  projection, not a destruction: an analyst with access to the artifact store sees what
+  the model did not.
 - Every tool call is journalled with id, timestamp, caller, arguments and a hash of the
   response. The audit trail reconstructs the investigation without replaying it.
 
