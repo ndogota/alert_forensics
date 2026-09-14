@@ -47,8 +47,9 @@ def test_the_instruction_names_offending_citations_and_present_calls(ungrounded,
     ]
     assert instruction.offending[1].statement == "Splunk shows nothing."
     present = {c.tool_call_id: c for c in instruction.present_calls}
-    assert list(present) == ["tc-events", "tc-ioc", "tc-identity", "tc-siem-denied"]
-    assert present["tc-siem-denied"].outcome is ToolOutcome.denied
+    assert list(present) == ["tc-events", "tc-ioc", "tc-identity"]
+    assert "tc-siem-denied" not in present
+    assert present["tc-events"].outcome is ToolOutcome.ok
     assert present["tc-events"].tool_name == "search_events"
     assert present["tc-events"].arguments == trace.records[0].arguments
 
@@ -135,3 +136,41 @@ def test_withdrawing_every_fact_cannot_launder_a_verdict(ungrounded, trace, aler
         records=[make_record("tc-x", "search_events", SourceSystem.defender)],
     )
     assert not validate_grounding(repaired, bare).is_grounded
+
+
+def test_present_calls_are_only_those_a_citation_can_succeed_on(alert, ungrounded):
+    """A denied call, a failed call, an unknown tool and the proposal are never offered:
+    each would be refused by the validator, and the loop has one attempt."""
+    records = [
+        make_record("tc-ok", "search_events", SourceSystem.defender),
+        make_record("tc-denied", "search_siem", SourceSystem.splunk, outcome=ToolOutcome.denied),
+        make_record("tc-error", "lookup_ioc", SourceSystem.virustotal, outcome=ToolOutcome.error),
+        make_record("tc-nowhere", "no_such_tool", SourceSystem.none, outcome=ToolOutcome.error),
+        make_record("tc-propose", "propose_alert_disposition", SourceSystem.human),
+        make_record("tc-runbook", "search_runbook", SourceSystem.runbook),
+    ]
+    trace = InvestigationTrace(
+        investigation_id="inv-3", alert=alert, started_at=T0, records=records
+    )
+    report = validate_grounding(ungrounded, trace)
+    instruction = build_repair_instruction(report, trace)
+    offered = [c.tool_call_id for c in instruction.present_calls]
+    assert offered == ["tc-ok", "tc-runbook"]
+    assert all(c.outcome is ToolOutcome.ok for c in instruction.present_calls)
+    # Every offered id grounds a fact; every withheld id would not.
+    for record in records:
+        fact = ObservedFact(statement="Re-cited.", evidence=[record.tool_call_id])
+        grounded = validate_grounding(with_facts(ungrounded, [fact]), trace).is_grounded
+        assert grounded == (record.tool_call_id in offered), record.tool_call_id
+
+
+def test_a_trace_with_no_citable_call_offers_nothing(alert, ungrounded):
+    trace = InvestigationTrace(
+        investigation_id="inv-4",
+        alert=alert,
+        started_at=T0,
+        records=[make_record("tc-propose", "propose_alert_disposition", SourceSystem.human)],
+    )
+    instruction = build_repair_instruction(validate_grounding(ungrounded, trace), trace)
+    assert instruction.present_calls == []
+    assert instruction.offending

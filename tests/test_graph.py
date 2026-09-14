@@ -98,6 +98,11 @@ def repairs_turn(*repairs):
     return StructuredTurn(payload={"repairs": list(repairs)})
 
 
+def instruction_text(model):
+    """The user message of the repair pass, the fourth call the model received."""
+    return str(model.received[3][1].content)
+
+
 @pytest.fixture(scope="module")
 def fixture_set():
     return FixtureSet.load(FIXTURE_TOOLS_DIR)
@@ -278,8 +283,8 @@ def test_the_correction_loop_repairs_an_invented_citation(fixture_set, profile):
         "tc-signins",
         "tc-ioc",
         "tc-identity",
-        "tc-propose",
     ]
+    assert "tc-propose" not in instruction_text(model)
     report = artifact.report
     assert report.is_grounded
     assert [f.evidence_ids for f in report.facts] == [["tc-signins"], ["tc-ioc"]]
@@ -310,6 +315,49 @@ def test_a_correction_that_still_fails_is_failed_ungrounded_never_inconclusive(f
     assert artifact.report.result.verdict is Verdict.false_positive
     assert artifact.report.facts[0].problems[0].evidence_id == "tc-still-invented"
     assert len(model.received) == 4
+
+
+def test_a_repair_that_re_cites_the_proposal_fails_and_the_id_was_never_offered(fixture_set):
+    """The proposal's record restates the verdict in the model's words. It is journalled
+    ``ok`` and it is not evidence; the second pass must not be handed it."""
+    script = [
+        INVESTIGATION,
+        PROPOSAL,
+        result_turn(["tc-invented"], ["tc-ioc"]),
+        repairs_turn({"index": 0, "action": "recite", "evidence": ["tc-propose"]}),
+    ]
+    artifact, model, _ = run(script, fixture_set=fixture_set)
+    proposal = artifact.trace.find("tc-propose")
+    assert proposal is not None and proposal.outcome is ToolOutcome.ok
+    assert proposal.source_system is SourceSystem.human
+    offered = [c.tool_call_id for c in artifact.correction.instruction.present_calls]
+    assert "tc-propose" not in offered
+    assert "tc-propose" not in instruction_text(model)
+    assert artifact.outcome is RunOutcome.failed_ungrounded
+    problem = artifact.report.facts[0].problems[0]
+    assert (problem.evidence_id, problem.kind) == ("tc-propose", "cites_non_evidence")
+
+
+def test_a_repair_that_re_cites_a_denied_call_fails_and_the_id_was_never_offered(fixture_set):
+    siem = ToolCallsTurn(
+        tool_calls=[*INVESTIGATION.tool_calls, call("tc-siem", "search_siem", query="index=auth")]
+    )
+    script = [
+        siem,
+        PROPOSAL,
+        result_turn(["tc-invented"], ["tc-ioc"]),
+        repairs_turn({"index": 0, "action": "recite", "evidence": ["tc-siem"]}),
+    ]
+    artifact, model, _ = run(script, fixture_set=fixture_set, role=TIER1_ROLE)
+    denied = artifact.trace.find("tc-siem")
+    assert denied is not None and denied.outcome is ToolOutcome.denied
+    offered = [c.tool_call_id for c in artifact.correction.instruction.present_calls]
+    assert offered == ["tc-signins", "tc-ioc", "tc-identity"]
+    assert "tc-siem" not in instruction_text(model)
+    assert "tc-propose" not in instruction_text(model)  # denied too, under tier1
+    assert artifact.outcome is RunOutcome.failed_ungrounded
+    problem = artifact.report.facts[0].problems[0]
+    assert (problem.evidence_id, problem.kind) == ("tc-siem", "cites_unsuccessful_call")
 
 
 def test_withdrawing_the_only_facts_is_still_a_failure(fixture_set):

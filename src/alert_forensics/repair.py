@@ -1,10 +1,10 @@
 """The correction pass: what the second model call receives and what it may return.
 
 The instruction is built from the grounding report and the trace: the offending facts by
-index, each with the statement, the offending id and the problem kind; and the calls
-present in the trace, each with the tool it called, the arguments the model itself wrote,
-and the outcome. Never a response, never a grounded fact. The repairs come back by index
-and are applied here, deterministically, to the offending facts only.
+index, each with the statement, the offending id and the problem kind; and the calls a
+citation can succeed on, each with the tool it called, the arguments the model itself
+wrote, and the outcome. Never a response, never a grounded fact. The repairs come back by
+index and are applied here, deterministically, to the offending facts only.
 """
 
 from typing import Literal
@@ -15,15 +15,25 @@ from alert_forensics.contracts import (
     Assumption,
     InvestigationTrace,
     ObservedFact,
+    ToolCallRecord,
     ToolOutcome,
     TriageResult,
 )
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr, StrictNonNegativeInt
-from alert_forensics.grounding import GroundingProblemKind, GroundingReport
+from alert_forensics.grounding import (
+    NON_EVIDENCE_SYSTEMS,
+    GroundingProblemKind,
+    GroundingReport,
+)
 
 
 class PresentCall(ContractModel):
-    """A call the trace holds, without its response."""
+    """A call the trace holds that a citation can succeed on, without its response.
+
+    The outcome is always ``ok`` on an instruction built here. The field stays because an
+    artifact recorded before present meant citable shows lists that offered denied calls
+    and the proposal, and the field is what lets a reader see that.
+    """
 
     tool_call_id: NonEmptyStr
     tool_name: NonEmptyStr
@@ -43,6 +53,8 @@ class OffendingCitation(ContractModel):
 class RepairInstruction(ContractModel):
     offending: list[OffendingCitation]
     present_calls: list[PresentCall]
+    """The menu the second pass re-cites from: only ids the validator will accept. Empty
+    when nothing in the trace is citable, and then the only repair left is to withdraw."""
 
 
 class CitationRepair(ContractModel):
@@ -101,8 +113,15 @@ def build_repair_instruction(
             outcome=record.outcome,
         )
         for record in trace.records
+        if is_citable(record)
     ]
     return RepairInstruction(offending=offending, present_calls=present)
+
+
+def is_citable(record: ToolCallRecord) -> bool:
+    """Whether a fact citing this record would ground: the call succeeded and read a
+    system. The same two tests the validator applies, so the menu and the check agree."""
+    return record.outcome is ToolOutcome.ok and record.source_system not in NON_EVIDENCE_SYSTEMS
 
 
 def apply_repairs(
