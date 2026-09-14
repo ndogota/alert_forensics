@@ -217,6 +217,36 @@ the result and refuses to validate if its facts or summary disagree with it.
 fired correctly and the intent was legitimate. Collapsing it into false positive is how
 tuning decisions get lost.
 
+### The four verdicts
+
+The first real model run reasoned correctly and labelled wrongly: it wrote that the
+travel "does not indicate malicious impossible travel" and was a "known artifact of
+corporate proxy routing", then returned `benign_true_positive` where the ground truth is
+`false_positive`. The verdicts had no discriminating definition anywhere, so the label
+was a coin toss between two values that both sounded right. Until the definition exists,
+a comparison matrix measures the ambiguity of the prompt, not the capability of the
+models.
+
+The discriminator is not whether the activity happened. It is whether the detection's
+claim about what happened is true.
+
+- `true_positive`: the detection's claim is true, and the activity is malicious or
+  unauthorised.
+- `benign_true_positive`: the claim is true, the activity happened as described, and
+  the intent was legitimate and authorised. The rule worked; the SOC documents an
+  exception or confirms a control, and does not tune the rule away.
+- `false_positive`: the claim is not true. Either the activity described did not
+  happen, or it happened but is not the thing the rule named. The rule misfired, on an
+  artifact or on a structurally mislabelled pattern, and the SOC tunes.
+- `inconclusive`: the evidence gathered does not decide between the above, and
+  `missing_context` names what would.
+
+The definition is an analyst's, and it lives in the system prompt as the definition of
+the four values, in exactly these terms. Nothing scenario-specific goes beside it: the
+taxonomy belongs in the prompt, the answer to any given alert does not. Every scenario's
+ground-truth label is checked against this discriminator under "Scenarios"; a ground
+truth that contradicts its own discriminator makes every accuracy number meaningless.
+
 ## Tool surface
 
 Nine read-only tools and one gated write action. Every tool sits behind a `ToolAdapter`
@@ -536,6 +566,29 @@ alerting.
 
 Seven and eight are the point of the exercise: the obvious signal points the wrong way
 in both directions.
+
+Every label, checked against the discriminator under "The four verdicts". The question
+each time is what the rule claimed, whether that claim is true, and if so whether the
+intent was authorised.
+
+| # | The detection's claim | Claim true? | Intent | Label |
+|---|---|---|---|---|
+| 1 | The user signed in from two places they cannot both have been | No: one egress, the SASE gateway | n/a | false_positive |
+| 2 | Many accounts were tried and one was taken over | Yes: one success, new MFA method, mailbox rule | Unauthorised | true_positive |
+| 3 | A rule forwards mail to an external address for a reason nobody sanctioned | Yes: three users, one destination, payment filters | Unauthorised, payment fraud | true_positive |
+| 4 | Obfuscated PowerShell ran on a server | Yes | Authorised: configuration management, declared window | benign_true_positive |
+| 5 | A process read LSASS memory | Yes, and was blocked | Authorised: red team, on the exercise list | benign_true_positive |
+| 6 | Service tickets were requested in bulk to crack offline | No: the SPNs were enumerated, by the credentialed scanner, not roasted | n/a | false_positive |
+| 7 | A remote-management tool ran and was blocked | Yes, the second attempt; the first ran | Unauthorised: not the IT provider's relay, `mshta.exe` from mail before it | true_positive |
+| 8 | An employee who is leaving moved company data to personal storage | Yes, the upload happened as described | Legitimate: personal photos, no sensitive shares touched | benign_true_positive |
+
+None of the eight moves. Six is the label that the discriminator earns its keep on:
+the activity happened, but bulk enumeration by a scanner is not the thing the rule
+named, so it is a false positive to requalify, not a benign true positive to except.
+Seven is its mirror: a signed binary with a clean reputation makes the claim no less
+true. Eight is the closest call: the claim of the rule, data to personal storage by a
+departing employee, is true, and the intent is not against the company, so it is benign
+and the rule is not at fault; it is an HR matter.
 
 ## Using it
 
