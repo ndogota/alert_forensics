@@ -3,7 +3,8 @@
 Responses the live adapters are tested against. The test suite never opens a socket;
 these files are served through an in-memory HTTP transport.
 
-- `attack/enterprise-attack.excerpt.json`: cut from the real public bundle
+- `src/alert_forensics/fixtures/attack/enterprise-attack.excerpt.json` (shipped in the
+  package, since the live adapter falls back to it offline): cut from the real public bundle
   `enterprise-attack.json` (Enterprise ATT&CK 19.2, collection modified
   2026-08-05T21:33:58.496Z, full bundle sha256
   `dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4`) on 2026-09-14.

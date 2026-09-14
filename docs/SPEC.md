@@ -128,7 +128,7 @@ RunArtifact
   outcome            RunOutcome
   model              the provider:model string the run was started with
   role               the role the tools ran under
-  adapters           {tool: fixture | live | local}, which adapter served each tool
+  adapters           {tool: fixture | live | recorded | local}, what actually served each tool
   trace              InvestigationTrace: alert, every tool call, usage per model turn
   report             GroundingReport of the final result, or null when no result was produced
   passes             model passes that produced a result: 1 plus the corrections made
@@ -491,24 +491,37 @@ alert-forensics eval
   raw store directory beside it, named after the artifact. `--role` is `analyst` or
   `tier1`. `--max-corrections` overrides the default of one.
 - `--scripted` runs the same graph on the scripted client with a built-in script
-  derived from the alert's evidence. No key, no network. The verdict of a scripted run
-  is `inconclusive` by construction and its missing context says why: the script
-  replays calls, it reasons about nothing. What it demonstrates is the mechanism: the
-  journal, the grounding, the interrupt, the artifact.
+  derived from the alert's evidence. No key. The verdict of a scripted run is
+  `inconclusive` by construction and its missing context says why: the script replays
+  calls, it reasons about nothing. What it demonstrates is the mechanism: the journal,
+  the grounding, the interrupt, the artifact. It is a plumbing check, not the front
+  door; the front door for someone without a key is `replay`.
 - The proposal interrupt is answered on the terminal, or ahead of time with `--accept`
   or `--reject REASON` when there is no terminal. A run with neither and no terminal
   stops with that message rather than deciding for the analyst.
 - The nine fixtures ship inside the package, so an installed tool runs without the
   repository. `--fixtures DIR` points at another set.
-- Without `--scripted`, `get_attack_technique` is live against the public bundle, and
+- `get_attack_technique` is live against the public bundle in every mode, `--scripted`
+  included: it is live-capable and needs no key, so a fixture there is a gap the
+  example would fall into. When the bundle cannot be fetched the adapter falls back to
+  the recorded excerpt that ships in the package, cut from the real bundle and holding
+  every technique the eight scenarios declare, and the artifact's `adapters` field says
+  `recorded` instead of `live`. A cached bundle counts as live: it is the real bundle.
   `lookup_ioc` is live when `VIRUSTOTAL_API_KEY` is set and fixture-backed otherwise.
-  The artifact's `adapters` field says which served each tool in that run.
+- No example alert declares a technique the default adapter set cannot resolve
+  offline. A test enforces it, so a scenario that lands with a technique missing from
+  the excerpt fails the suite rather than the newcomer's first command.
 - `show` prints an artifact readably: outcome, verdict and confidence, each grounded
   fact with its citations and the systems they resolved to, assumptions, missing
   context, the recommended action, the human decisions, and the ungrounded facts when
   the run failed.
-- `replay` serves the viewer over that artifact, and `eval` runs the harness. Both are
-  the next slice.
+- `replay RUN.json` reads a recorded artifact, verifies the raw store beside it against
+  the recorded hashes, states the model and the date of the run, and prints it through
+  `show`. Recorded runs live under `runs/<scenario>/`, and each is a recording of a
+  real model run, never of the scripted client: a recording of the scripted client
+  would be a fake demo, which is worse than none. A test refuses a committed recording
+  whose model is the scripted client. The viewer over the same artifacts, and `eval`,
+  are the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
 
@@ -554,7 +567,8 @@ That last view is the argument in one screen. The matrix page carries the rest.
 - N runs per cell, Wilson 95 percent intervals. Failed runs stay in the denominator, so
   a model cannot look good by staying silent or by failing quietly.
 - Capture and replay: fixtures are frozen, so a run is deterministic up to model
-  sampling and a regression is a real regression.
+  sampling and a regression is a real regression. Recorded runs under `runs/` are the
+  captures; `replay` reads them and needs no key.
 - A deterministic scripted client runs the whole suite with no API key.
 
 ## Cost discipline

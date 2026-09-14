@@ -11,7 +11,7 @@ from pydantic import JsonValue
 
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr
 
-AdapterKind = Literal["fixture", "live", "local"]
+AdapterKind = Literal["fixture", "live", "recorded", "local"]
 
 
 class RunOutcome(StrEnum):

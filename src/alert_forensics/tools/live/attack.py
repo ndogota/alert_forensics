@@ -4,6 +4,10 @@ The bundle is one large JSON document with no per-object endpoint, so the adapte
 downloads it once, caches it on disk, and indexes ``attack-pattern`` objects by their
 ATT&CK external id. A revoked technique is returned with the object that replaces it,
 resolved through the bundle's ``revoked-by`` relationships.
+
+Given a ``fallback_bundle_path``, a failed download is served from that file instead,
+and the adapter's ``kind`` becomes ``recorded`` so the run artifact says so. A cached
+bundle is the real bundle and stays ``live``.
 """
 
 import copy
@@ -92,11 +96,13 @@ class AttackStixAdapter(
         bundle_url: str = ATTACK_BUNDLE_URL,
         bundle_path: Path | None = None,
         timeout: float = 120.0,
+        fallback_bundle_path: Path | None = None,
     ) -> None:
         super().__init__(GET_ATTACK_TECHNIQUE)
         self.cache_dir = cache_dir or default_cache_dir()
         self.bundle_url = bundle_url
         self.bundle_path = bundle_path
+        self.fallback_bundle_path = fallback_bundle_path
         self._client = client
         self._timeout = timeout
         self._index: _Index | None = None
@@ -126,29 +132,37 @@ class AttackStixAdapter(
 
     def _load_bundle(self) -> StixObject:
         if self.bundle_path is not None:
-            try:
-                data = self.bundle_path.read_bytes()
-            except OSError as exc:
-                raise UpstreamError(
-                    "upstream_error", f"cannot read ATT&CK bundle {self.bundle_path}"
-                ) from exc
-            return _parse_bundle(data, str(self.bundle_path))
+            return self._read_file(self.bundle_path)
         cached = self.cache_dir / BUNDLE_FILENAME
         if cached.exists():
             try:
                 return _parse_bundle(cached.read_bytes(), str(cached))
             except UpstreamError:
                 cached.unlink(missing_ok=True)
-        data = self._download()
+        try:
+            data = self._download()
+        except UpstreamError:
+            if self.fallback_bundle_path is None:
+                raise
+            bundle = self._read_file(self.fallback_bundle_path)
+            self.kind = "recorded"
+            return bundle
         bundle = _parse_bundle(data, self.bundle_url)
         self._write_cache(cached, data)
         return bundle
+
+    def _read_file(self, path: Path) -> StixObject:
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            raise UpstreamError("upstream_error", f"cannot read ATT&CK bundle {path}") from exc
+        return _parse_bundle(data, str(path))
 
     def _download(self) -> bytes:
         client = self._client or httpx.Client(timeout=self._timeout, follow_redirects=True)
         try:
             response = client.get(self.bundle_url)
-        except httpx.HTTPError as exc:
+        except (httpx.HTTPError, OSError) as exc:
             raise UpstreamError(
                 "upstream_error", f"ATT&CK bundle download failed: {type(exc).__name__}"
             ) from exc

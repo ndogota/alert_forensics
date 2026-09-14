@@ -42,10 +42,15 @@ def test_triage_scripted_writes_the_artifact_and_the_raw_store_beside_it(alert_f
     propose = artifact.trace.find(artifact.decisions[0].tool_call_id)
     assert propose is not None and propose.outcome is ToolOutcome.ok
     assert artifact.trace.alert.id == ALERT_PAYLOAD["id"]
-    assert set(artifact.adapters.values()) == {"fixture", "local"}
-    # A demo run cites only calls that succeeded; the trace may hold errors too.
+    # Offline in the suite, so the ATT&CK excerpt served; it says so.
+    assert artifact.adapters["get_attack_technique"] == "recorded"
+    assert artifact.adapters["lookup_ioc"] == "fixture"
+    assert artifact.adapters["propose_alert_disposition"] == "local"
     assert all(f.grounded for f in artifact.report.facts)
-    assert any(r.outcome is ToolOutcome.error for r in artifact.trace.records)
+    assert all(r.outcome is ToolOutcome.ok for r in artifact.trace.records)
+    techniques = [r for r in artifact.trace.records if r.tool_name == "get_attack_technique"]
+    assert sorted(r.arguments["technique_id"] for r in techniques) == ["T1078", "T1078.004"]
+    assert all(r.redacted_response["name"] for r in techniques)
 
 
 def test_show_prints_the_result_readably(alert_file, tmp_path, capsys):
@@ -118,3 +123,33 @@ def test_the_terminal_prompt_accepts_or_rejects_with_a_reason(monkeypatch, capsy
     assert "false_positive" in capsys.readouterr().out
     answers = iter(["accept"])
     assert _ask_on_terminal({"verdict": "true_positive"}).accept is True
+
+
+def test_replay_verifies_the_raw_store_and_prints_through_show(alert_file, tmp_path, capsys):
+    out = tmp_path / "run.json"
+    main(["triage", str(alert_file), "--scripted", "--accept", "-o", str(out)])
+    capsys.readouterr()
+    assert main(["replay", str(out)]) == 0
+    text = capsys.readouterr().out
+    assert "Recording" in text and "scripted:demo" in text and "2026" in text
+    assert "not a model run" in text
+    assert "Observed facts" in text
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert f"{len(artifact.trace.records)} raw responses verified" in text
+    # A tampered raw store is refused, not replayed.
+    ref = artifact.trace.records[0].raw_response_ref
+    raw_file = tmp_path / "run.raw" / ref
+    raw_file.write_text('{"tampered": true}')
+    assert main(["replay", str(out)]) == 2
+    assert "does not match" in capsys.readouterr().err
+
+
+def test_replay_of_a_missing_raw_store_says_so(alert_file, tmp_path, capsys):
+    out = tmp_path / "run.json"
+    main(["triage", str(alert_file), "--scripted", "--accept", "-o", str(out)])
+    capsys.readouterr()
+    import shutil
+
+    shutil.rmtree(tmp_path / "run.raw")
+    assert main(["replay", str(out)]) == 2
+    assert "raw store" in capsys.readouterr().err

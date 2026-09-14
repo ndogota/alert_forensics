@@ -10,7 +10,7 @@ change when the adapter does; that is what makes a fixture-backed tool portable.
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import ClassVar, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, JsonValue
 
@@ -60,9 +60,9 @@ class ToolView(ContractModel):
     gap, so views forbid unknown fields."""
 
 
-AdapterKind = Literal["fixture", "live", "local"]
-"""Which kind of adapter served a tool in a run: frozen fixtures, a real service, or a
-local tool that has no upstream at all."""
+AdapterKind = Literal["fixture", "live", "recorded", "local"]
+"""What served a tool in a run: frozen fixtures, a real service, a recorded excerpt of
+the real service used because the fetch failed, or a local tool with no upstream."""
 
 
 @dataclass(frozen=True)
@@ -109,8 +109,9 @@ class ToolDefinition[Req: ToolRequest, Resp: ToolResponse, View: ToolView]:
 class ToolAdapter[Req: ToolRequest, Resp: ToolResponse, View: ToolView](ABC):
     """One way of obtaining a raw response for a definition."""
 
-    kind: ClassVar[AdapterKind] = "live"
-    """Recorded on the run artifact so a reader knows what served each tool."""
+    kind: AdapterKind = "live"
+    """Recorded on the run artifact so a reader knows what served each tool. A class
+    default; an adapter that falls back at fetch time sets it on the instance."""
 
     def __init__(self, definition: ToolDefinition[Req, Resp, View]) -> None:
         self.definition = definition

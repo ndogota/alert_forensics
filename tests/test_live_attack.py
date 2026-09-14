@@ -3,12 +3,16 @@ import json
 import httpx
 import pytest
 
+from alert_forensics.fixtures import ATTACK_EXCERPT
 from alert_forensics.tools import DEFINITIONS, UpstreamError
 from alert_forensics.tools.live.attack import ATTACK_BUNDLE_URL, AttackStixAdapter
-from conftest import RECORDED_DIR, load_recorded
 
 REQUEST = DEFINITIONS["get_attack_technique"].request_model
-EXCERPT = RECORDED_DIR / "attack" / "enterprise-attack.excerpt.json"
+EXCERPT = ATTACK_EXCERPT
+
+
+def load_excerpt():
+    return json.loads(EXCERPT.read_text())
 
 
 def bundle_client(calls: list | None = None) -> httpx.Client:
@@ -34,9 +38,7 @@ def test_bundle_is_downloaded_once_and_cached_on_disk(tmp_path):
     assert len(calls) == 1
     cached = tmp_path / "enterprise-attack.json"
     assert cached.exists()
-    assert json.loads(cached.read_bytes()) == load_recorded(
-        "attack", "enterprise-attack.excerpt.json"
-    )
+    assert json.loads(cached.read_bytes()) == load_excerpt()
     # A second adapter over the same cache never touches the network.
     offline = AttackStixAdapter(cache_dir=tmp_path, client=bundle_client(calls))
     assert (
@@ -57,7 +59,7 @@ def test_a_local_bundle_path_needs_no_client_at_all(tmp_path):
 def test_the_raw_is_the_verbatim_stix_object(tmp_path):
     adapter = AttackStixAdapter(cache_dir=tmp_path, bundle_path=EXCERPT)
     raw = adapter.fetch(REQUEST(technique_id="T1110.003"))
-    bundle = load_recorded("attack", "enterprise-attack.excerpt.json")
+    bundle = load_excerpt()
     verbatim = next(
         o
         for o in bundle["objects"]
@@ -120,3 +122,51 @@ def test_a_corrupt_cache_is_not_trusted(tmp_path):
     adapter = AttackStixAdapter(cache_dir=tmp_path, client=bundle_client(calls))
     assert adapter.fetch(REQUEST(technique_id="T1110"))["technique"]["name"] == "Brute Force"
     assert len(calls) == 1
+
+
+def failing_client(exc: Exception) -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise exc
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_the_live_adapter_is_live_when_the_bundle_arrives(tmp_path):
+    adapter = AttackStixAdapter(
+        cache_dir=tmp_path, client=bundle_client(), fallback_bundle_path=EXCERPT
+    )
+    assert adapter.kind == "live"
+    adapter.fetch(REQUEST(technique_id="T1078"))
+    assert adapter.kind == "live"
+
+
+def test_the_recorded_excerpt_serves_when_the_fetch_fails(tmp_path):
+    adapter = AttackStixAdapter(
+        cache_dir=tmp_path,
+        client=failing_client(httpx.ConnectError("unplugged")),
+        fallback_bundle_path=EXCERPT,
+    )
+    raw = adapter.fetch(REQUEST(technique_id="T1078.004"))
+    assert raw["technique"]["name"] == "Cloud Accounts"
+    assert adapter.kind == "recorded"
+    assert not (tmp_path / "enterprise-attack.json").exists()
+    # An unknown id is still not_found, not a fetch failure.
+    with pytest.raises(UpstreamError, match="not_found"):
+        adapter.fetch(REQUEST(technique_id="T9999"))
+
+
+def test_a_refused_socket_falls_back_too(tmp_path):
+    adapter = AttackStixAdapter(cache_dir=tmp_path, fallback_bundle_path=EXCERPT)
+    assert adapter.fetch(REQUEST(technique_id="T1110.003"))["technique"]["name"] == (
+        "Password Spraying"
+    )
+    assert adapter.kind == "recorded"
+
+
+def test_without_a_fallback_a_failed_fetch_is_an_upstream_error(tmp_path):
+    adapter = AttackStixAdapter(
+        cache_dir=tmp_path, client=failing_client(httpx.ConnectError("unplugged"))
+    )
+    with pytest.raises(UpstreamError, match="upstream_error"):
+        adapter.fetch(REQUEST(technique_id="T1078"))
+    assert adapter.kind == "live"

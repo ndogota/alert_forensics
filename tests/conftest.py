@@ -216,14 +216,17 @@ RECORDED_DIR = Path(__file__).parent / "recorded"
 
 
 @pytest.fixture(autouse=True)
-def _no_network(monkeypatch):
-    """The suite never opens a socket. Live adapters are driven through a mock transport."""
+def _no_network(monkeypatch, tmp_path):
+    """The suite never opens a socket, and never reads the user's cache. Live adapters
+    are driven through a mock transport; a real connection attempt fails the way an
+    unplugged cable does, as an ``OSError``, so fallbacks see a real failure."""
 
     def refuse(*args, **kwargs):
-        raise RuntimeError("test suite attempted a network connection")
+        raise ConnectionRefusedError("test suite attempted a network connection")
 
     monkeypatch.setattr(socket.socket, "connect", refuse)
     monkeypatch.setattr(socket, "create_connection", refuse)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg-cache"))
 
 
 def load_recorded(*parts: str) -> JsonValue:

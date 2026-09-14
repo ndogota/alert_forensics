@@ -1,4 +1,4 @@
-"""The console script: ``alert-forensics triage`` and ``alert-forensics show``."""
+"""The console script: ``alert-forensics triage``, ``show`` and ``replay``."""
 
 import argparse
 import json
@@ -13,15 +13,17 @@ from pydantic import JsonValue, ValidationError
 from alert_forensics.agent import AnalystDecision, ScriptedChatModel, demo_script, run_triage
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import Alert, RunOutcome
-from alert_forensics.fixtures import DEFAULT_FIXTURES_DIR
+from alert_forensics.fixtures import ATTACK_EXCERPT, DEFAULT_FIXTURES_DIR
 from alert_forensics.tools import (
     ROLES,
     DirectoryRawStore,
     DispositionAdapter,
     FixtureSet,
     Principal,
+    RawIntegrityError,
     fixture_adapters,
 )
+from alert_forensics.tools.live.attack import AttackStixAdapter
 from alert_forensics.tools.runner import AnyAdapter
 
 SCRIPTED_MODEL_ID = "scripted:demo"
@@ -38,6 +40,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.command == "triage":
             return _triage(args)
+        if args.command == "replay":
+            return _replay(args)
         return _show(args)
     except CliError as exc:
         print(f"alert-forensics: {exc}", file=sys.stderr)
@@ -70,6 +74,11 @@ def _parser() -> argparse.ArgumentParser:
 
     show = commands.add_parser("show", help="print a run artifact readably")
     show.add_argument("run", type=Path, help="path to the run artifact JSON")
+
+    replay = commands.add_parser(
+        "replay", help="verify a recorded run against its raw store and print it"
+    )
+    replay.add_argument("run", type=Path, help="path to the recorded run artifact JSON")
     return parser
 
 
@@ -90,7 +99,7 @@ def _triage(args: argparse.Namespace) -> int:
             raise CliError("pass --model provider:name, or --scripted to run without a model")
         model_id = args.model
         model = _init_model(model_id)
-    adapters = _adapters(args.fixtures, scripted=args.scripted)
+    adapters = default_adapters(args.fixtures, scripted=args.scripted)
     output: Path = args.output
     raw_dir = output.with_name(f"{output.stem}.raw")
     artifact = run_triage(
@@ -141,20 +150,24 @@ def _init_model(model_id: str) -> Any:
         raise CliError(f"cannot initialise {model_id!r}: {exc}") from exc
 
 
-def _adapters(fixtures_dir: Path, *, scripted: bool) -> list[AnyAdapter]:
+def default_adapters(fixtures_dir: Path, *, scripted: bool) -> list[AnyAdapter]:
+    """The adapter set a CLI run uses.
+
+    ``get_attack_technique`` is live in every mode, with the packaged excerpt as the
+    offline fallback: it needs no key, so a fixture there would be a gap. ``lookup_ioc``
+    is live only with a key and never under ``--scripted``. The proposal is local.
+    """
     try:
         fixture_set = FixtureSet.load(fixtures_dir)
     except (OSError, ValueError) as exc:
         raise CliError(f"cannot load fixtures from {fixtures_dir}: {exc}") from exc
     adapters: dict[str, AnyAdapter] = {a.definition.name: a for a in fixture_adapters(fixture_set)}
-    if not scripted:
-        from alert_forensics.tools.live.attack import AttackStixAdapter
+    adapters["get_attack_technique"] = AttackStixAdapter(fallback_bundle_path=ATTACK_EXCERPT)
+    api_key = os.environ.get("VIRUSTOTAL_API_KEY")
+    if api_key and not scripted:
         from alert_forensics.tools.live.virustotal import VirusTotalAdapter
 
-        adapters["get_attack_technique"] = AttackStixAdapter()
-        api_key = os.environ.get("VIRUSTOTAL_API_KEY")
-        if api_key:
-            adapters["lookup_ioc"] = VirusTotalAdapter(api_key)
+        adapters["lookup_ioc"] = VirusTotalAdapter(api_key)
     adapters["propose_alert_disposition"] = DispositionAdapter()
     return list(adapters.values())
 
@@ -187,17 +200,45 @@ def _ask_on_terminal(proposal: dict[str, JsonValue]) -> AnalystDecision:
             return AnalystDecision(accept=False, reason=reason)
 
 
-# --- show --------------------------------------------------------------------------
+# --- show and replay ---------------------------------------------------------------
 
 
-def _show(args: argparse.Namespace) -> int:
-    path: Path = args.run
+def _load_artifact(path: Path) -> RunArtifact:
     try:
-        artifact = RunArtifact.model_validate_json(path.read_text(encoding="utf-8"))
+        return RunArtifact.model_validate_json(path.read_text(encoding="utf-8"))
     except OSError as exc:
         raise CliError(f"cannot read {path}: {exc.strerror}") from exc
     except ValidationError as exc:
         raise CliError(f"{path} is not a run artifact: {exc}") from exc
+
+
+def _show(args: argparse.Namespace) -> int:
+    print(render(_load_artifact(args.run)))
+    return EXIT_OK
+
+
+def _replay(args: argparse.Namespace) -> int:
+    """A recording is replayed only after its raw store verifies against the recorded
+    hashes: a tampered artifact is detected, not printed as if it were the run."""
+    path: Path = args.run
+    artifact = _load_artifact(path)
+    raw_dir = path.parent / artifact.raw_store
+    if not raw_dir.is_dir():
+        raise CliError(f"the raw store {raw_dir} is missing; the recording cannot be verified")
+    store = DirectoryRawStore(raw_dir)
+    for record in artifact.trace.records:
+        try:
+            store.get(record.raw_response_ref, expected_sha256=record.raw_response_sha256)
+        except KeyError as exc:
+            raise CliError(f"raw response {record.raw_response_ref} is missing") from exc
+        except RawIntegrityError as exc:
+            raise CliError(str(exc)) from exc
+    date = artifact.trace.started_at.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    print(f"Recording of a run by {artifact.model} on {date}.")
+    if artifact.model.startswith(SCRIPTED_MODEL_ID.split(":")[0] + ":"):
+        print("This run used the scripted client: it is a plumbing check, not a model run.")
+    print(f"{len(artifact.trace.records)} raw responses verified against the recorded hashes.")
+    print()
     print(render(artifact))
     return EXIT_OK
 
