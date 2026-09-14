@@ -394,10 +394,31 @@ Decisions the pipeline rests on:
 - A call to a tool that does not exist, or that has no adapter registered, is journalled
   as an `error` of kind `unknown_tool` with source system `none`. The journal never files
   a call under a system it did not reach.
-- Fixture adapters match a request against stubs: an exact value, `$contains` or
-  `$regex` per argument, with an optional default. A request no stub answers is an
-  `error` of kind `no_fixture`, never a silent empty result, so a fixture gap shows in
-  the trace instead of being read as absence of evidence.
+- Fixture adapters match a request against stubs: an exact value, `$contains`,
+  `$regex` or `$any` per argument. A request no stub answers is an `error` of kind
+  `no_fixture`, never a silent empty result, so a fixture gap shows in the trace
+  instead of being read as absence of evidence. **There is no fixture default.** The
+  format once allowed one, and five of the nine fixtures declared an empty one, which
+  contradicted the sentence before it and won in code: a request the stubs did not
+  anticipate was answered with an empty result that the model read as a reading. The
+  committed scenario 1 recording shows it twice. The model queried the runbook with
+  "VPN SASE corporate egress proxy Amsterdam Paris", the stub matched only the phrase
+  "atypical travel", and the default answered no hits, on the one source that says what
+  the egress address is. It asked for the identity of `jdoe@contoso.com`, the stub
+  matched only `jdoe`, and the default answered that the identity was not found. Neither
+  was a reading; both were gaps, and the trace filed both as `ok`. A default cannot tell
+  a reading nobody has seen from a query nobody anticipated, and the second is exactly
+  what the trace must show. A real empty reading, an indicator VirusTotal has never
+  seen, a user with no related alerts, is a stub whose match names the request it
+  answers, so it is a declared reading a reviewer sees in the file, the way
+  `never-seen.example` already is. None of the five defaults was that: each answered
+  every request its stubs missed, including a variant spelling of the alert's own
+  entities, so all five are removed and a fixture file that declares a default refuses
+  to load. For the same reason a stub must constrain at least one argument: an empty
+  match, or one whose every value is `$any`, is a default under another name and is
+  refused too. What the model sees on a gap is the same structured failure any error
+  gets, kind `no_fixture` and the arguments it sent, so it can rewrite the request or
+  say what it could not obtain; and the trace says the harness, not the world, ran out.
 - Live adapters take an injected HTTP client. The test suite drives them through a
   recorded response and a transport that never opens a socket. Nothing in the tests
   reaches a live API.
@@ -774,9 +795,13 @@ tokens               [token], each token a string or a list of alternative strin
 - `tools` names tools from the tool surface, validated against the registry; the write
   action is refused there, since its record is never evidence and a finding resting on
   it could never be carried by a grounded fact. One entry is the common case. Several
-  entries mean the same fact can be established from more than one system, as the
-  ownership of scenario 1's egress address can be read from VirusTotal's `as_owner` or
-  from the runbook; the finding is reached through any of them.
+  entries mean the same fact can be established from more than one system, as a
+  sign-in can be read from the hunting API or from the SIEM; the finding is reached
+  through any of them. Several entries are not a hedge: a tool is listed only when its
+  reading carries the finding's words. Scenario 1's gateway finding was the first
+  example here and is no longer one, because VirusTotal's reading of the egress
+  address carries an owner name and a network range, and not, in any word of it, what
+  the address is; see the scenario for the check against the fixture.
 - Names are unique within a file and appear in the score, so a miss is reported by name.
 
 **A required finding is matched against an emitted fact by tool and by tokens, never by
@@ -940,29 +965,59 @@ no escalation.
 
 - Required findings, three: the Paris sign-in from `203.0.113.7`, the Amsterdam sign-in
   from `203.0.113.7`, each cited from `search_events`; and that the address is the SASE
-  gateway, cited from `lookup_ioc` or `search_runbook`. Two findings for the two sign-ins
-  rather than one for "both", because a fact that names each sign-in with its address
-  has established the shared egress in a form the tokens can see, while "both" has too
-  many spellings to enumerate honestly.
-- The gateway finding's tokens are the address or the runbook's range, `203.0.113.7` or
-  `203.0.113.0/24`, since VirusTotal names the one and the runbook the other; the word
-  `SASE`, which both sources carry; and one of `gateway`, `gateways`, `egress`, `proxy`,
-  the words in which either source says what the address is. Its first tokens were
-  `203.0.113` and `SASE`, fitted to the recording: the prefix matched inside the address
-  and `SASE` matched inside the owner name, and a fact that only copied the ASN owner was
-  credited with saying the address is a gateway. That is the case the whole-word rule
-  above was decided on.
+  gateway, cited from `search_runbook`. Two findings for the two sign-ins rather than
+  one for "both", because a fact that names each sign-in with its address has
+  established the shared egress in a form the tokens can see, while "both" has too many
+  spellings to enumerate honestly.
+- The gateway finding is carried by the runbook alone. Checked against the fixtures
+  under whole-word matching: the runbook excerpt reads "The group SASE gateways egress
+  from 203.0.113.0/24 (Amsterdam) and 198.51.100.0/24 (Paris)", which carries `SASE`,
+  `gateways`, `egress` and the range as whole words. VirusTotal's reading of the address
+  carries `EXAMPLE-SASE-NET` as the owner and `203.0.113.0/24` as the network, and no
+  field of it holds the word `SASE` or any of `gateway`, `gateways`, `egress`, `proxy`.
+  A fact citing `lookup_ioc` that says the address is a gateway says more than its
+  source does; that inference belongs in `assumptions`, and a finding must not reward
+  it as a fact. `lookup_ioc` was listed until this check and is dropped.
+- Its tokens: the address or the runbook's range, `203.0.113.7` or `203.0.113.0/24`,
+  since the runbook names the range and a model restating it for the alert's address
+  names the address; the word `SASE`; and one of `gateway`, `gateways`, `egress`,
+  `proxy`, the runbook's own words and the two a model most plausibly restates them
+  with. Its first tokens were `203.0.113` and `SASE`, fitted to the recording: the
+  prefix matched inside the address and `SASE` matched inside the owner name, and a
+  fact that only copied the ASN owner was credited with saying the address is a
+  gateway. That is the case the whole-word rule above was decided on.
+- The scenario's stubs answer the requests a model plausibly makes, not the phrase the
+  alert happens to be titled with. The runbook stub matches on the terms of the entry
+  it returns, `SASE`, `egress`, `gateway`, `proxy`, `VPN`, as well as the alert's title,
+  because it stands in for retrieval and retrieval answers a query about egress with the
+  entry about egress. The identity stub matches the account name and its UPN, since
+  the alert carries both and the model may ask with either. The sign-in stub matches
+  the three names the sign-in table goes by, `SigninLogs`, `AADSignInEventsBeta` and
+  `IdentityLogonEvents`, since the tool follows the hunting API and a model chooses the
+  table. A request outside these is a `no_fixture` error, visible, as decided under the
+  tool layer.
 - Expected missing context, two: the gateway or VPN session log that ties the user to
   the gateway at both times, which no tool provides; and the MFA or device compliance
   outcome, which the runbook checklist asks for and the sign-in view does not carry.
 - The committed recording under `runs/atypical_travel/` scores verdict 1, evidence
   recall 2 of 3, missing context 0 of 2, escalation correct. The gateway finding is not
-  reached: the fact reads "IP address 203.0.113.7 belongs to the ASN 64496
-  (EXAMPLE-SASE-NET) network range", which names the owner and never says the address
-  is a gateway, and the model's runbook query returned no hit. Under the substring rule
-  it scored 3 of 3, on `SASE` inside the owner name. The miss and the zero are the
-  model's: it did not say what the address is, and it named nothing it could not
-  establish. The harness reports both rather than lowering the bar.
+  reached, and the trace says why. The model queried the runbook with "VPN SASE
+  corporate egress proxy Amsterdam Paris", the right terms for the entry that answers
+  it, and the fixture's default answered no hits because the stub matched only the
+  phrase "atypical travel". It asked for the identity of `jdoe@contoso.com` and was
+  told the identity was not found, for the same reason. With the runbook silent, the
+  only citable source left for the gateway was VirusTotal, and the model wrote what
+  VirusTotal says: "IP address 203.0.113.7 belongs to the ASN 64496 (EXAMPLE-SASE-NET)
+  network range", which names the owner and never says the address is a gateway. It
+  did not invent the gateway on that citation, which is the right behaviour. Under the
+  substring rule it scored 3 of 3, on `SASE` inside the owner name. So the recall
+  number measures a fixture gap the default hid, not the model: on this recording 2 of
+  3 is a floor on what the model does with the evidence it was actually handed, and the
+  fixture is now corrected as above. The number stands until the scenario is re-recorded
+  under the corrected fixtures, and the recording is kept as it is, since a recording is
+  a real run and this one is the run that found the defect. The missing-context zero is
+  the model's: it named nothing it could not establish, and it had been told the runbook
+  was empty and the identity unknown without naming either as unobtained.
 
 ## Cost discipline
 
