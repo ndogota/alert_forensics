@@ -1,0 +1,35 @@
+{
+  "tool": "get_asset",
+  "stubs": [
+    {
+      "match": {"asset": {"$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$"}},
+      "response": {
+        "sid": "1789300003.12348",
+        "preview": false,
+        "fields": [{"name": "nt_host"}, {"name": "priority"}],
+        "results": [
+          {
+            "ip": "10.20.30.40",
+            "mac": "00:11:22:33:44:55",
+            "nt_host": "SRV-PRD-APP01",
+            "dns": "srv-prd-app01.contoso.com",
+            "owner": "platform-ops@contoso.com",
+            "priority": "critical",
+            "lat": "48.8566",
+            "long": "2.3522",
+            "city": "Paris",
+            "country": "FR",
+            "bunit": "Infrastructure",
+            "category": "server|production|pci",
+            "pci_domain": "cardholder",
+            "is_expected": "true",
+            "should_timesync": "true",
+            "should_update": "true",
+            "requires_av": "true"
+          }
+        ]
+      }
+    }
+  ],
+  "default": {"response": {"sid": "1789300004.12349", "preview": false, "fields": [], "results": []}}
+}

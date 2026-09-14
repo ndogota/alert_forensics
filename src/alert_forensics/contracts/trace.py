@@ -33,6 +33,8 @@ class SourceSystem(StrEnum):
     graph_security = "graph_security"
     attack = "attack"
     runbook = "runbook"
+    none = "none"
+    """A call that reached no system: the tool does not exist or has no adapter."""
 
 
 class ToolOutcome(StrEnum):

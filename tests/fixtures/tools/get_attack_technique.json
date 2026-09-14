@@ -1,0 +1,54 @@
+{
+  "tool": "get_attack_technique",
+  "stubs": [
+    {
+      "match": {
+        "technique_id": "T1110.003"
+      },
+      "response": {
+        "technique": {
+          "type": "attack-pattern",
+          "spec_version": "2.1",
+          "id": "attack-pattern--692074ae-bb62-4a5e-a735-02cb6bde458c",
+          "created": "2020-02-11T18:39:25.122Z",
+          "modified": "2025-10-24T17:48:53.996Z",
+          "name": "Password Spraying",
+          "description": "Adversaries may use a single or small list of commonly used passwords against many different accounts to attempt to acquire valid account credentials. (Citation: BlackHillsInfosec Password Spraying)",
+          "revoked": false,
+          "external_references": [
+            {
+              "source_name": "mitre-attack",
+              "url": "https://attack.mitre.org/techniques/T1110/003",
+              "external_id": "T1110.003"
+            }
+          ],
+          "kill_chain_phases": [
+            {
+              "kill_chain_name": "mitre-attack",
+              "phase_name": "credential-access"
+            }
+          ],
+          "x_mitre_deprecated": false,
+          "x_mitre_is_subtechnique": true,
+          "x_mitre_platforms": [
+            "Windows",
+            "Linux",
+            "macOS",
+            "Identity Provider"
+          ],
+          "x_mitre_version": "1.8"
+        },
+        "superseded_by": null
+      }
+    },
+    {
+      "match": {
+        "technique_id": "T9999"
+      },
+      "error": {
+        "kind": "not_found",
+        "detail": "T9999 is not an ATT&CK technique in the bundle"
+      }
+    }
+  ]
+}

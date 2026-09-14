@@ -1,0 +1,31 @@
+{
+  "tool": "search_events",
+  "stubs": [
+    {
+      "match": {"query": {"$contains": "SigninLogs"}},
+      "response": {
+        "schema": [
+          {"name": "Timestamp", "type": "DateTime"},
+          {"name": "AccountUpn", "type": "String"},
+          {"name": "IPAddress", "type": "String"},
+          {"name": "Location", "type": "String"},
+          {"name": "ErrorCode", "type": "Int32"}
+        ],
+        "results": [
+          {"Timestamp": "2026-09-14T09:12:04.000Z", "AccountUpn": "jdoe@contoso.com", "IPAddress": "203.0.113.7", "Location": "Paris, FR", "ErrorCode": 0},
+          {"Timestamp": "2026-09-14T09:51:40.000Z", "AccountUpn": "jdoe@contoso.com", "IPAddress": "203.0.113.7", "Location": "Amsterdam, NL", "ErrorCode": 0}
+        ]
+      }
+    },
+    {
+      "match": {"query": {"$regex": "DeviceEvents\\s*\\|\\s*where\\s+ActionType"}},
+      "response": {
+        "schema": [{"name": "Timestamp", "type": "DateTime"}, {"name": "ActionType", "type": "String"}, {"name": "AdditionalFields", "type": "String"}],
+        "results": [
+          {"Timestamp": "2026-09-14T08:00:00.000Z", "ActionType": "AntivirusDetection", "AdditionalFields": "{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\"}"}
+        ]
+      }
+    }
+  ],
+  "default": {"response": {"schema": [], "results": []}}
+}

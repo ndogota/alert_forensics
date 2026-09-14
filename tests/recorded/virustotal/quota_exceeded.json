@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "QuotaExceededError",
+    "message": "You have exceeded one of your quotas (minute, daily or monthly)."
+  }
+}

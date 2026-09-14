@@ -1,4 +1,6 @@
+import json
 from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 from pydantic import JsonValue
@@ -201,3 +203,26 @@ MINIMAL_ALERT_PAYLOAD = {
         }
     ],
 }
+
+
+# --- Slice 2 -------------------------------------------------------------------------
+
+import socket  # noqa: E402
+
+FIXTURE_TOOLS_DIR = Path(__file__).parent / "fixtures" / "tools"
+RECORDED_DIR = Path(__file__).parent / "recorded"
+
+
+@pytest.fixture(autouse=True)
+def _no_network(monkeypatch):
+    """The suite never opens a socket. Live adapters are driven through a mock transport."""
+
+    def refuse(*args, **kwargs):
+        raise RuntimeError("test suite attempted a network connection")
+
+    monkeypatch.setattr(socket.socket, "connect", refuse)
+    monkeypatch.setattr(socket, "create_connection", refuse)
+
+
+def load_recorded(*parts: str) -> JsonValue:
+    return json.loads(RECORDED_DIR.joinpath(*parts).read_text())

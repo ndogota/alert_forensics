@@ -1,0 +1,27 @@
+{
+  "tool": "search_runbook",
+  "stubs": [
+    {
+      "match": {"query": {"$regex": "(?i)atypical travel|impossible travel"}},
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0114",
+            "title": "Atypical travel: known egress points",
+            "score": 0.91,
+            "source": "runbooks/identity/atypical-travel.md",
+            "excerpt": "The group SASE gateways egress from 203.0.113.0/24 (Amsterdam) and 198.51.100.0/24 (Paris). A sign-in pair inside these ranges within one hour is a gateway hand-over, not travel."
+          },
+          {
+            "id": "RB-0021",
+            "title": "Identity Protection triage checklist",
+            "score": 0.62,
+            "source": "runbooks/identity/checklist.md",
+            "excerpt": "Confirm MFA outcome, device compliance, and whether the source IP is a corporate egress before escalating."
+          }
+        ]
+      }
+    }
+  ],
+  "default": {"response": {"hits": []}}
+}

