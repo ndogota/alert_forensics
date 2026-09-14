@@ -234,11 +234,20 @@ really was written. The verdict turns on the assertion, never on the signal.
 - `true_positive`: the assertion is true and the activity is malicious or
   unauthorised.
 - `benign_true_positive`: the assertion is true and the intent was legitimate and
-  authorised. The rule worked; document an exception, do not tune.
+  authorised. The rule worked.
 - `false_positive`: the assertion is false. The signal may be perfectly real and still
-  support no such conclusion. Tune.
+  support no such conclusion.
 - `inconclusive`: the evidence does not decide, and `missing_context` names what
   would.
+
+A verdict states what is true. What the SOC should do belongs in `recommended_action`,
+which exists for it, and no definition above carries an action. Scenario 8 is the
+reason: on the truth axis nothing separates six from eight, both are false positives
+whose signal was real, and on the action axis everything does. Six tunes permanently,
+by excluding the scanner's account from the ticket rule. Eight tunes nothing at all: a
+rule that fires on a departing employee pushing 6.2 GB to personal storage is doing
+exactly its job, a human looked and found photographs, and next time the 6.2 GB is
+source code. A definition that said "tune" could not say that.
 
 The two are separated because a claim read at the level of the signal is almost always
 true, and a label that turns on it collapses false positives into benign true positives:
@@ -572,8 +581,9 @@ alerting.
 8. The reverse trap. 6.2 GB to personal cloud storage by an employee who has resigned.
    It is a personal photo folder, 94 percent image content type, no abnormal access to
    sensitive shares. **False positive**: the upload is real, and no organisational data
-   left, so exfiltration is not supported. Personal use of the corporate device is an
-   HR matter, not a security incident. See the table below for why this is not benign.
+   left, so exfiltration is not supported. The rule is not at fault and is not tuned;
+   the finding is routed to HR as personal use of a corporate device. See the table
+   below for why this is not benign.
 
 Seven and eight are the point of the exercise: the obvious signal points the wrong way
 in both directions.
@@ -592,22 +602,22 @@ every row. The verdict turns on the assertion, then on intent.
 | 5 | A process opened LSASS with read access and was blocked | A process attempted to read credentials from LSASS memory | Yes: the attempt was made, and prevented | Authorised: red team, account on the exercise list | benign_true_positive |
 | 6 | One account requested service tickets for 180 SPNs in 90 seconds | Service tickets were harvested to crack service-account passwords offline | No: the credentialed scanner obtained tickets to authenticate to the services it scans; nothing was harvested for cracking | n/a | false_positive |
 | 7 | The EDR blocked a signed remote-management binary with a clean reputation | A remote-management tool was executed on the endpoint | Yes: the block caught the second attempt; the first ran, to a relay that is not the IT provider's, six minutes after `mshta.exe` from the mail client | Unauthorised, initial access | true_positive |
-| 8 | 6.2 GB uploaded to a personal cloud storage domain by a user on the leaver list | Organisational data was moved out to personal storage by a departing employee | No: the folder is personal photographs, 94 percent image content type, and no sensitive share was touched | n/a | false_positive |
+| 8 | 6.2 GB uploaded to a personal cloud storage domain by a user on the leaver list | Organisational data was moved out to personal storage by a departing employee | No: the folder is personal photographs, 94 percent image content type, and no sensitive share was touched. The rule is not at fault and is not tuned; the finding goes to HR | n/a | false_positive |
 
 **One label moves: scenario 8, from benign true positive to false positive.** Read at
 the level of the signal, a departing employee did upload to personal storage, and that
 is the sentence under which the label was benign. Read at the level of the assertion,
 the rule is named for exfiltration, and exfiltration is organisational data leaving;
-none did. The signal is real and supports no such conclusion, which is the definition
-of a false positive here. The test is consistency with six, which is the same shape:
-a sanctioned actor produced the exact volume the rule measures without performing the
-technique the rule is named for. If eight were benign because the upload really
-happened, six would be benign because the tickets really were requested, and the spec
-has always called six a false positive to requalify. Both are tuning: content type or
-sensitivity labels on the upload rule, the scanner's account on the ticket rule. Eight
-stays the reverse trap: the obvious signal still points at an incident, and the
-finding is still an HR matter about personal use of a corporate device. It is not a
-security incident, and now the label says so for the right reason.
+none did. The operational test is whether the technique the rule names actually
+occurred: encoded PowerShell did, an LSASS read did, Kerberoasting did not,
+exfiltration did not, travel did not. All eight fall out of that without depending on
+phrasing. Six is the same shape as eight: a sanctioned actor produced the exact volume
+the rule measures without performing the technique the rule is named for, and if eight
+were benign because the upload really happened, six would be benign because the tickets
+really were requested. The two part on the action axis, not the truth axis. Six tunes
+permanently by excluding the scanner's account. Eight tunes nothing: the rule did its
+job, the human looked, and the finding is routed to HR. Eight stays the reverse trap:
+the obvious signal still points at an incident, and it is not a security incident.
 
 Seven is the mirror of one: a signed binary and a clean reputation make the assertion
 no less true, as a gateway's geo-IP makes the travel no more real. Four holds because
