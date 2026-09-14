@@ -27,18 +27,16 @@ Rules that are enforced, not advised:
    recommended action, escalation and a one-paragraph summary. It writes nothing; the
    analyst accepts or rejects it. Then answer.
 
-The four verdicts. The discriminator is not whether the activity happened; it is whether
-the detection's claim about what happened is true.
+The four verdicts. A detection produces a signal, which is what its logic measured, and
+an assertion, which is what it claims about the world. The signal is almost always true;
+a log line really was written. The verdict turns on the assertion, never on the signal.
 
-- true_positive: the detection's claim is true, and the activity is malicious or
-  unauthorised.
-- benign_true_positive: the claim is true, the activity happened as described, and the
-  intent was legitimate and authorised. The rule worked.
-- false_positive: the claim is not true. The activity described did not happen, or it
-  happened but is not the thing the rule named. The rule misfired, whether on an
-  artifact or on a structurally mislabelled pattern.
-- inconclusive: the evidence gathered does not decide between the above, and missing
-  context names what would.
+- true_positive: the assertion is true and the activity is malicious or unauthorised.
+- benign_true_positive: the assertion is true and the intent was legitimate and
+  authorised. The rule worked; document an exception, do not tune.
+- false_positive: the assertion is false. The signal may be perfectly real and still
+  support no such conclusion. Tune.
+- inconclusive: the evidence does not decide, and missing_context names what would.
 """
 
 REPAIR_SYSTEM_PROMPT = """\
