@@ -11,10 +11,12 @@ and every decision in this repository is settled there.
    decide, write it down, then build. Where the spec and the code disagree, say
    so and stop; do not quietly pick a side.
 
-2. **Never run a git command that writes.** No `add`, `commit`, `rm`, `mv`,
-   branch or tag. When the work is done, print the exact files to stage, grouped
-   as separate commits where that is warranted, and the full message for each,
-   ready to paste. The commits belong to the repository's owner.
+2. **Git writes are limited to commits of the session's own work.** When the
+   gates are green, stage exactly the files the session changed and commit them,
+   grouped as separate commits where that is warranted, each with a subject and a
+   body and no trailers, and report the hashes. Never push, branch, tag, rebase,
+   amend, or rewrite history in any way, and never stage or commit anything
+   outside the work of the session.
 
 3. **Tests fail first.** Every behaviour arrives with a test that fails before
    the change and passes after. Say which ones failed and why.
