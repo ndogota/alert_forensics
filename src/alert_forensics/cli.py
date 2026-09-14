@@ -41,6 +41,7 @@ from alert_forensics.tools import (
     RawIntegrityError,
     fixture_adapters,
 )
+from alert_forensics.tools.fixtures import MANIFEST, SHARED
 from alert_forensics.tools.live.attack import AttackStixAdapter
 from alert_forensics.tools.runner import AnyAdapter
 
@@ -195,7 +196,7 @@ def _triage(args: argparse.Namespace) -> int:
         model_id = args.model
         limits = _limits(args)
         model = _init_model(model_id, limits)
-    adapters = default_adapters(args.fixtures, scripted=args.scripted)
+    adapters = default_adapters(args.fixtures, scripted=args.scripted, alert=alert)
     output: Path = args.output
     raw_dir = output.with_name(f"{output.stem}.raw")
     artifact = run_triage(
@@ -294,18 +295,30 @@ def _init_model(model_id: str, limits: ModelLimits) -> Any:
         raise CliError(f"cannot initialise {model_id!r}: {exc}") from exc
 
 
-def default_adapters(fixtures_dir: Path, *, scripted: bool) -> list[AnyAdapter]:
-    """The adapter set a CLI run uses.
+def default_adapters(fixtures_dir: Path, *, scripted: bool, alert: Alert) -> list[AnyAdapter]:
+    """The adapter set a run of ``alert`` uses.
 
-    ``get_attack_technique`` is live in every mode, with the packaged excerpt as the
-    offline fallback: it needs no key, so a fixture there would be a gap. ``lookup_ioc``
-    is live only with a key and never under ``--scripted``. The proposal is local.
+    The fixture adapters are bound to the alert's scenario through the directory's
+    manifest; an alert the manifest does not name is offered ``shared`` stubs alone,
+    and stderr says so once. ``get_attack_technique`` is live in every mode, with the
+    packaged excerpt as the offline fallback: it needs no key, so a fixture there would
+    be a gap. ``lookup_ioc`` is live only with a key and never under ``--scripted``. The
+    proposal is local.
     """
     try:
         fixture_set = FixtureSet.load(fixtures_dir)
     except (OSError, ValueError) as exc:
         raise CliError(f"cannot load fixtures from {fixtures_dir}: {exc}") from exc
-    adapters: dict[str, AnyAdapter] = {a.definition.name: a for a in fixture_adapters(fixture_set)}
+    in_view = fixture_set.in_view(alert)
+    if in_view == {SHARED}:
+        print(
+            f"no scenario in {fixtures_dir / MANIFEST} names alert {alert.id!r}: only shared "
+            "fixture stubs are offered, and fixture-backed tools will answer no_fixture",
+            file=sys.stderr,
+        )
+    adapters: dict[str, AnyAdapter] = {
+        a.definition.name: a for a in fixture_adapters(fixture_set, in_view)
+    }
     adapters["get_attack_technique"] = AttackStixAdapter(fallback_bundle_path=ATTACK_EXCERPT)
     api_key = os.environ.get("VIRUSTOTAL_API_KEY")
     if api_key and not scripted:
@@ -379,7 +392,7 @@ def _eval(args: argparse.Namespace) -> int:
         model_factory=model_factory,
         model_id=model_id,
         role=role,
-        adapters=lambda: default_adapters(fixtures_dir, scripted=scripted),
+        adapters=lambda alert: default_adapters(fixtures_dir, scripted=scripted, alert=alert),
         results_dir=results_dir,
         runs=args.runs,
         max_corrections=args.max_corrections,

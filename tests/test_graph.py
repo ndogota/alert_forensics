@@ -108,6 +108,13 @@ def fixture_set():
     return FixtureSet.load(FIXTURE_TOOLS_DIR)
 
 
+def bound(fixture_set, alert=None):
+    """The fixture adapters bound to the alert under investigation, as a run binds them."""
+    return fixture_adapters(
+        fixture_set, fixture_set.in_view(alert or Alert.model_validate(ALERT_PAYLOAD))
+    )
+
+
 def run(
     script,
     *,
@@ -121,12 +128,13 @@ def run(
 ):
     model = ScriptedChatModel(script=script, profile=PROFILES[profile], model_id="scripted:test")
     store = InMemoryRawStore()
+    alert = alert or Alert.model_validate(ALERT_PAYLOAD)
     artifact = run_triage(
-        alert=alert or Alert.model_validate(ALERT_PAYLOAD),
+        alert=alert,
         model=model,
         model_id="scripted:test",
         principal=Principal(name="analyst", role=role),
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[*bound(fixture_set, alert), DispositionAdapter(clock=lambda: T0)],
         store=store,
         raw_store="mem",
         decide=decide or (lambda proposal: AnalystDecision(accept=True)),
@@ -415,7 +423,7 @@ def test_a_model_that_answers_in_prose_produced_no_result(fixture_set):
 
 def test_runner_tools_expose_the_request_schema_and_journal_through_the_runner(fixture_set):
     runner = ToolRunner(
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[*bound(fixture_set), DispositionAdapter(clock=lambda: T0)],
         principal=Principal(name="analyst", role=ANALYST_ROLE),
         store=InMemoryRawStore(),
         investigation_id="inv-tools",
@@ -443,7 +451,7 @@ def test_runner_tools_expose_the_request_schema_and_journal_through_the_runner(f
     )
     # Only registered adapters are offered.
     partial = ToolRunner(
-        adapters=fixture_adapters(fixture_set)[:2],
+        adapters=bound(fixture_set)[:2],
         principal=Principal(name="analyst", role=ANALYST_ROLE),
         store=InMemoryRawStore(),
         investigation_id="inv-partial",
@@ -466,7 +474,7 @@ def test_the_runner_callback_sees_every_call_of_a_run(fixture_set):
         model=model,
         model_id="s:t",
         principal=Principal(name="analyst", role=ANALYST_ROLE),
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[*bound(fixture_set), DispositionAdapter(clock=lambda: T0)],
         store=InMemoryRawStore(),
         raw_store="mem",
         decide=lambda proposal: AnalystDecision(accept=True),
@@ -496,7 +504,7 @@ def test_model_limits_are_recorded_when_given(fixture_set):
         model=model,
         model_id="s:t",
         principal=Principal(name="analyst", role=ANALYST_ROLE),
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[*bound(fixture_set), DispositionAdapter(clock=lambda: T0)],
         store=InMemoryRawStore(),
         raw_store="mem",
         decide=lambda proposal: AnalystDecision(accept=True),
@@ -548,7 +556,7 @@ def test_a_refused_run_is_failed_error_of_kind_rate_limit_and_still_writes_the_t
         model=model,
         model_id="google_genai:gemini-x",
         principal=Principal(name="analyst", role=ANALYST_ROLE),
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[*bound(fixture_set), DispositionAdapter(clock=lambda: T0)],
         store=InMemoryRawStore(),
         raw_store="mem",
         decide=lambda proposal: AnalystDecision(accept=True),

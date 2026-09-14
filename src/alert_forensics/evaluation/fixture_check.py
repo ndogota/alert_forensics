@@ -29,7 +29,7 @@ from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import Alert
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr, StrictNonNegativeInt
 from alert_forensics.evaluation.truth import Scenario
-from alert_forensics.tools.fixtures import SHARED, TEST, FixtureSet, could_answer, matches
+from alert_forensics.tools.fixtures import MANIFEST, SHARED, FixtureSet, could_answer, matches
 
 RUN_FILE = "run.json"
 
@@ -160,11 +160,17 @@ def fixture_collisions(
 
 
 def stale_labels(fixture_set: FixtureSet, scenarios: Sequence[Scenario]) -> list[str]:
-    """Stubs whose label names no scenario present and is neither shared nor test."""
-    present = {s.name for s in scenarios} | {SHARED, TEST}
-    return [
-        f"{tool} stub {index} is labelled {stub.scenario!r}, which names no scenario present"
-        for tool in sorted(fixture_set.tools)
-        for index, stub in enumerate(fixture_set.tools[tool].stubs)
-        if stub.scenario not in present
-    ]
+    """Manifest entries that name no scenario present, or name it by another alert's
+    id. A stub's label is held to the manifest by the loader; the manifest is held to
+    the scenarios here."""
+    present = {s.name: s.alert.id for s in scenarios}
+    stale = []
+    for label, alert_id in sorted(fixture_set.scenarios.items()):
+        if label not in present:
+            stale.append(f"{MANIFEST} names scenario {label!r}, which is not present")
+        elif present[label] != alert_id:
+            stale.append(
+                f"{MANIFEST} names scenario {label!r} as alert {alert_id!r}; the scenario "
+                f"present is alert {present[label]!r}"
+            )
+    return stale

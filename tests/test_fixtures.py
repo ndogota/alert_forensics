@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from alert_forensics.artifact import RunArtifact
-from alert_forensics.contracts import ToolOutcome
+from alert_forensics.contracts import Alert, ToolOutcome
 from alert_forensics.tools import (
     ANALYST_ROLE,
     DEFINITIONS,
@@ -17,7 +17,7 @@ from alert_forensics.tools import (
     UpstreamError,
     fixture_adapters,
 )
-from conftest import FIXTURE_TOOLS_DIR, T0
+from conftest import ALERT_PAYLOAD, FIXTURE_TOOLS_DIR, T0
 
 HAPPY_ARGUMENTS = {
     "search_events": {"query": "SigninLogs | where UserPrincipalName == 'jdoe@contoso.com'"},
@@ -37,10 +37,21 @@ def fixture_set() -> FixtureSet:
     return FixtureSet.load(FIXTURE_TOOLS_DIR)
 
 
+def bound_runner(fixture_set, labels, investigation_id="inv-fx"):
+    return ToolRunner(
+        adapters=fixture_adapters(fixture_set, labels),
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        store=InMemoryRawStore(),
+        investigation_id=investigation_id,
+        clock=lambda: T0,
+    )
+
+
 @pytest.fixture
 def runner(fixture_set):
+    """Every label in view: these tests read what the stubs hold, not who may see them."""
     return ToolRunner(
-        adapters=fixture_adapters(fixture_set),
+        adapters=fixture_adapters(fixture_set, fixture_set.labels),
         principal=Principal(name="analyst", role=ANALYST_ROLE),
         store=InMemoryRawStore(),
         investigation_id="inv-fx",
@@ -53,7 +64,7 @@ READ_TOOL_NAMES = [n for n in TOOL_NAMES if n != "propose_alert_disposition"]
 
 def test_the_fixture_set_covers_the_nine_read_tools(fixture_set):
     assert sorted(fixture_set.tools) == sorted(READ_TOOL_NAMES)
-    adapters = fixture_adapters(fixture_set)
+    adapters = fixture_adapters(fixture_set, fixture_set.labels)
     assert sorted(a.definition.name for a in adapters) == sorted(READ_TOOL_NAMES)
     assert all(isinstance(a, FixtureAdapter) for a in adapters)
     assert all(a.kind == "fixture" for a in adapters)
@@ -74,21 +85,25 @@ def test_each_tool_answers_through_its_fixture_adapter(name, runner):
 
 
 def test_exact_contains_and_regex_matchers(fixture_set):
-    adapter = FixtureAdapter(DEFINITIONS["search_events"], fixture_set.for_tool("search_events"))
+    adapter = FixtureAdapter(
+        DEFINITIONS["search_events"], fixture_set.for_tool("search_events"), fixture_set.labels
+    )
     kql = "DeviceEvents | where ActionType == 'AntivirusDetection'"
     raw = adapter.fetch(DEFINITIONS["search_events"].request_model(query=kql))
     assert raw["results"][0]["ActionType"] == "AntivirusDetection"
     kql = "SigninLogs | where AccountUpn == 'jdoe@contoso.com' | take 5"
     raw = adapter.fetch(DEFINITIONS["search_events"].request_model(query=kql))
     assert len(raw["results"]) == 2
-    asset = FixtureAdapter(DEFINITIONS["get_asset"], fixture_set.for_tool("get_asset"))
+    asset = FixtureAdapter(DEFINITIONS["get_asset"], fixture_set.for_tool("get_asset"), {"test"})
     for spelling in ("SRV-PRD-APP01", "srv-prd-app01.contoso.com"):
         raw = asset.fetch(DEFINITIONS["get_asset"].request_model(asset=spelling))
         assert raw["results"][0]["nt_host"] == "SRV-PRD-APP01"
 
 
 def test_the_first_matching_stub_wins_in_file_order(fixture_set):
-    adapter = FixtureAdapter(DEFINITIONS["search_events"], fixture_set.for_tool("search_events"))
+    adapter = FixtureAdapter(
+        DEFINITIONS["search_events"], fixture_set.for_tool("search_events"), fixture_set.labels
+    )
     both = (
         "SigninLogs | where AccountUpn == 'jdoe@contoso.com' "
         "| join DeviceEvents | where ActionType == 'AntivirusDetection'"
@@ -191,7 +206,9 @@ def test_scenario_1_stubs_answer_the_requests_a_model_plausibly_makes(runner):
 
 
 def test_no_stub_is_a_no_fixture_error(fixture_set, runner):
-    adapter = FixtureAdapter(DEFINITIONS["search_siem"], fixture_set.for_tool("search_siem"))
+    adapter = FixtureAdapter(
+        DEFINITIONS["search_siem"], fixture_set.for_tool("search_siem"), fixture_set.labels
+    )
     with pytest.raises(UpstreamError) as info:
         adapter.fetch(DEFINITIONS["search_siem"].request_model(search="index=web"))
     assert info.value.kind == "no_fixture"
@@ -369,7 +386,9 @@ def test_all_requires_every_matcher_and_an_all_of_anys_is_unconstrained(tmp_path
         '[{"$regex": "(?i)travel"}, {"$contains": "SASE"}]}}, "response": {"hits": []}}]}'
     )
     adapter = FixtureAdapter(
-        DEFINITIONS["search_runbook"], FixtureSet.load(tmp_path).for_tool("search_runbook")
+        DEFINITIONS["search_runbook"],
+        FixtureSet.load(tmp_path).for_tool("search_runbook"),
+        {"test"},
     )
     request = DEFINITIONS["search_runbook"].request_model
     assert adapter.fetch(request(query="atypical travel via SASE")) == {"hits": []}
@@ -499,3 +518,89 @@ def test_scenario_2_stubs_answer_nothing_about_another_account(runner):
         "| summarize count() by IPAddress"
     )
     assert ok(runner, "search_events", query=query)["rows"][0]["AccountUpn"] == "jdoe@contoso.com"
+
+
+# --- a stub is offered only to the run of the scenario it serves -----------------------
+
+AGGREGATES = {
+    "search_events": [
+        "SigninLogs | where ResultType != 0 | summarize dcount(UserPrincipalName), "
+        "dcount(IPAddress) by bin(TimeGenerated, 1h)",
+        "AADSignInEventsBeta | where ErrorCode != 0 | summarize count() by Country",
+    ],
+    "search_siem": ["index=auth action=failure | stats dc(user) by src_country"],
+}
+"""None names rbennett; each was answered with the spray row from any scenario's run."""
+
+
+def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
+    assert fixture_set.scenarios == {
+        "atypical_travel": ALERT_PAYLOAD["id"],
+        "password_spray": "da637551302218456123_-1188736045",
+    }
+    assert fixture_set.in_view(Alert.model_validate(ALERT_PAYLOAD)) == {"shared", "atypical_travel"}
+    unknown = Alert.model_validate({**ALERT_PAYLOAD, "id": "nobody-knows-this-alert"})
+    assert fixture_set.in_view(unknown) == {"shared"}
+    assert fixture_set.labels >= {"shared", "test", "atypical_travel", "password_spray"}
+
+
+def test_an_aggregate_stub_answers_only_the_run_of_its_own_scenario(fixture_set):
+    spray = bound_runner(fixture_set, {"password_spray"}, "inv-spray")
+    travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel")
+    for tool, queries in AGGREGATES.items():
+        argument = "query" if tool == "search_events" else "search"
+        for query in queries:
+            view = ok(spray, tool, **{argument: query})
+            assert view["row_count"] == 1, (tool, query)
+            assert gap(travel, tool, **{argument: query}), (tool, query)
+
+
+def test_shared_stubs_are_always_offered_and_test_stubs_only_when_named(fixture_set):
+    travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel")
+    assert ok(travel, "lookup_ioc", indicator="never-seen.example")["known"] is False
+    assert ok(travel, "lookup_ioc", indicator="203.0.113.7")["known"] is True
+    assert gap(travel, "lookup_ioc", indicator="192.0.2.44")
+    assert gap(travel, "get_asset", asset="srv-prd-app01.contoso.com")
+    assert gap(travel, "get_process_tree", device_name="ws-fin-0042.contoso.com", process_id=4412)
+    nothing = bound_runner(fixture_set, set(), "inv-none")
+    assert ok(nothing, "lookup_ioc", indicator="never-seen.example")["known"] is False
+    assert gap(nothing, "lookup_ioc", indicator="203.0.113.7")
+    assert gap(nothing, "get_identity", identity="jdoe")
+    tests = bound_runner(fixture_set, {"test"}, "inv-test")
+    assert ok(tests, "get_asset", asset="srv-prd-app01.contoso.com")["found"] is True
+
+
+def test_a_withheld_stub_is_not_named_in_the_no_fixture_error(fixture_set):
+    """The model must not learn that the harness held an answer it withheld."""
+    travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel")
+    record = travel.invoke(
+        tool_call_id="tc-withheld",
+        step=0,
+        tool_name="get_identity",
+        arguments={"identity": "rbennett"},
+        turn_siblings=[],
+    )
+    assert record.outcome is ToolOutcome.error
+    assert record.redacted_response["error"] == "no_fixture"
+    text = json.dumps(record.redacted_response)
+    for hidden in ("password_spray", "atypical_travel", "withheld", "shared"):
+        assert hidden not in text
+
+
+def test_a_label_the_manifest_does_not_name_refuses_to_load(tmp_path):
+    stub = '{"scenario": "%s", "match": {"indicator": "x"}, "response": {"data": {}}}'
+    path = tmp_path / "lookup_ioc.json"
+    path.write_text('{"tool": "lookup_ioc", "stubs": [%s]}' % (stub % "nowhere"))
+    with pytest.raises(ValueError, match="nowhere"):
+        FixtureSet.load(tmp_path)
+    (tmp_path / "scenarios.json").write_text('{"nowhere": "alert-x"}')
+    loaded = FixtureSet.load(tmp_path)
+    assert loaded.scenarios == {"nowhere": "alert-x"}
+    assert loaded.labels == {"shared", "test", "nowhere"}
+    (tmp_path / "scenarios.json").unlink()
+    for label in ("shared", "test"):
+        path.write_text('{"tool": "lookup_ioc", "stubs": [%s]}' % (stub % label))
+        assert FixtureSet.load(tmp_path).scenarios == {}
+    (tmp_path / "scenarios.json").write_text('["not", "a", "manifest"]')
+    with pytest.raises(ValueError, match=r"scenarios\.json"):
+        FixtureSet.load(tmp_path)

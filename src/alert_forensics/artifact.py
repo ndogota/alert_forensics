@@ -43,6 +43,11 @@ class RunArtifact(ContractModel):
     role: NonEmptyStr
     adapters: dict[str, AdapterKind]
     """Which kind of adapter served each tool offered to the model."""
+    fixture_labels: list[str] = Field(default_factory=list)
+    """The stub labels the fixture adapters were bound to, sorted: the alert's scenario
+    and ``shared``, or ``shared`` alone when no manifest names the alert. Empty when no
+    fixture adapter served the run, and on a recording made before the binding rule,
+    when every stub was in view."""
     trace: InvestigationTrace
     report: GroundingReport | None
     """The grounding report of the final result. It carries the result."""

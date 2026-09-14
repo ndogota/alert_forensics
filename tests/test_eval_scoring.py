@@ -90,12 +90,16 @@ def run(script, fixture_set, max_corrections=1, role=ANALYST_ROLE):
     model = ScriptedChatModel(
         script=script, profile={"structured_output": True}, model_id="scripted:test"
     )
+    alert = Alert.model_validate(ALERT_PAYLOAD)
     return run_triage(
-        alert=Alert.model_validate(ALERT_PAYLOAD),
+        alert=alert,
         model=model,
         model_id="scripted:test",
         principal=Principal(name="analyst", role=role),
-        adapters=[*fixture_adapters(fixture_set), DispositionAdapter(clock=lambda: T0)],
+        adapters=[
+            *fixture_adapters(fixture_set, fixture_set.in_view(alert)),
+            DispositionAdapter(clock=lambda: T0),
+        ],
         store=InMemoryRawStore(),
         raw_store="mem",
         decide=lambda proposal: AnalystDecision(accept=True),

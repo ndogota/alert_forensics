@@ -46,6 +46,7 @@ def test_triage_scripted_writes_the_artifact_and_the_raw_store_beside_it(alert_f
     assert artifact.adapters["get_attack_technique"] == "recorded"
     assert artifact.adapters["lookup_ioc"] == "fixture"
     assert artifact.adapters["propose_alert_disposition"] == "local"
+    assert artifact.fixture_labels == ["atypical_travel", "shared"]
     assert all(f.grounded for f in artifact.report.facts)
     assert all(r.outcome is ToolOutcome.ok for r in artifact.trace.records)
     techniques = [r for r in artifact.trace.records if r.tool_name == "get_attack_technique"]
@@ -316,3 +317,22 @@ def test_the_google_schema_warning_is_filtered_at_startup_and_nothing_else(
     ]
     artifact = RunArtifact.model_validate_json(out.read_text())
     assert artifact.output_binding.strategy == "provider"
+
+
+def test_an_alert_no_manifest_names_is_offered_shared_stubs_alone_and_told_so(tmp_path, capsys):
+    path = tmp_path / "alert.json"
+    path.write_text(json.dumps({**ALERT_PAYLOAD, "id": "nobody-knows-this-alert"}))
+    out = tmp_path / "run.json"
+    assert main(["triage", str(path), "--scripted", "--accept", "-o", str(out)]) == 0
+    err = capsys.readouterr().err
+    assert "nobody-knows-this-alert" in err and "shared" in err
+    artifact = RunArtifact.model_validate_json(out.read_text())
+    assert artifact.fixture_labels == ["shared"]
+    fixture_backed = [
+        r for r in artifact.trace.records if artifact.adapters[r.tool_name] == "fixture"
+    ]
+    assert fixture_backed
+    assert all(r.redacted_response.get("error") == "no_fixture" for r in fixture_backed)
+    # The techniques still resolve: the ATT&CK adapter is not a fixture.
+    techniques = [r for r in artifact.trace.records if r.tool_name == "get_attack_technique"]
+    assert techniques and all(r.outcome is ToolOutcome.ok for r in techniques)

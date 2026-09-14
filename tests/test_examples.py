@@ -24,7 +24,7 @@ def test_every_declared_technique_resolves_offline(path):
     alert = Alert.model_validate(json.loads(path.read_text()))
     assert alert.mitre_techniques, f"{path.name} declares no technique; the example should"
     runner = ToolRunner(
-        adapters=default_adapters(DEFAULT_FIXTURES_DIR, scripted=True),
+        adapters=default_adapters(DEFAULT_FIXTURES_DIR, scripted=True, alert=alert),
         principal=Principal(name="analyst", role=ANALYST_ROLE),
         store=InMemoryRawStore(),
         investigation_id="inv-examples",
@@ -73,7 +73,12 @@ def stub_file(tmp_path, tool, label, match, response):
     )
 
 
+def manifest(tmp_path):
+    (tmp_path / "scenarios.json").write_text(json.dumps({s.name: s.alert.id for s in SCENARIOS}))
+
+
 def test_a_colliding_stub_is_named_with_the_scenario_it_would_answer(tmp_path):
+    manifest(tmp_path)
     # An operator matcher that the alert's title satisfies.
     stub_file(tmp_path, "search_runbook", "test", {"query": {"$regex": "(?i)travel"}}, {"hits": []})
     # An exact value that is one of the alert's entities.
@@ -94,10 +99,18 @@ def test_a_colliding_stub_is_named_with_the_scenario_it_would_answer(tmp_path):
     assert fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS) == []
 
 
-def test_a_label_naming_no_present_scenario_is_stale(tmp_path):
+def test_a_manifest_entry_naming_no_present_scenario_is_stale(tmp_path):
+    """A label outside the manifest refuses to load; a manifest entry outside the
+    scenarios present is what can go stale."""
+    (tmp_path / "scenarios.json").write_text(json.dumps({"nowhere": "alert-x"}))
     stub_file(tmp_path, "search_runbook", "nowhere", {"query": {"$contains": "x"}}, {"hits": []})
     stale = stale_labels(FixtureSet.load(tmp_path), SCENARIOS)
-    assert len(stale) == 1 and "nowhere" in stale[0] and "search_runbook" in stale[0]
+    assert len(stale) == 1 and "nowhere" in stale[0]
+
+
+def test_the_shipped_manifest_names_every_scenario_under_examples_by_its_alert_id():
+    manifest = FixtureSet.load(DEFAULT_FIXTURES_DIR).scenarios
+    assert manifest == {s.name: s.alert.id for s in SCENARIOS}
 
 
 # --- the probe's limit, and the questions real models actually asked ------------------
@@ -118,6 +131,7 @@ def test_the_alert_probe_alone_misses_a_stub_keyed_on_infrastructure_words(tmp_p
 
 
 def test_the_recording_probe_catches_it(tmp_path):
+    manifest(tmp_path)
     """The committed scenario 1 recording asked the runbook about "VPN SASE corporate
     egress proxy Amsterdam Paris". Put to a stub that does not serve scenario 1, that
     question is a collision, named with the recording it came from."""
@@ -223,8 +237,9 @@ def test_the_shipped_scenarios_are_labelled_as_the_table_says():
 @pytest.mark.parametrize("technique", ["T1556.006", "T1564.008"])
 def test_the_follow_on_techniques_scenario_2_resolves_are_in_the_excerpt(technique):
     """Not on the alert; a model that names them offline must resolve them."""
+    alert = next(s for s in SCENARIOS if s.name == "password_spray").alert
     runner = ToolRunner(
-        adapters=default_adapters(DEFAULT_FIXTURES_DIR, scripted=True),
+        adapters=default_adapters(DEFAULT_FIXTURES_DIR, scripted=True, alert=alert),
         principal=Principal(name="analyst", role=ANALYST_ROLE),
         store=InMemoryRawStore(),
         investigation_id="inv-follow-on",

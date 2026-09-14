@@ -62,7 +62,7 @@ def run_suite(
     model_factory: ModelFactory,
     model_id: str,
     role: Role,
-    adapters: Callable[[], Iterable[AnyAdapter]],
+    adapters: Callable[[Alert], Iterable[AnyAdapter]],
     results_dir: Path,
     runs: int,
     max_corrections: int = 1,
@@ -72,8 +72,9 @@ def run_suite(
 ) -> list[Path]:
     """Run every scenario ``runs`` times and write a directory per run. Indices continue
     from what the cell already holds, so a second invocation adds runs rather than
-    overwriting them. Every proposal is accepted: the human decision is not what the
-    harness measures."""
+    overwriting them. ``adapters`` is called with each run's alert, so fixture adapters
+    are bound to the scenario under investigation. Every proposal is accepted: the
+    human decision is not what the harness measures."""
     if runs < 1:
         raise ValueError("runs is one or more")
     written: list[Path] = []
@@ -90,7 +91,7 @@ def run_suite(
                 model=model_factory(scenario.alert),
                 model_id=model_id,
                 principal=Principal(name=role.name, role=role),
-                adapters=adapters(),
+                adapters=adapters(scenario.alert),
                 store=DirectoryRawStore(run_dir / RAW_DIR),
                 raw_store=RAW_DIR,
                 decide=_accept,

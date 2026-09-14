@@ -49,6 +49,7 @@ from alert_forensics.repair import (
     PresentCall,
     RepairInstruction,
 )
+from alert_forensics.tools.fixtures import FixtureAdapter
 from alert_forensics.tools.runner import AnyAdapter, ToolRunner
 from alert_forensics.tools.scope import Principal
 from alert_forensics.tools.store import RawResponseStore
@@ -225,6 +226,11 @@ def run_triage(
         output_binding=output_binding(model),
         role=principal.role.name,
         adapters={name: adapter.kind for name, adapter in runner.adapters.items()},
+        fixture_labels=sorted(
+            set().union(
+                *(a.in_view for a in runner.adapters.values() if isinstance(a, FixtureAdapter))
+            )
+        ),
         trace=trace,
         report=report,
         passes=passes,

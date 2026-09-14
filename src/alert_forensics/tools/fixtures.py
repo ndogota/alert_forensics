@@ -27,17 +27,27 @@ answers only questions about the entities its response holds: the match names th
 account, device or subject the rows are about, and not only the table. That rule the
 loader cannot hold, since it cannot read what a query is about; the shipped fixtures
 are held to it by tests.
+
+The labels are load-bearing at run time. The directory carries ``scenarios.json``, a
+manifest from scenario label to the id of the alert it serves, and an adapter is bound
+to the labels in view for the alert under investigation: the alert's own scenario and
+``shared``. A stub outside the view is never tried, so a run of one scenario cannot be
+answered with another's rows, aggregates included, and the entity rule governs only
+what a stub answers within its own scenario. A stub whose label the manifest does not
+name, and is not ``shared`` or ``test``, refuses to load. An alert no manifest names
+has ``shared`` in view and nothing else.
 """
 
 import copy
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any
 
 from pydantic import Field, JsonValue, ValidationError, field_validator, model_validator
 
+from alert_forensics.contracts import Alert
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr
 from alert_forensics.tools.adapter import (
     FailureKind,
@@ -56,6 +66,8 @@ class FixtureError(ContractModel):
 
 SHARED = "shared"
 TEST = "test"
+MANIFEST = "scenarios.json"
+"""The manifest in a fixture directory: ``{scenario label: alert id}``."""
 
 
 class FixtureStub(ContractModel):
@@ -99,15 +111,21 @@ class ToolFixture(ContractModel):
 
 
 class FixtureSet:
-    """Every tool fixture found in a directory, validated on load."""
+    """Every tool fixture found in a directory, validated on load, with the manifest
+    that says which alert each scenario label serves."""
 
-    def __init__(self, tools: dict[str, ToolFixture]) -> None:
+    def __init__(self, tools: dict[str, ToolFixture], scenarios: dict[str, str]) -> None:
         self.tools = tools
+        self.scenarios = scenarios
+        """Scenario label to alert id, from the manifest."""
 
     @classmethod
     def load(cls, directory: Path) -> "FixtureSet":
+        scenarios = _load_manifest(directory / MANIFEST)
         tools: dict[str, ToolFixture] = {}
         for path in sorted(directory.glob("*.json")):
+            if path.name == MANIFEST:
+                continue
             try:
                 fixture = ToolFixture.model_validate(json.loads(path.read_text(encoding="utf-8")))
             except (ValidationError, ValueError) as exc:
@@ -119,11 +137,44 @@ class FixtureSet:
                     f"fixture file {path.name} declares tool {fixture.tool!r}; the file must "
                     "be named after its tool"
                 )
+            for index, stub in enumerate(fixture.stubs):
+                if stub.scenario not in scenarios and stub.scenario not in (SHARED, TEST):
+                    raise ValueError(
+                        f"fixture file {path.name} stub {index} is labelled {stub.scenario!r}, "
+                        f"which {MANIFEST} does not name"
+                    )
             tools[fixture.tool] = fixture
-        return cls(tools)
+        return cls(tools, scenarios)
 
     def for_tool(self, name: str) -> ToolFixture:
         return self.tools[name]
+
+    @property
+    def labels(self) -> frozenset[str]:
+        """Every label a stub may carry here: the manifest's, ``shared`` and ``test``."""
+        return frozenset(self.scenarios) | {SHARED, TEST}
+
+    def in_view(self, alert: Alert) -> frozenset[str]:
+        """The labels a run of ``alert`` is offered: ``shared``, and the scenario whose
+        alert it is. An alert the manifest does not name gets ``shared`` alone."""
+        own = {label for label, alert_id in self.scenarios.items() if alert_id == alert.id}
+        return frozenset(own) | {SHARED}
+
+
+def _load_manifest(path: Path) -> dict[str, str]:
+    if not path.is_file():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        raise ValueError(f"{MANIFEST} is not JSON: {exc}") from exc
+    if not isinstance(loaded, dict) or not all(
+        isinstance(k, str) and k and isinstance(v, str) and v for k, v in loaded.items()
+    ):
+        raise ValueError(f"{MANIFEST} must map scenario labels to alert ids, both strings")
+    if any(k in (SHARED, TEST) for k in loaded):
+        raise ValueError(f"{MANIFEST} may not name {SHARED!r} or {TEST!r}; they are not scenarios")
+    return dict(loaded)
 
 
 def _is_operator(spec: JsonValue) -> bool:
@@ -188,18 +239,29 @@ def could_answer(match: dict[str, JsonValue], candidates: Sequence[str]) -> bool
 
 
 class FixtureAdapter(ToolAdapter[Any, Any, Any]):
+    """A fixture adapter bound to the labels in view. ``shared`` is always in view; a
+    stub outside the view is never tried, and the gap it leaves is the same
+    ``no_fixture`` error as any other, so the model cannot tell a withheld answer from
+    an absent one."""
+
     kind = "fixture"
 
-    def __init__(self, definition: ToolDefinition[Any, Any, Any], fixture: ToolFixture) -> None:
+    def __init__(
+        self,
+        definition: ToolDefinition[Any, Any, Any],
+        fixture: ToolFixture,
+        in_view: Iterable[str],
+    ) -> None:
         if fixture.tool != definition.name:
             raise ValueError(f"fixture for {fixture.tool!r} given to tool {definition.name!r}")
         super().__init__(definition)
         self.fixture = fixture
+        self.in_view: frozenset[str] = frozenset(in_view) | {SHARED}
 
     def fetch(self, request: ToolRequest) -> JsonValue:
         arguments: dict[str, JsonValue] = request.model_dump(mode="json")
         for stub in self.fixture.stubs:
-            if not matches(stub.match, arguments):
+            if stub.scenario not in self.in_view or not matches(stub.match, arguments):
                 continue
             if stub.error is not None:
                 raise UpstreamError(stub.error.kind, stub.error.detail)
@@ -211,10 +273,13 @@ class FixtureAdapter(ToolAdapter[Any, Any, Any]):
         )
 
 
-def fixture_adapters(fixture_set: FixtureSet) -> list[FixtureAdapter]:
-    """One adapter per tool the set covers, in the registry's order."""
+def fixture_adapters(fixture_set: FixtureSet, in_view: Iterable[str]) -> list[FixtureAdapter]:
+    """One adapter per tool the set covers, in the registry's order, each bound to the
+    labels in view. A run binds ``fixture_set.in_view(alert)``; a test binds what it
+    needs."""
+    labels = frozenset(in_view)
     return [
-        FixtureAdapter(DEFINITIONS[name], fixture_set.tools[name])
+        FixtureAdapter(DEFINITIONS[name], fixture_set.tools[name], labels)
         for name in DEFINITIONS
         if name in fixture_set.tools
     ]
