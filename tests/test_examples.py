@@ -33,6 +33,7 @@ def test_every_declared_technique_resolves_offline(path):
             step=0,
             tool_name="get_attack_technique",
             arguments={"technique_id": technique},
+            turn_siblings=[],
         )
         assert record.outcome is ToolOutcome.ok, (technique, record.redacted_response)
         assert record.redacted_response["technique_id"] == technique

@@ -58,7 +58,11 @@ def test_the_fixture_set_covers_the_nine_read_tools(fixture_set):
 @pytest.mark.parametrize("name", READ_TOOL_NAMES)
 def test_each_tool_answers_through_its_fixture_adapter(name, runner):
     record = runner.invoke(
-        tool_call_id=f"tc-{name}", step=0, tool_name=name, arguments=HAPPY_ARGUMENTS[name]
+        tool_call_id=f"tc-{name}",
+        step=0,
+        tool_name=name,
+        arguments=HAPPY_ARGUMENTS[name],
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.ok, record.redacted_response
     assert record.source_system is DEFINITIONS[name].source_system
@@ -97,7 +101,11 @@ def test_no_stub_and_no_default_is_a_no_fixture_error(fixture_set, runner):
         adapter.fetch(DEFINITIONS["search_siem"].request_model(search="index=web"))
     assert info.value.kind == "no_fixture"
     record = runner.invoke(
-        tool_call_id="tc-miss", step=0, tool_name="search_siem", arguments={"search": "index=web"}
+        tool_call_id="tc-miss",
+        step=0,
+        tool_name="search_siem",
+        arguments={"search": "index=web"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response["error"] == "no_fixture"
@@ -110,6 +118,7 @@ def test_a_stub_can_script_an_upstream_error(runner):
         step=0,
         tool_name="lookup_ioc",
         arguments={"indicator": "broken.example"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response == {
@@ -122,6 +131,7 @@ def test_a_stub_can_script_an_upstream_error(runner):
         step=0,
         tool_name="get_attack_technique",
         arguments={"technique_id": "T9999"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response["error"] == "not_found"
@@ -133,6 +143,7 @@ def test_not_found_ioc_is_a_successful_reading(runner):
         step=0,
         tool_name="lookup_ioc",
         arguments={"indicator": "never-seen.example"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.ok
     assert record.redacted_response["known"] is False
@@ -154,7 +165,11 @@ def test_fixture_files_are_validated_on_load(tmp_path):
 def test_both_redaction_layers_apply_end_to_end(runner):
     # Layer one, the projection: the identity view carries no name, phone or coordinates.
     identity = runner.invoke(
-        tool_call_id="tc-id", step=0, tool_name="get_identity", arguments={"identity": "jdoe"}
+        tool_call_id="tc-id",
+        step=0,
+        tool_name="get_identity",
+        arguments={"identity": "jdoe"},
+        turn_siblings=[],
     )
     text = identity.model_dump_json()
     for leaked in ("Jane", "+33 6", "48.8566"):
@@ -167,6 +182,7 @@ def test_both_redaction_layers_apply_end_to_end(runner):
         step=1,
         tool_name="search_events",
         arguments={"query": "DeviceEvents | where ActionType == 'AntivirusDetection'"},
+        turn_siblings=[],
     )
     assert events.outcome is ToolOutcome.ok
     assert "eyJhbGciOi" not in events.model_dump_json()
@@ -180,6 +196,7 @@ def test_both_redaction_layers_apply_end_to_end(runner):
         step=1,
         tool_name="get_process_tree",
         arguments={"device_name": "ws-fin-0042.contoso.com", "process_id": 4412},
+        turn_siblings=[],
     )
     assert tree.outcome is ToolOutcome.ok
     assert "Hunter2!" not in tree.model_dump_json()

@@ -27,8 +27,18 @@ Rules that are enforced, not advised:
    recommended action, escalation and a one-paragraph summary. It writes nothing; the
    analyst accepts or rejects it. Then answer.
 
-The verdicts: true_positive, false_positive, benign_true_positive (the detection fired
-correctly and the intent was legitimate), inconclusive.
+The four verdicts. The discriminator is not whether the activity happened; it is whether
+the detection's claim about what happened is true.
+
+- true_positive: the detection's claim is true, and the activity is malicious or
+  unauthorised.
+- benign_true_positive: the claim is true, the activity happened as described, and the
+  intent was legitimate and authorised. The rule worked.
+- false_positive: the claim is not true. The activity described did not happen, or it
+  happened but is not the thing the rule named. The rule misfired, whether on an
+  artifact or on a structurally mislabelled pattern.
+- inconclusive: the evidence gathered does not decide between the above, and missing
+  context names what would.
 """
 
 REPAIR_SYSTEM_PROMPT = """\

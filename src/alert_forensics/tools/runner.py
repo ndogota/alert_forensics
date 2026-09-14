@@ -67,10 +67,12 @@ class ToolRunner:
         step: int,
         tool_name: str,
         arguments: dict[str, JsonValue],
-        turn_siblings: Sequence[str] = (),
+        turn_siblings: Sequence[str],
     ) -> ToolCallRecord:
         """``turn_siblings`` names the other calls the model emitted in the same turn;
-        the ordering rules read it, the journal does not."""
+        the ordering rules read it, the journal does not. It has no default on purpose:
+        an empty default would read as "no siblings", which reads as "rule satisfied",
+        and a call site that forgot it would silently disable ``alone_in_turn``."""
         with self._lock:
             return self._invoke(tool_call_id, step, tool_name, arguments, turn_siblings)
 

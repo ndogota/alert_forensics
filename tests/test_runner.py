@@ -93,6 +93,7 @@ def test_ok_call_is_journalled_with_raw_out_of_context(store):
         step=2,
         tool_name="lookup_ioc",
         arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.ok
     assert record.tool_name == "lookup_ioc"
@@ -128,7 +129,11 @@ def test_denied_call_never_reaches_the_adapter(store):
     adapter = ScriptedAdapter("search_siem", raw={"sid": "1", "results": []})
     runner = make_runner([adapter], store, role=TIER1_ROLE, caller="t1-oncall")
     record = runner.invoke(
-        tool_call_id="tc-siem", step=0, tool_name="search_siem", arguments={"search": "index=auth"}
+        tool_call_id="tc-siem",
+        step=0,
+        tool_name="search_siem",
+        arguments={"search": "index=auth"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.denied
     assert adapter.requests == []
@@ -145,7 +150,11 @@ def test_invalid_arguments_are_an_error_the_model_can_read(store):
     adapter = ScriptedAdapter("lookup_ioc", raw=IOC_RAW)
     runner = make_runner([adapter], store)
     record = runner.invoke(
-        tool_call_id="tc-bad", step=0, tool_name="lookup_ioc", arguments={"ioc": "203.0.113.7"}
+        tool_call_id="tc-bad",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"ioc": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert adapter.requests == []
@@ -165,6 +174,7 @@ def test_upstream_failure_is_an_error_not_an_exception(store):
         step=0,
         tool_name="lookup_ioc",
         arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response == {
@@ -184,6 +194,7 @@ def test_malformed_response_is_an_error_and_the_raw_is_still_stored(store):
         step=0,
         tool_name="lookup_ioc",
         arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response["error"] == "malformed_response"
@@ -195,7 +206,9 @@ def test_malformed_response_is_an_error_and_the_raw_is_still_stored(store):
 
 def test_unknown_tool_is_an_error(store):
     runner = make_runner([], store)
-    record = runner.invoke(tool_call_id="tc-x", step=0, tool_name="close_alert", arguments={})
+    record = runner.invoke(
+        tool_call_id="tc-x", step=0, tool_name="close_alert", arguments={}, turn_siblings=[]
+    )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response["error"] == "unknown_tool"
     assert record.tool_name == "close_alert"
@@ -203,7 +216,9 @@ def test_unknown_tool_is_an_error(store):
     assert record.required_scope == "none"
     assert "close_alert" in record.redacted_response["detail"]
     # A defined tool with no adapter registered is the same error, filed under its system.
-    record = runner.invoke(tool_call_id="tc-y", step=0, tool_name="search_siem", arguments={})
+    record = runner.invoke(
+        tool_call_id="tc-y", step=0, tool_name="search_siem", arguments={}, turn_siblings=[]
+    )
     assert record.outcome is ToolOutcome.error
     assert record.redacted_response["error"] == "unknown_tool"
     assert record.source_system is SourceSystem.splunk
@@ -213,11 +228,19 @@ def test_unknown_tool_is_an_error(store):
 def test_a_tool_call_id_is_journalled_once(store):
     runner = make_runner([ScriptedAdapter("lookup_ioc", raw=IOC_RAW)], store)
     runner.invoke(
-        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "1.1.1.1"}
+        tool_call_id="tc-1",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "1.1.1.1"},
+        turn_siblings=[],
     )
     with pytest.raises(ValueError, match="tc-1"):
         runner.invoke(
-            tool_call_id="tc-1", step=1, tool_name="lookup_ioc", arguments={"indicator": "1.1.1.1"}
+            tool_call_id="tc-1",
+            step=1,
+            tool_name="lookup_ioc",
+            arguments={"indicator": "1.1.1.1"},
+            turn_siblings=[],
         )
 
 
@@ -232,10 +255,18 @@ def test_records_feed_the_trace_and_the_grounding_validator(alert, store):
         caller="t1",
     )
     ok = runner.invoke(
-        tool_call_id="tc-ok", step=0, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+        tool_call_id="tc-ok",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     denied = runner.invoke(
-        tool_call_id="tc-denied", step=0, tool_name="search_siem", arguments={"search": "x"}
+        tool_call_id="tc-denied",
+        step=0,
+        tool_name="search_siem",
+        arguments={"search": "x"},
+        turn_siblings=[],
     )
     trace = InvestigationTrace(
         investigation_id="inv-1", alert=alert, started_at=T0, records=runner.records
@@ -270,6 +301,7 @@ def test_the_runner_journals_one_call_at_a_time(store):
                 step=0,
                 tool_name="lookup_ioc",
                 arguments={"indicator": "203.0.113.7"},
+                turn_siblings=[],
             )
         except ValueError as exc:
             errors.append(exc)
@@ -294,9 +326,15 @@ def test_every_journalled_record_reaches_the_callback_in_journal_order(store):
         on_record=seen.append,
     )
     runner.invoke(
-        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "1.2.3.4"}
+        tool_call_id="tc-1",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "1.2.3.4"},
+        turn_siblings=[],
     )
-    runner.invoke(tool_call_id="tc-2", step=1, tool_name="no_such_tool", arguments={})
+    runner.invoke(
+        tool_call_id="tc-2", step=1, tool_name="no_such_tool", arguments={}, turn_siblings=[]
+    )
     assert seen == runner.records
     assert [r.outcome for r in seen] == [ToolOutcome.ok, ToolOutcome.error]
 
@@ -344,12 +382,20 @@ def test_a_failed_call_is_not_evidence_enough_but_an_ok_call_is(store):
     failing = ScriptedAdapter("lookup_ioc", error=UpstreamError("upstream_error", "down"))
     runner = make_runner([failing, DispositionAdapter(clock=lambda: T0)], store)
     runner.invoke(
-        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+        tool_call_id="tc-1",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert _propose(runner, "tc-p1").outcome is ToolOutcome.denied
     runner.adapters["lookup_ioc"] = ScriptedAdapter("lookup_ioc", raw=IOC_RAW)
     runner.invoke(
-        tool_call_id="tc-2", step=1, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+        tool_call_id="tc-2",
+        step=1,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     assert _propose(runner, "tc-p2", step=2).outcome is ToolOutcome.ok
 
@@ -361,7 +407,11 @@ def test_a_proposal_beside_another_call_in_its_turn_is_denied_by_rule(store):
         [ScriptedAdapter("lookup_ioc", raw=IOC_RAW), DispositionAdapter(clock=lambda: T0)], store
     )
     runner.invoke(
-        tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments={"indicator": "203.0.113.7"}
+        tool_call_id="tc-1",
+        step=0,
+        tool_name="lookup_ioc",
+        arguments={"indicator": "203.0.113.7"},
+        turn_siblings=[],
     )
     record = _propose(runner, step=1, siblings=["lookup_ioc", "get_identity"])
     assert record.outcome is ToolOutcome.denied
@@ -385,3 +435,10 @@ def test_scope_is_checked_before_order(store):
     record = _propose(runner, step=0)
     assert record.outcome is ToolOutcome.denied
     assert record.redacted_response["error"] == "scope_denied"
+
+
+def test_a_call_site_must_say_what_it_knows_about_the_turn(store):
+    """No default: an omitted argument would silently satisfy alone_in_turn."""
+    runner = make_runner([ScriptedAdapter("lookup_ioc", raw=IOC_RAW)], store)
+    with pytest.raises(TypeError, match="turn_siblings"):
+        runner.invoke(tool_call_id="tc-1", step=0, tool_name="lookup_ioc", arguments=IOC_ARGS)  # type: ignore[call-arg]

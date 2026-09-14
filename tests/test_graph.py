@@ -588,3 +588,23 @@ def test_the_artifact_records_how_output_was_bound(fixture_set, profile):
     assert artifact.output_binding.strategy == profile
     assert artifact.output_binding.profile_declared is True
     assert artifact.output_binding.structured_output is (profile == "provider")
+
+
+def test_the_graph_path_passes_the_turn_siblings_to_the_runner(fixture_set, monkeypatch):
+    seen = []
+    original = ToolRunner.invoke
+
+    def spy(self, **kwargs):
+        seen.append((kwargs["tool_call_id"], sorted(kwargs["turn_siblings"])))
+        return original(self, **kwargs)
+
+    monkeypatch.setattr(ToolRunner, "invoke", spy)
+    script = [INVESTIGATION, PROPOSAL, result_turn(["tc-signins"], ["tc-ioc"])]
+    artifact, _, _ = run(script, fixture_set=fixture_set)
+    assert artifact.outcome is RunOutcome.completed
+    assert seen == [
+        ("tc-signins", ["get_identity", "lookup_ioc"]),
+        ("tc-ioc", ["get_identity", "search_events"]),
+        ("tc-identity", ["lookup_ioc", "search_events"]),
+        ("tc-propose", []),
+    ]
