@@ -57,19 +57,35 @@ class GroundingReport(ContractModel):
       scores ``1.0``.
 
     Silence therefore never scores as grounded.
+
+    The report carries the result it describes, so it stands alone the way a trace
+    does. What the consistency validator guarantees from that: the verdict and the
+    missing-context count come from the result, every ``FactGrounding`` matches the
+    result's fact at the same position in statement and cited ids, and every summary
+    field follows from those. What it cannot guarantee without the trace: that
+    ``resolved_ids``, ``source_systems`` and ``problems`` are true. Those are the
+    validator's attestation; re-run :func:`validate_grounding` against the trace to
+    re-verify them.
     """
 
-    verdict: Verdict
+    result: TriageResult
+    """The result this report describes."""
     facts: list[FactGrounding]
     total_facts: int
     grounded_count: int
     ungrounded_count: int
     no_facts: bool
     """True when the result carries no observed facts at all."""
-    missing_context_count: int
-    """How many missing-context entries the result names. Decides the silent inconclusive case."""
     ungrounded_claim_rate: float
     is_grounded: bool
+
+    @property
+    def verdict(self) -> Verdict:
+        return self.result.verdict
+
+    @property
+    def missing_context_count(self) -> int:
+        return len(self.result.missing_context)
 
     @property
     def grounded_facts(self) -> list[FactGrounding]:
@@ -80,8 +96,22 @@ class GroundingReport(ContractModel):
         return [f for f in self.facts if not f.grounded]
 
     @model_validator(mode="after")
-    def _summary_matches_facts(self) -> "GroundingReport":
-        expected = _summarise(self.verdict, self.facts, self.missing_context_count)
+    def _facts_and_summary_match_result(self) -> "GroundingReport":
+        observed = self.result.observed_facts
+        if len(self.facts) != len(observed):
+            raise ValueError(
+                f"report has {len(self.facts)} fact groundings for {len(observed)} observed facts"
+            )
+        for position, (grounding, fact) in enumerate(zip(self.facts, observed, strict=True)):
+            if grounding.index != position:
+                raise ValueError(
+                    f"fact grounding at position {position} has index {grounding.index}"
+                )
+            if grounding.statement != fact.statement:
+                raise ValueError(f"fact grounding {position} does not match the result's statement")
+            if grounding.evidence_ids != list(dict.fromkeys(fact.evidence)):
+                raise ValueError(f"fact grounding {position} does not match the result's evidence")
+        expected = _summarise(self.result, self.facts)
         actual = {name: getattr(self, name) for name in expected}
         if actual != expected:
             mismatched = sorted(name for name in expected if actual[name] != expected[name])
@@ -89,15 +119,13 @@ class GroundingReport(ContractModel):
         return self
 
 
-def _summarise(
-    verdict: Verdict, facts: list[FactGrounding], missing_context_count: int
-) -> dict[str, object]:
+def _summarise(result: TriageResult, facts: list[FactGrounding]) -> dict[str, object]:
     total = len(facts)
     grounded_count = sum(1 for f in facts if f.grounded)
     ungrounded_count = total - grounded_count
     no_facts = total == 0
     if no_facts:
-        honest_silence = verdict is Verdict.inconclusive and missing_context_count > 0
+        honest_silence = result.verdict is Verdict.inconclusive and bool(result.missing_context)
         is_grounded = honest_silence
         rate = 0.0 if honest_silence else 1.0
     else:
@@ -108,7 +136,6 @@ def _summarise(
         "grounded_count": grounded_count,
         "ungrounded_count": ungrounded_count,
         "no_facts": no_facts,
-        "missing_context_count": missing_context_count,
         "ungrounded_claim_rate": rate,
         "is_grounded": is_grounded,
     }
@@ -125,8 +152,8 @@ def validate_grounding(result: TriageResult, trace: InvestigationTrace) -> Groun
     """
     index = {record.tool_call_id: record for record in trace.records}
     facts = [_ground_fact(i, fact, index) for i, fact in enumerate(result.observed_facts)]
-    summary = _summarise(result.verdict, facts, len(result.missing_context))
-    return GroundingReport.model_validate({"verdict": result.verdict, "facts": facts, **summary})
+    summary = _summarise(result, facts)
+    return GroundingReport.model_validate({"result": result, "facts": facts, **summary})
 
 
 def _ground_fact(

@@ -89,6 +89,16 @@ def test_denied_call_records_caller_and_missing_scope(trace):
     assert archived["required_scope"] == "siem:raw_search"
 
 
+def test_source_system_is_closed(trace):
+    payload = trace.records[0].model_dump()
+    for bad in ("crowdstrike", "Defender", "", None):
+        with pytest.raises(ValidationError, match="source_system"):
+            ToolCallRecord.model_validate({**payload, "source_system": bad})
+    assert (
+        ToolCallRecord.model_validate({**payload, "source_system": "defender"}) == trace.records[0]
+    )
+
+
 def test_caller_and_scope_are_required(trace):
     payload = trace.records[0].model_dump()
     for field in ("caller", "required_scope"):

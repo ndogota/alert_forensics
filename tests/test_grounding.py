@@ -231,17 +231,9 @@ def test_lying_report_is_rejected(grounded_result, trace):
     ):
         with pytest.raises(ValidationError, match=field):
             GroundingReport.model_validate({**payload, field: lie})
-    # Silence dressed up as grounded is caught too, in both its forms.
     silent = validate_grounding(with_facts(grounded_result, []), trace).model_dump()
     with pytest.raises(ValidationError, match="is_grounded"):
         GroundingReport.model_validate({**silent, "is_grounded": True})
-    empty = with_facts(grounded_result, []).model_copy(
-        update={"verdict": Verdict.inconclusive, "missing_context": []}
-    )
-    # Claiming missing context that was never named flips the silence rules, so it is caught.
-    empty_payload = validate_grounding(empty, trace).model_dump()
-    with pytest.raises(ValidationError, match="is_grounded"):
-        GroundingReport.model_validate({**empty_payload, "missing_context_count": 1})
     assert GroundingReport.model_validate(payload) == honest
 
 
@@ -262,3 +254,64 @@ def test_validator_is_deterministic(grounded_result: TriageResult, trace: Invest
     a = validate_grounding(grounded_result, trace)
     b = validate_grounding(grounded_result, trace)
     assert a == b
+
+
+def test_coherently_forged_silent_inconclusive_report_is_rejected(grounded_result, trace):
+    # The result names no missing context. A forged summary that is internally coherent
+    # with an inconclusive, missing-context-named story must still fail, because the
+    # verdict and the missing-context count are derived from the carried result.
+    empty = with_facts(grounded_result, []).model_copy(
+        update={"verdict": Verdict.inconclusive, "missing_context": []}
+    )
+    forged = {
+        "result": empty.model_dump(),
+        "facts": [],
+        "total_facts": 0,
+        "grounded_count": 0,
+        "ungrounded_count": 0,
+        "no_facts": True,
+        "ungrounded_claim_rate": 0.0,
+        "is_grounded": True,
+    }
+    with pytest.raises(ValidationError, match="is_grounded"):
+        GroundingReport.model_validate(forged)
+    # The same forgery with an asserting verdict is caught for the same reason.
+    asserting = {**forged, "result": with_facts(grounded_result, []).model_dump()}
+    with pytest.raises(ValidationError, match="is_grounded"):
+        GroundingReport.model_validate(asserting)
+    # Verdict and count are not fields: they cannot be supplied, only derived.
+    honest = validate_grounding(empty, trace)
+    assert honest.verdict is Verdict.inconclusive
+    assert honest.missing_context_count == 0
+    assert "verdict" not in GroundingReport.model_fields
+    assert "missing_context_count" not in GroundingReport.model_fields
+    with pytest.raises(ValidationError, match="missing_context_count"):
+        GroundingReport.model_validate({**honest.model_dump(), "missing_context_count": 1})
+
+
+def test_report_facts_must_match_the_carried_result(grounded_result, trace):
+    honest = validate_grounding(grounded_result, trace)
+    payload = honest.model_dump()
+    # A grounding for a fact the result does not contain.
+    extra = {**payload["facts"][0], "index": 3}
+    with pytest.raises(ValidationError, match="fact groundings for"):
+        GroundingReport.model_validate({**payload, "facts": [*payload["facts"], extra]})
+    # A grounding whose statement was swapped.
+    swapped = [{**payload["facts"][0], "statement": "something else"}, *payload["facts"][1:]]
+    with pytest.raises(ValidationError, match="statement"):
+        GroundingReport.model_validate({**payload, "facts": swapped})
+    # A grounding that claims different evidence than the fact cites.
+    recited = [{**payload["facts"][0], "evidence_ids": ["tc-identity"]}, *payload["facts"][1:]]
+    with pytest.raises(ValidationError, match="evidence"):
+        GroundingReport.model_validate({**payload, "facts": recited})
+    # Reordered groundings.
+    reordered = [payload["facts"][1], payload["facts"][0], payload["facts"][2]]
+    with pytest.raises(ValidationError, match="index"):
+        GroundingReport.model_validate({**payload, "facts": reordered})
+    assert GroundingReport.model_validate(payload) == honest
+
+
+def test_report_carries_its_result(grounded_result, trace):
+    report = validate_grounding(grounded_result, trace)
+    assert report.result == grounded_result
+    assert GroundingReport.model_validate_json(report.model_dump_json()).result == grounded_result

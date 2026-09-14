@@ -90,13 +90,15 @@ TriageResult
   escalate           bool
 
 GroundingReport      produced by the validator from a TriageResult and its trace
+  result             the TriageResult it describes, carried so the report stands alone
   facts              [{index, statement, evidence_ids, resolved_ids,
                        source_systems: [defender | splunk | ...], problems, grounded}]
-  ungrounded_claim_rate, is_grounded, no_facts, missing_context_count
+  ungrounded_claim_rate, is_grounded, no_facts
 ```
 
-The source systems live on the report, not on the fact: they are derived from the trace
-and a result never travels without its report.
+The source systems live on the report, not on the fact: they are derived from the trace.
+A result never travels without its report, and that is structural: the report carries
+the result and refuses to validate if its facts or summary disagree with it.
 
 `benign_true_positive` is a first-class verdict because a SOC needs it: the detection
 fired correctly and the intent was legitimate. Collapsing it into false positive is how
