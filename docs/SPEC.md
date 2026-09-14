@@ -129,6 +129,8 @@ RunArtifact
   model              the provider:model string the run was started with
   model_limits       {timeout_s, max_retries} the model client was bounded with, or null
                      for the scripted client, which makes no network call
+  output_binding     {strategy: provider | tool, profile_declared, structured_output}:
+                     how structured output was bound, and the profile values that decided it
   role               the role the tools ran under
   adapters           {tool: fixture | live | recorded | local}, what actually served each tool
   trace              InvestigationTrace: alert, every tool call, usage per model turn
@@ -143,6 +145,11 @@ RunArtifact
 
 - The result is not a separate field: the report carries it, and a report that
   disagrees with its result refuses to validate. `report.result` is the result.
+- `output_binding` records the resolved structured-output strategy and the profile
+  values the decision read: whether the model declared a profile at all, and the value
+  of `profile["structured_output"]` as read, null when absent. A recording that cannot
+  say how its output was bound cannot be reproduced, and the model string alone does not
+  say it: a profile changes with the provider package version.
 - `model_limits` sits beside `model` because the two numbers change the latency the
   evaluation measures: a call that was allowed six retries with exponential backoff and
   a call that was allowed one are not the same measurement, even on the same model.
@@ -253,6 +260,20 @@ that can exist:
   analyst who accepts or rejects. A record from `human` is not evidence, and the
   grounding validator says so.
 - Its live status is `local`: neither fixture nor live, complete as shipped.
+- **It comes after evidence, and it comes alone.** The first real model run proposed at
+  step 0, in the same parallel batch as the first two evidence calls, before any result
+  was back, and the analyst was asked to approve a verdict built on nothing. The
+  definition declares two ordering rules, enforced in code and not in the prompt:
+  `needs_evidence`, the tool is not offered to the model until at least one call with
+  outcome `ok` exists in the trace; and `alone_in_turn`, it may never be emitted in the
+  same turn as another tool call. Enforcement has two halves. A middleware filters the
+  tool out of the bound tools while the trace holds no `ok` record, and when the model
+  emits a call that breaks either rule it jumps the turn straight to the tool node, past
+  the interrupt: a proposal that will be refused is not put in front of the analyst. The
+  runner then produces an `OrderDenial`, the same shape as a scope denial with the rule
+  in place of the scope, journalled with outcome `denied`; the model reads the rule and
+  the sibling calls of the turn run normally. Scope is checked before order: who may
+  propose at all comes before when.
 
 The agent is told to propose before it answers. A run in which the model never
 proposes still completes; the artifact's `decisions` list is empty and the evaluation
@@ -265,16 +286,21 @@ A tool call travels through one pipeline, whatever the adapter behind it:
 1. Scope check. The principal's scopes are compared with the tool's declared scope. A
    miss produces a `ScopeDenial`, journalled with outcome `denied`. The adapter is never
    called.
-2. Argument validation against the tool's request model. A miss is journalled as
+2. Order check, for a definition that declares ordering rules. A call before any `ok`
+   record, or beside another call in its turn, produces an `OrderDenial`, journalled
+   with outcome `denied`. The adapter is never called. The runner learns the turn's
+   sibling calls from the caller, since a call may run before its siblings are
+   journalled.
+3. Argument validation against the tool's request model. A miss is journalled as
    outcome `error`, kind `invalid_arguments`, with the validation message, so the model
    can correct the call.
-3. The adapter fetches the raw upstream response. Any upstream failure, including a
+4. The adapter fetches the raw upstream response. Any upstream failure, including a
    fixture that has no answer for the request, is journalled as outcome `error` with a
    structured `ToolFailure`. Nothing raises into the agent.
-4. The raw response is stored out of context and referenced from the record by
+5. The raw response is stored out of context and referenced from the record by
    `raw_response_ref` and `raw_response_sha256`. It is stored whether or not it
    validates against the response shape: a malformed response is still evidence.
-5. The raw response is validated against the response shape, projected to the tool's
+6. The raw response is validated against the response shape, projected to the tool's
    view, then passed through the generic redaction. The projection is what the model
    sees, verbatim, as `redacted_response`.
 
@@ -360,6 +386,10 @@ nine read-only tools are auto-approved. The proposal pauses the graph with the p
 verdict, action, escalation and summary in front of the analyst, and resumes with
 `Command(resume=...)` on a checkpointer.
 
+A proposal that breaks the ordering rules of the write action never reaches the
+analyst: the turn jumps past the interrupt to the tool node, and the runner's denial is
+what the model reads. The analyst decides on proposals, not on the model's mistakes.
+
 Two decisions are offered, accept and reject with an optional reason. Not edit: an
 edited proposal would be the analyst's verdict in the model's mouth, and the harness
 would then measure the analyst. On accept the tool runs and the proposal is journalled.
@@ -381,7 +411,8 @@ also decides `ProviderStrategy` versus `ToolStrategy` for structured output.
   choice falls back to matching model names when a profile is missing; that fallback is
   not used here, because a strategy chosen from a name is a guess and a guess is what
   the profile exists to replace. A model with no profile gets `ToolStrategy`, which every
-  tool-calling model supports.
+  tool-calling model supports. The resolution is recorded on the artifact as
+  `output_binding`, so a reader sees the strategy and the values that chose it.
 - Provider packages are optional extras, not dependencies: `alert-forensics[anthropic]`,
   `[openai]`, `[google]`, `[ollama]`. A missing provider fails at start-up with the
   package to install named, before any tool runs.
@@ -566,6 +597,10 @@ alert-forensics eval
   alone, so `triage ... | jq` and redirection keep working. `--quiet` suppresses the
   progress. Nothing is printed between launch and the first tool call, and nothing
   between the last and the result line; that is why the model call itself is bounded.
+- The Google client logs one warning per tool, twice, for a JSON schema key it does not
+  support and ignores. The console script filters that one message at startup. It is
+  the library's note to itself, not a fault in the run, and a tool that opens with
+  twenty-two lines of it reads as broken.
 - A run the provider refused to serve, a rate limit, a quota, or an overloaded model,
   after the retries were spent, ends with a message on stderr naming the provider, the
   model, and the fact that it is the provider's capacity and not a bug in the run, and
