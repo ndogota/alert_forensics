@@ -1,4 +1,5 @@
-"""The console script: ``alert-forensics triage``, ``show`` and ``replay``."""
+"""The console script: ``alert-forensics triage``, ``show``, ``replay``, ``eval`` and
+``eval-report``."""
 
 import argparse
 import json
@@ -20,6 +21,16 @@ from alert_forensics.agent import (
 )
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import Alert, ModelLimits, RunOutcome, ToolCallRecord
+from alert_forensics.evaluation import (
+    GroundTruthError,
+    HarnessError,
+    RunMeasurement,
+    RunScore,
+    load_scenarios,
+    render_summary,
+    report,
+    run_suite,
+)
 from alert_forensics.fixtures import ATTACK_EXCERPT, DEFAULT_FIXTURES_DIR
 from alert_forensics.tools import (
     ROLES,
@@ -38,6 +49,9 @@ EXIT_OK, EXIT_FAILED_RUN, EXIT_USAGE, EXIT_PROVIDER = 0, 1, 2, 3
 """3 is the provider refusing to serve: a rate limit, a quota, an overloaded model. It
 is separate from 1 because it is the provider's capacity, not the run's fault."""
 DEFAULT_TIMEOUT_S, DEFAULT_MAX_RETRIES = 60.0, 1
+DEFAULT_RUNS = 3
+DEFAULT_RESULTS_DIR = Path("results")
+DEFAULT_SCENARIOS_DIR = Path("examples")
 
 
 class CliError(Exception):
@@ -73,6 +87,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _triage(args)
         if args.command == "replay":
             return _replay(args)
+        if args.command == "eval":
+            return _eval(args)
+        if args.command == "eval-report":
+            return _eval_report(args)
         return _show(args)
     except CliError as exc:
         print(f"alert-forensics: {exc}", file=sys.stderr)
@@ -88,34 +106,8 @@ def _parser() -> argparse.ArgumentParser:
 
     triage = commands.add_parser("triage", help="investigate one Graph security.alert v2 export")
     triage.add_argument("alert", type=Path, help="path to the alert JSON")
-    triage.add_argument("--model", help="provider:name through init_chat_model")
-    triage.add_argument(
-        "--scripted",
-        action="store_true",
-        help="run on the scripted client with a built-in script; no key, no network",
-    )
-    triage.add_argument("--role", choices=sorted(ROLES), default="analyst")
+    _model_arguments(triage)
     triage.add_argument("-o", "--output", type=Path, default=Path("run.json"))
-    triage.add_argument("--max-corrections", type=int, default=1)
-    triage.add_argument("--fixtures", type=Path, default=DEFAULT_FIXTURES_DIR)
-    triage.add_argument("--recursion-limit", type=int, default=50)
-    triage.add_argument(
-        "--timeout",
-        type=float,
-        default=DEFAULT_TIMEOUT_S,
-        metavar="SECONDS",
-        help="bound on each model call, passed to the provider client (default 60)",
-    )
-    triage.add_argument(
-        "--max-retries",
-        type=int,
-        default=DEFAULT_MAX_RETRIES,
-        help="retries the provider client may make per call (default 1; Google counts "
-        "attempts, so 1 there is no retry)",
-    )
-    triage.add_argument(
-        "--quiet", action="store_true", help="no progress on stderr while the run proceeds"
-    )
     decision = triage.add_mutually_exclusive_group()
     decision.add_argument("--accept", action="store_true", help="accept the proposal")
     decision.add_argument("--reject", metavar="REASON", help="reject the proposal with a reason")
@@ -127,7 +119,61 @@ def _parser() -> argparse.ArgumentParser:
         "replay", help="verify a recorded run against its raw store and print it"
     )
     replay.add_argument("run", type=Path, help="path to the recorded run artifact JSON")
+
+    evaluate = commands.add_parser(
+        "eval", help="run every scenario N times, keep every artifact, summarise"
+    )
+    _model_arguments(evaluate)
+    evaluate.add_argument(
+        "--runs", type=int, default=DEFAULT_RUNS, help=f"runs per cell (default {DEFAULT_RUNS})"
+    )
+    evaluate.add_argument("--results", type=Path, default=DEFAULT_RESULTS_DIR, metavar="DIR")
+    evaluate.add_argument(
+        "--scenarios",
+        type=Path,
+        default=DEFAULT_SCENARIOS_DIR,
+        metavar="DIR",
+        help="directory of <scenario>.alert.json and <scenario>.truth.json pairs",
+    )
+    evaluate.add_argument("--scenario", metavar="NAME", help="run this scenario only")
+
+    eval_report = commands.add_parser(
+        "eval-report", help="re-score every run under a results directory and summarise"
+    )
+    eval_report.add_argument("results", type=Path, metavar="DIR")
+    eval_report.add_argument("--scenarios", type=Path, default=DEFAULT_SCENARIOS_DIR, metavar="DIR")
     return parser
+
+
+def _model_arguments(parser: argparse.ArgumentParser) -> None:
+    """The model, role and bounds that ``triage`` and ``eval`` share."""
+    parser.add_argument("--model", help="provider:name through init_chat_model")
+    parser.add_argument(
+        "--scripted",
+        action="store_true",
+        help="run on the scripted client with a built-in script; no key, no network",
+    )
+    parser.add_argument("--role", choices=sorted(ROLES), default="analyst")
+    parser.add_argument("--max-corrections", type=int, default=1)
+    parser.add_argument("--fixtures", type=Path, default=DEFAULT_FIXTURES_DIR)
+    parser.add_argument("--recursion-limit", type=int, default=50)
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT_S,
+        metavar="SECONDS",
+        help="bound on each model call, passed to the provider client (default 60)",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=DEFAULT_MAX_RETRIES,
+        help="retries the provider client may make per call (default 1; Google counts "
+        "attempts, so 1 there is no retry)",
+    )
+    parser.add_argument(
+        "--quiet", action="store_true", help="no progress on stderr while the run proceeds"
+    )
 
 
 # --- triage ------------------------------------------------------------------------
@@ -296,6 +342,84 @@ def _ask_on_terminal(proposal: dict[str, JsonValue]) -> AnalystDecision:
         if answer in {"r", "reject"}:
             reason = input("Reason (optional): ").strip() or None
             return AnalystDecision(accept=False, reason=reason)
+
+
+# --- eval and eval-report ----------------------------------------------------------
+
+
+def _eval(args: argparse.Namespace) -> int:
+    if args.runs < 1:
+        raise CliError("--runs is one or more")
+    scenarios = _load_scenarios(args.scenarios, args.scenario)
+    role = ROLES[args.role]
+    limits: ModelLimits | None = None
+    if args.scripted:
+        model_id = SCRIPTED_MODEL_ID
+
+        def model_factory(alert: Alert) -> Any:
+            return ScriptedChatModel(
+                script=demo_script(alert), profile={"structured_output": True}, model_id=model_id
+            )
+
+    else:
+        if not args.model:
+            raise CliError("pass --model provider:name, or --scripted to run without a model")
+        model_id = args.model
+        limits = _limits(args)
+        model = _init_model(model_id, limits)
+
+        def model_factory(alert: Alert) -> Any:
+            return model
+
+    fixtures_dir: Path = args.fixtures
+    scripted: bool = args.scripted
+    results_dir: Path = args.results
+    run_suite(
+        scenarios=scenarios,
+        model_factory=model_factory,
+        model_id=model_id,
+        role=role,
+        adapters=lambda: default_adapters(fixtures_dir, scripted=scripted),
+        results_dir=results_dir,
+        runs=args.runs,
+        max_corrections=args.max_corrections,
+        recursion_limit=args.recursion_limit,
+        model_limits=limits,
+        on_run=None if args.quiet else _run_progress,
+    )
+    return _print_report(results_dir, scenarios)
+
+
+def _eval_report(args: argparse.Namespace) -> int:
+    return _print_report(args.results, _load_scenarios(args.scenarios, None))
+
+
+def _print_report(results_dir: Path, scenarios: Any) -> int:
+    try:
+        summary = report(results_dir, scenarios)
+    except HarnessError as exc:
+        raise CliError(str(exc)) from exc
+    print(render_summary(summary))
+    return EXIT_OK
+
+
+def _load_scenarios(directory: Path, only: str | None) -> Any:
+    try:
+        return load_scenarios(directory, only=only)
+    except GroundTruthError as exc:
+        raise CliError(str(exc)) from exc
+
+
+def _run_progress(measurement: RunMeasurement, score: RunScore) -> None:
+    """One line per run, on stderr, so stdout stays the report alone."""
+    verdict = score.verdict_observed.value if score.verdict_observed else "none"
+    kind = f" ({score.error_kind})" if score.error_kind else ""
+    print(
+        f"  {measurement.scenario}  run {measurement.index}  {score.outcome.value}{kind}  "
+        f"verdict: {verdict}  {measurement.wall_clock_s:.2f} s",
+        file=sys.stderr,
+        flush=True,
+    )
 
 
 # --- show and replay ---------------------------------------------------------------

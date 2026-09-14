@@ -38,3 +38,12 @@ def test_every_declared_technique_resolves_offline(path):
         assert record.outcome is ToolOutcome.ok, (technique, record.redacted_response)
         assert record.redacted_response["technique_id"] == technique
     assert runner.adapters["get_attack_technique"].kind == "recorded"
+
+
+@pytest.mark.parametrize("path", EXAMPLES, ids=[p.name for p in EXAMPLES])
+def test_every_example_has_a_ground_truth_that_loads_beside_it(path):
+    from alert_forensics.evaluation import load_scenario
+
+    scenario = load_scenario(path)
+    assert scenario.truth.alert_id == scenario.alert.id
+    assert scenario.truth.required_findings, f"{path.name}: a scenario requires findings"

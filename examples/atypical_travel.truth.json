@@ -1,0 +1,35 @@
+{
+  "scenario": "atypical_travel",
+  "alert_id": "da637551227677560813_-961444813",
+  "verdict": "false_positive",
+  "escalate": false,
+  "required_findings": [
+    {
+      "name": "paris_sign_in_from_the_egress_address",
+      "tools": ["search_events"],
+      "tokens": ["203.0.113.7", "Paris"]
+    },
+    {
+      "name": "amsterdam_sign_in_from_the_egress_address",
+      "tools": ["search_events"],
+      "tokens": ["203.0.113.7", "Amsterdam"]
+    },
+    {
+      "name": "the_egress_address_is_the_sase_gateway",
+      "tools": ["lookup_ioc", "search_runbook"],
+      "tokens": ["203.0.113", "SASE"]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "gateway_session_log",
+      "tokens": [["SASE", "VPN", "gateway", "proxy"], ["session", "log", "audit"]]
+    },
+    {
+      "name": "mfa_or_device_compliance_outcome",
+      "tokens": [
+        ["MFA", "multi-factor", "multifactor", "conditional access", "device compliance", "compliant"]
+      ]
+    }
+  ]
+}

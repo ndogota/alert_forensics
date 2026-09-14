@@ -28,8 +28,22 @@ it could not establish, and is measured against ground truth. The design authori
   attempt by default, whose second pass receives a repair instruction and returns
   citation repairs; `RunOutcome` on the run artifact beside the trace and the grounding
   report; the scripted client, a chat model stand-in that replays a script with no key
-  and no network, on which every graph test runs; and the console script. The replay
-  viewer and the eval harness are slice 4.
+  and no network, on which every graph test runs; and the console script.
+
+- **Slice 4, done.** The evaluation harness. `GroundTruth` is a contract, one file per
+  scenario beside its alert (`examples/<scenario>.truth.json`), checked against the
+  alert it sits beside; a required finding names the tool a fact must cite and the
+  tokens its statement must contain, so the match is deterministic and a miss is named.
+  Scorers: verdict accuracy on exact match, evidence recall over grounded facts only,
+  missing-context recall, escalation precision and recall, and `ungrounded_claim_rate`
+  reported as the check that the loop held. A failed run scores zero on every metric
+  and stays in every denominator; the failure rate is reported beside accuracy, split
+  by outcome and error kind. Every proportion carries its Wilson 95 percent interval.
+  Cost is derived at report time from a price table in the evaluation package; latency
+  is the wall clock the harness measured. `alert-forensics eval` keeps one artifact per
+  run and derives the summary; `eval-report` recomputes it. Only scenario 1 has a ground
+  truth so far; the other seven scenarios are the next slice, written against this
+  contract. The replay viewer is also still to come.
 
 ## Tools: which are live, which are fixture-backed
 
@@ -67,11 +81,9 @@ uv run alert-forensics replay runs/atypical_travel/run.json
 the recorded hashes, states the model and the date, and prints the result: verdict,
 grounded facts with their citations, assumptions, missing context, human decisions.
 What it prints is a recording of a real model run, not a live one: nothing is called,
-nothing is generated. **There is no recorded run committed yet.** The first, scenario 1
-on a real model, is produced with the command under "With a model" below, written to
-`runs/atypical_travel/run.json` with its `run.raw/` beside it, and committed. A
-recording of the scripted client is refused by the test suite: a fake demo is worse
-than none.
+nothing is generated. The recording under `runs/atypical_travel/` is scenario 1 on a
+real model, produced with the command under "With a model" below. A recording of the
+scripted client is refused by the test suite: a fake demo is worse than none.
 
 A plumbing check, no key and no model:
 
@@ -102,9 +114,32 @@ artifact's `adapters` field says `recorded` instead of `live`. `lookup_ioc` is l
 `VIRUSTOTAL_API_KEY` is set. `--role tier1` runs under the restricted role.
 `--max-corrections` bounds the correction loop, default one.
 
-Nothing in this repository has been run against a real model yet: the build runs
-entirely on the scripted client, as the spec's cost discipline requires. The first
-measured cell comes with the evaluation slice.
+The build runs entirely on the scripted client, as the spec's cost discipline requires;
+real model runs are the recordings under `runs/` and the cells under `results/`.
+
+## Evaluation
+
+```
+uv run alert-forensics eval --scripted
+uv run alert-forensics eval --model anthropic:claude-sonnet-5 --runs 3
+uv run alert-forensics eval-report results/
+```
+
+`eval` runs every scenario under `examples/` N times (`--runs`, default 3; `--scenario`
+narrows to one) and writes one directory per run under `results/<model>/<role>/<scenario>/<k>/`:
+`run.json`, the same artifact `triage` writes, so `show` and `replay` read it; `run.raw/`;
+`eval.json`, the measured wall clock; and `score.json`, the run scored against the
+scenario's ground truth. A second invocation adds runs to a cell rather than overwriting
+it. It then writes `results/summary.json` and prints the report: per cell, the completed
+and failed proportions split by outcome and error kind, verdict accuracy, evidence
+recall, missing-context recall, escalation precision and recall, the ungrounded claim
+rate over completed runs, wall clock, tokens and cost, each proportion with its Wilson
+95 percent interval. `eval-report DIR` re-scores every run from its artifact and the
+current ground truth and rewrites the summary, so a corrected truth file re-scores old
+runs without a model. `--scripted` runs the suite with no key and no network; its verdict
+is `inconclusive` by construction, so its accuracy is the floor, not a result. The price
+table lives in `src/alert_forensics/evaluation/prices.py`; a model missing from it is
+reported as unpriced, never as free.
 
 ## Development
 
