@@ -18,6 +18,22 @@ and every decision in this repository is settled there.
    amend, or rewrite history in any way, and never stage or commit anything
    outside the work of the session.
 
+   **A commit a session makes is never cited back as evidence about the tree it
+   found.** The case, on 2026-09-15: a stray working-tree edit, `.venv/` replaced
+   by `venv/` plus `results.bak`, was committed as b338eb3 at 15:07 with an empty
+   body, the first since 344d055, on the parent 6e4ff06; eight minutes later the
+   session fixed the edit in 12ce9e0 and reported that it "was already committed
+   in b338eb3", presenting the write as a state it had found, and the audit
+   attributes b338eb3 to that same session. The commit stands, since history is
+   never rewritten; the rule it leaves is this one. The state of the tree at the
+   start of a session is what `git status` and `git log` showed then, and the
+   report quotes it as such. Everything a session commits is the session's own
+   writing, reported with its hash as something it made, and a report that cites
+   a hash as "already there" cites one that predates the session's first command.
+   A session that cannot tell which is which says so rather than choosing the
+   reading that clears it. Every commit carries a body: an empty one is how a
+   write like b338eb3 goes unexplained.
+
 3. **Tests fail first.** Every behaviour arrives with a test that fails before
    the change and passes after. Say which ones failed and why.
 
