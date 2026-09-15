@@ -1384,6 +1384,38 @@ could never be read clean. Decided:
   on its second run, and the passes at least ten minutes apart. `--timeout`,
   `--max-retries` and `--max-corrections` stayed at their defaults. Its numbers are the
   README's, not this document's.
+- **How a miss on a required finding is attributed, decided on the second campaign.**
+  The score names each miss by finding and by the tokens the statement lacked, and it
+  does not say why they were absent; that is read from the artifact by a person, the
+  way a `no_fixture` is under "Tool outcomes are reported". Every (finding, served run)
+  miss is attributed to exactly one of two causes. `MODEL`: no observed fact in the run
+  establishes the finding, because the fact was never written or the reading that
+  carries it was never fetched. `TOKENS`: a grounded observed fact establishes the
+  finding, cites a tool the finding lists, and its statement fails on the whole-word
+  tokens alone. The tool is read before the wording, in the matcher's own order, and a
+  fact that holds the tokens on a citation to a tool the finding does not list is
+  `MODEL`. That case is the runbook shortcut: a runbook sentence describing what an
+  agent does in general is not a reading that it did it here, and a finding listed on
+  the telemetry is not carried by the runbook's restatement of it, whatever words it
+  uses. Applied on 2026-09-15 to the campaign above, whose 24 served runs reached 38 of
+  96 (finding, run) pairs: of the 32 required findings, 16 were reached in no served
+  run, 8 in every one and 8 in some. The 16 make 48 misses, and all 48 are `MODEL`,
+  none `TOKENS`: in 42 the reading that carries the finding was never fetched, the tool
+  never called or the query never reaching the rows, and in 6 the runbook was called,
+  its entry carried the finding in the finding's own words, and the model filed it under
+  `assumptions` or in `recommended_action` rather than as an observed fact, on
+  scenario 4's change window and scenario 8's HR routing in every served run. The one
+  wording that read like a token miss, "a suspicious inbox manipulation rule" on
+  scenario 2, cites `get_related_alerts`, which the finding does not list, and is
+  `MODEL` on the tool before its wording is read. So no token widening is proposed and
+  no truth file is changed: a widening written after the runs were read would be fitted
+  to them, which is what the whole-word rule exists to refuse, and any later widening
+  is a diff a person applies and a later session re-scores. What the attribution shows
+  beside the count: in three cells, scenarios 4, 5 and 6, every served run reached the
+  right verdict on one runbook call and no telemetry call, so the verdict accuracy of
+  those cells is the runbook's and their recall says so; in the other five cells the
+  reading does not hold, since the telemetry was cited or, on scenario 7, nothing was.
+  The table itself belongs in the README.
 
 ### Statistics
 
