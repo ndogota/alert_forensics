@@ -1,5 +1,10 @@
 # alert_forensics
 
+Repository: [github.com/ndogota/alert_forensics](https://github.com/ndogota/alert_forensics).
+Matrix page: [alert-forensics.vercel.app](https://alert-forensics.vercel.app/), whose
+numbers come from [reports/model-matrix.json](reports/model-matrix.json) and the
+recordings under [runs/](runs/README.md).
+
 A SOC alert triage agent whose every claim cites the tool call behind it. Its output is
 three separate lists, not a summary: observed facts, each carrying the ids of the tool
 calls it rests on, validated against the real trace; assumptions, which carry no
@@ -14,14 +19,26 @@ below is settled there, with its reason.
 Scenario 7 is a remote-management tool blocked by the EDR: a signed binary, VirusTotal 0
 of 72, and a ground truth of `true_positive`, because the block caught the second
 execution and the first arrived from `mshta.exe` launched by the mail client six
-minutes earlier. Four real runs of `google_genai:gemini-3.5-flash-lite` have been made
-on it, one in the first campaign and three in the second. All four closed with zero
-tool calls and zero observed facts and asserted `benign_true_positive`, at confidence
-0.8, 0.85, 0.9 and 1.0. All four were refused by the silence rule, under which a result
-with no observed facts is grounded only when its verdict is `inconclusive` and its
-missing context says what could not be established. All four are counted
-`failed_ungrounded`, and none was laundered into `inconclusive`. The first is committed
-and replays with no API key:
+minutes earlier.
+
+Seven real runs of `google_genai:gemini-3.5-flash-lite` have been made on it across the
+three campaigns: one, then three, then three. All seven closed with zero tool calls and
+zero observed facts and asserted `benign_true_positive` against the `true_positive`
+truth, at confidence 0.8, 0.85, 0.9, 1.0, 0.9, 0.9 and 0.9. All seven were refused by
+the silence rule, under which a result with no observed facts is grounded only when its
+verdict is `inconclusive` and its missing context says what could not be established.
+All seven are counted `failed_ungrounded`, and none was laundered into `inconclusive`.
+The three of campaign 03 closed in 2.1 to 3.2 seconds.
+
+Beside it, in campaign 03, `anthropic:claude-sonnet-5` made eight to ten tool calls in
+each of its three runs on the same alert and the same fixtures, ten, ten and eight,
+every call answered. It returned `true_positive` at confidence 0.93 every time,
+carried three of the four required findings as grounded facts in every run, named both
+missing-context entries in every run, and escalated every time. Same alert, opposite
+verdicts, and the gap is the tool calls: one model read the alert and answered from
+it, the other asked the tools what the alert did not say.
+
+The first of the seven is committed and replays with no API key:
 
 ```
 uv sync
@@ -57,58 +74,52 @@ uv run alert-forensics replay runs/rmm_block/campaign-0/run.json
 
 ## The numbers
 
-Campaign 02: `google_genai:gemini-3.5-flash-lite` under the `analyst` role, three served
-runs per scenario on eight scenarios, run on 2026-09-15 on fixture digest
-`a1861664bc5a11db2c484b92c836c382de183157f8793b27ba8e8ad41788c84e`. The provider's free
-tier refused half of the runs made. Every proportion below the refusal line is over the
-served runs, and the pooled recalls treat each (finding, run) pair as one trial, so
-their intervals are narrower than the truth.
+Campaign 03: four models under the `analyst` role, three served runs per cell on eight
+scenarios, run on 2026-09-15 from 17:36 UTC on fixture digest
+`1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4`. Every proportion
+below is over the served runs of that model, 24 for each: verdicts over runs, evidence
+recall over (finding, served run) pairs, missing-context recall over (entry, served
+run) pairs. The pooled recalls treat each pair as one trial, so their intervals are
+narrower than the truth. Each cell carries its Wilson 95 percent interval, and every
+number here is in [reports/model-matrix.json](reports/model-matrix.json).
 
-| Measure | Population | Value | Wilson 95 percent |
-|---|---|---|---|
-| Runs made | all | 48 | |
-| Served | all runs | 24 of 48 | |
-| Refused by the free tier | all runs | 24 of 48, 22 before any model turn and 2 after | 0.36 to 0.64 |
-| Verdict accuracy | served runs | 21 of 24 | 0.69 to 0.96 |
-| Evidence recall | (finding, served run) pairs | 38 of 96 | 0.30 to 0.50 |
-| Missing-context recall | (entry, served run) pairs | 1 of 48 | 0.00 to 0.11 |
-| First passes ungrounded | served runs | 24 of 24 | |
-| Runs the correction loop repaired to completed | served runs | 21 of 24 | |
-| Observed facts per served run | served runs | 49 facts, mean 2.04; 8 of 24 runs held zero or one | |
-| Cost, at the paid-tier price table | all 48 runs | 0.173425 USD | |
+| Model | Verdict | Evidence | Missing context | Cost |
+|---|---|---|---|---|
+| `openai:gpt-5-nano` | 7 of 24 (0.15 to 0.49) | 5 of 96 (0.02 to 0.12) | 12 of 48 (0.15 to 0.39) | 0.16 USD |
+| `anthropic:claude-haiku-4-5` | 13 of 24 (0.35 to 0.72) | 34 of 96 (0.27 to 0.45) | 18 of 48 (0.25 to 0.52) | 0.88 USD |
+| `google_genai:gemini-3.5-flash-lite` | 19 of 24 (0.60 to 0.91) | 36 of 96 (0.28 to 0.47) | 1 of 48 (0.00 to 0.11) | 0.14 USD |
+| `anthropic:claude-sonnet-5` | 23 of 24 (0.80 to 0.99) | 56 of 96 (0.48 to 0.68) | 26 of 48 (0.40 to 0.67) | 2.87 USD |
 
-The three served runs that were not repaired are scenario 7's, above. The campaign ran
-on the free tier, which billed nothing; the cost is what the same tokens cost on a
-billed account, from the price table in the evaluation package.
+Cost is the total over all of a model's runs, refused runs included, at the price table
+in the evaluation package. Gemini ran on the free tier, which billed nothing; its cost
+is what the same tokens cost on a billed account. Gemini's 24 served runs came out of
+46 made: 22 were refused by the free tier, every one a rate limit, 21 before any model
+turn and 1 after work, a refusal proportion of 22 of 46 (0.34 to 0.62). The other three
+models were never refused.
 
-## What the gap is made of
+Of the served runs, `anthropic:claude-sonnet-5` completed 24 of 24;
+`anthropic:claude-haiku-4-5` completed 22 of 24, with 1 `failed_ungrounded` and 1
+`failed_error`; `google_genai:gemini-3.5-flash-lite` completed 21 of 24, with 3
+`failed_ungrounded`, scenario 7's, above; `openai:gpt-5-nano` completed 21 of 24, with
+1 `failed_ungrounded` and 2 `failed_error`, both timeouts. A failed run stays in every
+denominator above at zero.
 
-The verdict was right in 21 of 24 served runs. The findings behind those verdicts were
-carried, as grounded facts, in 38 of 96 pairs. Of the 32 required findings across the
-eight scenarios, 8 were reached in every served run, 8 in some, and 16 in none. The 16
-make 48 misses, and every one is attributed to the model rather than to the token
-matcher: in no miss did a grounded fact citing a listed tool fail on wording alone.
+## What the matrix says
 
-In three cells, scenarios 4, 5 and 6, every served run reached the right verdict on one
-runbook call and no telemetry call. Those nine verdicts are the runbook's; the recall of
-those cells says so.
+`google_genai:gemini-3.5-flash-lite` reaches 19 of 24 verdicts on 36 of 96 findings,
+while `anthropic:claude-haiku-4-5` reaches 13 of 24 on 34 of 96. So verdict accuracy
+does not track the evidence behind it, and the cheapest model in the matrix beats one
+six times its price on the verdict alone. The verdict is the number a leaderboard
+would print; the evidence recall is the number that says what the verdict rests on.
+At its best the agent reaches 23 of 24 verdicts and carries 56 of 96 findings there,
+and the second number is the one to read.
 
-Where the model put the 48 missed findings, read from the artifacts:
-
-- 31 were never stated anywhere in the result.
-- 3 were stated as a grounded fact citing the runbook where the finding lists the
-  telemetry: scenario 4's parent process, in every served run.
-- 6 were in the runbook reading the model received and were filed in `assumptions` or
-  `recommended_action` instead of as an observed fact: scenario 4's change window and
-  scenario 8's HR routing, three runs each.
-- 3 were written as the correct specific claim in `assumptions`, with no tool called
-  that could have established it: scenario 4's encoded command in run 4, and scenario
-  5's LSASS read in runs 3 and 4. A model judge reading the text would have scored
-  those 3 correct. The scorer did not, because nothing in the trace supports them.
-- The remaining 5 hold the finding's tokens inside a recommendation or a conditional
-  restatement of the runbook, and state no finding.
-
-That is what the three-list schema is for.
+Missing context is where the models separate rather than agree.
+`google_genai:gemini-3.5-flash-lite` names what it could not establish in 1 of 48
+(entry, served run) pairs. That is a property of that model, not of the agent: on the
+same alerts and the same fixtures, `anthropic:claude-sonnet-5` names 26 of 48 and
+`anthropic:claude-haiku-4-5` names 18 of 48. The axis is scored on every run, and what
+the campaign shows is that it separates models rather than describing all of them.
 
 ## Tools: which are live, which are fixture-backed
 
@@ -181,6 +192,7 @@ The evaluation harness:
 ```
 uv run alert-forensics eval --model google_genai:gemini-3.5-flash-lite --runs 3 --results campaigns/03
 uv run alert-forensics eval-report campaigns/03
+uv run alert-forensics matrix campaigns/03 -o reports/model-matrix.json
 ```
 
 `eval` runs every scenario under `examples/` N times into one directory per run, scores
@@ -189,7 +201,9 @@ refused, the failure rate by outcome and error kind, verdict accuracy, evidence 
 missing-context recall, escalation precision and recall, tool outcomes, wall clock,
 tokens and cost, every proportion with its interval. A results directory is one fixture
 revision, recorded as a digest, and a rerun under other fixtures is refused before any
-run. `eval-report` re-scores a directory from its artifacts without a model.
+run. `eval-report` re-scores a directory from its artifacts without a model. `matrix`
+re-scores it the same way and writes the one committed file the page and the table
+above are read from; [reports/README.md](reports/README.md) says what it holds.
 
 ## Development
 
@@ -206,15 +220,19 @@ The test suite never opens a socket and never needs a key.
 
 - Eight scenarios, all synthetic, in one taxonomy of four verdicts. Real alert queues
   are messier, noisier and ambiguous.
-- One model measured, `google_genai:gemini-3.5-flash-lite`, at three served runs per
-  cell. The intervals above say what three runs are worth.
+- Four models measured, at three served runs per cell. The intervals above say what
+  three runs are worth.
 - Single tenant, single language, no fine-tuning. Two connectors are live, seven are
   fixture-backed, and the fixtures were written by the author who wrote the ground
   truth.
 - Read-only by design, with one gated proposal that writes nothing. This triages; it
   does not remediate.
-- The numbers above come from `campaigns/02`, a results directory on the author's disk
-  that is not committed, as no results directory is; they were recomputed from its 48
-  run artifacts with the project's own scorer on 2026-09-15. A reader of this
-  repository can verify the method, the test suite and the fifteen recordings, and not
-  the campaign.
+- The numbers above come from `campaigns/03`, a results directory on the author's disk
+  that is not committed, as no results directory is. What is committed is the derived
+  view, [reports/model-matrix.json](reports/model-matrix.json), regenerated from that
+  directory with the project's own scorer and no model call, and the fifteen
+  recordings. A reader of this repository verifies the method, the test suite, the
+  matrix file's contract and the fifteen recordings, and not the campaign.
+- Campaign 02, the earlier single-model campaign, ran under a different fixture
+  revision and is superseded; its numbers are not repeated here, and the three
+  scenario 7 confidences it contributed above are the only numbers taken from it.
