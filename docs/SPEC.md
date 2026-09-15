@@ -167,8 +167,9 @@ RunArtifact
   model              the provider:model string the run was started with
   model_limits       {timeout_s, max_retries} the model client was bounded with, or null
                      for the scripted client, which makes no network call
-  output_binding     {strategy: provider | tool, profile_declared, structured_output}:
-                     how structured output was bound, and the profile values that decided it
+  output_binding     {strategy: provider | tool, profile_declared, structured_output,
+                     strict}: how structured output was bound, the profile values that
+                     decided it, and whether the provider was asked to enforce the schema
   role               the role the tools ran under
   adapters           {tool: fixture | live | recorded | local}, what actually served each tool
   fixture_labels     the stub labels the fixture adapters were bound to, see the tool layer;
@@ -189,7 +190,16 @@ RunArtifact
   values the decision read: whether the model declared a profile at all, and the value
   of `profile["structured_output"]` as read, null when absent. A recording that cannot
   say how its output was bound cannot be reproduced, and the model string alone does not
-  say it: a profile changes with the provider package version.
+  say it: a profile changes with the provider package version. `strict` says whether the
+  harness asked the provider to enforce the schema: true under the provider strategy
+  since the rule under "Model independence"; null under the tool strategy, which has no
+  such flag, and the contract refuses a value there. A recording written before the
+  field existed carries none and reads null under `provider` too, and null means the
+  flag was not recorded, not that it was not asked: fourteen of the fifteen recordings
+  were bound without it, since nothing passed the flag before the rule, and the strict
+  probe was bound with it by the probe script; the artifact says neither, and the
+  contract does not guess. Since every provider-bound run after the rule records true,
+  null under `provider` is exactly a recording from before it.
 - `model_limits` sits beside `model` because the two numbers change the latency the
   evaluation measures: a call that was allowed six retries with exponential backoff and
   a call that was allowed one are not the same measurement, even on the same model.
@@ -724,6 +734,50 @@ also decides `ProviderStrategy` versus `ToolStrategy` for structured output.
   the profile exists to replace. A model with no profile gets `ToolStrategy`, which every
   tool-calling model supports. The resolution is recorded on the artifact as
   `output_binding`, so a reader sees the strategy and the values that chose it.
+- **The provider strategy asks the provider to enforce the schema, and the artifact
+  records that it asked.** A profile declaring `structured_output` says the provider
+  can enforce a schema. It does not say the harness asked it to, and until 2026-09-15
+  the harness did not. `langchain` 1.4.0's `ProviderStrategy` carries
+  `strict: bool | None = None` and puts `"strict": true` on the wire only when asked;
+  the strategy here passed nothing, so `langchain-openai` 1.6.2 sent `TriageResult` to
+  the Chat Completions API with `strict: false`. The first OpenAI gate run showed what
+  that binds: `gpt-5-nano` on scenario 1 at 17:05 UTC, kept as
+  `runs/atypical_travel/probe-gpt-5-nano/`, made seven tool calls, six `ok`, and on its
+  second model turn returned a result with a `summary` key the schema forbids. The
+  parse failed, the run is `failed_error` of kind `StructuredOutputValidationError`,
+  and no pass was left. The same client had already sent every tool schema as strict,
+  since that API requires it whenever a `response_format` is present; only the output
+  schema was not. The provider was never asked for the guarantee the profile
+  advertised, so the failure is the harness's, by the rule that makes a refusal the
+  quota's number and the retry count the harness's: a run that fails on a knob the
+  harness left unset measures the harness. Whether strict was available for this
+  schema was not known, since that API's strict mode accepts a subset of JSON Schema
+  and the schema carries `minLength` eight times, `minItems` on the evidence list,
+  `pattern` on the technique ids and `minimum` and `maximum` on the confidence. One
+  probe, one run, the same model and scenario with `ProviderStrategy(schema,
+  strict=True)`, 17:18 UTC, kept as `runs/atypical_travel/probe-gpt-5-nano-strict/`,
+  made by a script that replaced the strategy for that run and nothing else, so its
+  artifact predates the field and records no flag; that it was bound strict is the
+  script's word and this paragraph's, not the artifact's. The API accepted the schema with every keyword in place, the first pass parsed, the
+  correction pass parsed under the same binding for `CitationRepairs`, and the run
+  completed, `inconclusive` at 0.58 against `false_positive`, six calls all `ok`, four
+  model turns, 122 seconds. No keyword was refused. Decided: the provider strategy is
+  constructed with `strict=True`, always, and the tool strategy is unchanged, since it
+  has no such flag. What the flag does per client, read in the installed packages and
+  built offline for all three with no socket: `langchain-openai` 1.6.2 reads it, sets
+  `"strict": true` on the response format and rewrites the schema the way strict mode
+  requires, every property `required` at every level, so the four list fields with
+  defaults must be emitted; `langchain-anthropic` 1.7.2 drops it and sends the schema
+  under `output_config.format`, which that API enforces without a flag;
+  `langchain-google-genai` consumes it and sends `response_json_schema`, dropping
+  `minLength` and the flag alike. So the flag changes what one provider is asked and
+  nothing about the other two, and it is asked of every provider-bound run rather than
+  of one named provider, because a strategy that varied by name would be the name
+  fallback again. What is guaranteed and what is not: that the flag is asked for is
+  held by the strategy and recorded on the artifact as `output_binding.strict`; that
+  the provider honours it is the provider's, and the validator downstream is unchanged,
+  so a schema violation that still reaches it is `failed_error` as before. A test holds
+  the strategy to the flag and the binding to the record.
 - Provider packages are optional extras, not dependencies: `alert-forensics[anthropic]`,
   `[openai]`, `[google]`, `[ollama]`. A missing provider fails at start-up with the
   package to install named, before any tool runs.

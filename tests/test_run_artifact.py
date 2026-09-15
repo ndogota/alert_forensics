@@ -155,6 +155,31 @@ def test_the_output_binding_is_required_and_round_trips(trace, grounded_result):
         OutputBinding(strategy="magic", profile_declared=True, structured_output=True)
 
 
+def test_strict_is_recorded_under_the_provider_strategy_and_refused_under_the_tool_one(
+    trace, grounded_result
+):
+    """Absent means not recorded: a recording from before the field, which the contract
+    does not read as false or true. The tool strategy has no such flag."""
+    from alert_forensics.contracts import OutputBinding
+
+    report = validate_grounding(grounded_result, trace)
+    before = make_artifact(trace, report)
+    assert before.output_binding.strategy == "provider"
+    assert before.output_binding.strict is None
+    asked = OutputBinding(
+        strategy="provider", profile_declared=True, structured_output=True, strict=True
+    )
+    artifact = make_artifact(trace, report, output_binding=asked)
+    assert artifact.output_binding.strict is True
+    assert RunArtifact.model_validate_json(artifact.model_dump_json()).output_binding == asked
+    assert "strict" in artifact.model_dump()["output_binding"]
+    for value in (True, False):
+        with pytest.raises(ValidationError, match="no strict flag"):
+            OutputBinding(
+                strategy="tool", profile_declared=True, structured_output=False, strict=value
+            )
+
+
 @pytest.mark.parametrize(
     ("kind", "refused"),
     [("rate_limit", True), ("overloaded", True), ("budget", False), ("ValueError", False)],

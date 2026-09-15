@@ -644,6 +644,7 @@ def test_the_artifact_records_how_output_was_bound(fixture_set, profile):
     assert artifact.output_binding.strategy == profile
     assert artifact.output_binding.profile_declared is True
     assert artifact.output_binding.structured_output is (profile == "provider")
+    assert artifact.output_binding.strict is (True if profile == "provider" else None)
 
 
 def test_the_graph_path_passes_the_turn_siblings_to_the_runner(fixture_set, monkeypatch):

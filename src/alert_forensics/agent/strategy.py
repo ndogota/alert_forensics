@@ -23,10 +23,12 @@ def output_binding(model: BaseChatModel) -> OutputBinding:
     profile = model.profile
     value = profile.get("structured_output") if profile is not None else None
     read = value if isinstance(value, bool) else None
+    provider = read is True
     return OutputBinding(
-        strategy="provider" if read is True else "tool",
+        strategy="provider" if provider else "tool",
         profile_declared=profile is not None,
         structured_output=read,
+        strict=True if provider else None,
     )
 
 
@@ -34,7 +36,13 @@ def output_strategy(model: BaseChatModel, schema: type[BaseModel]) -> OutputStra
     """``ProviderStrategy`` when the profile says the provider enforces a schema natively,
     ``ToolStrategy`` otherwise. Neither strategy retries a malformed output: unparseable
     structured output is a failed run, not a hidden extra pass.
+
+    The provider strategy is asked for strict enforcement, always. A profile declaring
+    structured output says the provider can enforce a schema, not that it was asked to:
+    without the flag the OpenAI client sends the schema as non-strict, and the first
+    OpenAI gate run failed on a key the schema forbids. The Anthropic and Google clients
+    drop the flag; the tool strategy has none.
     """
     if output_binding(model).strategy == "provider":
-        return ProviderStrategy(schema)
+        return ProviderStrategy(schema, strict=True)
     return ToolStrategy(schema, handle_errors=False)

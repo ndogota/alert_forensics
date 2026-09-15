@@ -114,17 +114,30 @@ def test_the_output_binding_records_the_strategy_and_the_profile_values_it_read(
     silent = ScriptedChatModel(script=[], profile={"tool_calling": True})
     unknown = ScriptedChatModel(script=[], profile=None)
     assert output_binding(provider) == OutputBinding(
-        strategy="provider", profile_declared=True, structured_output=True
+        strategy="provider", profile_declared=True, structured_output=True, strict=True
     )
     assert output_binding(tool) == OutputBinding(
-        strategy="tool", profile_declared=True, structured_output=False
+        strategy="tool", profile_declared=True, structured_output=False, strict=None
     )
     assert output_binding(silent) == OutputBinding(
-        strategy="tool", profile_declared=True, structured_output=None
+        strategy="tool", profile_declared=True, structured_output=None, strict=None
     )
     assert output_binding(unknown) == OutputBinding(
-        strategy="tool", profile_declared=False, structured_output=None
+        strategy="tool", profile_declared=False, structured_output=None, strict=None
     )
+
+
+def test_the_provider_strategy_asks_for_strict_enforcement_and_the_tool_strategy_has_no_flag():
+    """A profile declaring structured output says the provider can enforce a schema, not
+    that the harness asked it to. The first OpenAI gate run was bound without the flag,
+    the model added a key the schema forbids, and the run failed on the harness's knob."""
+    provider = ScriptedChatModel(script=[], profile={"structured_output": True})
+    strategy = output_strategy(provider, Out)
+    assert isinstance(strategy, ProviderStrategy)
+    assert strategy.schema_spec.strict is True
+    assert strategy.to_model_kwargs()["response_format"]["json_schema"]["strict"] is True
+    tool = ScriptedChatModel(script=[], profile={"structured_output": False})
+    assert isinstance(output_strategy(tool, Out), ToolStrategy)
 
 
 def test_the_scripted_client_records_the_tools_it_was_offered():

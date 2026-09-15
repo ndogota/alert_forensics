@@ -7,7 +7,7 @@ number, and a decision on a proposal is part of the record of an investigation.
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue
+from pydantic import Field, JsonValue, model_validator
 
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr, StrictNonNegativeInt
 
@@ -43,6 +43,19 @@ class OutputBinding(ContractModel):
     structured_output: bool | None
     """``profile["structured_output"]`` as read; None when the profile or the key is absent,
     or the value is not a boolean."""
+    strict: bool | None = None
+    """Whether the provider was asked to enforce the schema. True under the provider
+    strategy since the rule; None under the tool strategy, which has no such flag. None
+    under the provider strategy is a recording from before the field existed: the flag
+    was not recorded, which is not the same as not asked, and the contract does not
+    guess. The default exists so those recordings validate; the strategy module is the
+    one constructor in the package and a test holds it to True."""
+
+    @model_validator(mode="after")
+    def _the_tool_strategy_has_no_flag(self) -> "OutputBinding":
+        if self.strategy == "tool" and self.strict is not None:
+            raise ValueError("the tool strategy has no strict flag; strict must be null under it")
+        return self
 
 
 PROVIDER_REFUSALS: frozenset[str] = frozenset({"rate_limit", "overloaded"})
