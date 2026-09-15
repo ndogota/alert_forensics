@@ -166,7 +166,14 @@ def test_recorded_requests_are_every_request_of_every_committed_recording():
     ]
     assert {r.scenario for r in RECORDINGS} == {p.parent.parent.name for p in with_requests}
     assert {r.recording for r in RECORDINGS} == {str(p) for p in with_requests}
-    assert len(with_requests) == len(list(RUNS.glob("*/*/run.json"))) - 1
+    # The recordings that hold no request are the four of scenario 7, and no other.
+    silent = set(RUNS.glob("*/*/run.json")) - set(with_requests)
+    assert {f"{p.parent.parent.name}/{p.parent.name}" for p in silent} == {
+        "rmm_block/campaign-0",
+        "rmm_block/campaign-02-3",
+        "rmm_block/campaign-02-4",
+        "rmm_block/campaign-02-5",
+    }
     travel = [r for r in RECORDINGS if "defaults-2026-09-14" in r.recording]
     assert [r.tool for r in travel] == [
         "search_events",

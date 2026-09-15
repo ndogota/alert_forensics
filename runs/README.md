@@ -13,15 +13,20 @@ no tool is a recording: it refers to no raw response, so no `run.raw/` sits besi
 and `replay` says so. Which runs are committed is a rule, stated in
 `docs/SPEC.md` under "Using it": a run the spec cites, or the scenario's demonstration
 run, the first completed real run on the scenario in the order the runs were made.
-A recording named `campaign-<k>` is the run directory `<k>` of 2026-09-15 under
-`results/google_genai-gemini-3.5-flash-lite/analyst/<scenario>/`, artifact and raw
-store copied unchanged; the results directory itself is not committed. For scenarios 7
-and 8 that run directory is the gate run of "One real run before a cell is paid for",
-the only real run each has had. A recording named `probe-<name>` is run directory `0`
-of the gate directory `gates/probe-<name>/` of 2026-09-15, under the same model, role
-and scenario path, copied the same way; `gates/` is not committed either.
+A recording is named for the directory it was copied from, and the name says which
+campaign. `campaign-<k>` is the run directory `<k>` of the first campaign, 2026-09-15,
+under `results/google_genai-gemini-3.5-flash-lite/analyst/<scenario>/`, artifact and
+raw store copied unchanged; the results directory itself is not committed. For
+scenarios 7 and 8 that run directory is the gate run of "One real run before a cell is
+paid for", the only real run each had in that campaign. `campaign-<nn>-<k>` is run
+directory `<k>` of the campaign `campaigns/<nn>/`, under the same model, role and
+scenario path, copied the same way; `campaigns/` is not committed either, and the
+campaign's `eval.json` and `score.json` stay behind, since a recording is the run and
+its score is re-derived from the artifact. `probe-<name>` is run directory `0` of the
+gate directory `gates/probe-<name>/` of 2026-09-15, under the same model, role and
+scenario path, copied the same way; `gates/` is not committed either.
 
-Twelve are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role. The
+Fifteen are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role. The
 three named `probe-` are the gate runs of the priced tiers on scenario 1, under
 `analyst`, made on 2026-09-15 between 17:04 and 17:20 UTC.
 
@@ -85,6 +90,20 @@ three named `probe-` are the gate runs of the priced tiers on scenario 1, under
   alert, asked nothing, and asserted `benign_true_positive` at confidence 0.8 with no
   observed fact. There is no `run.raw/`: the trace refers to nothing. It is the trap
   the scenario is written for, closed in seconds rather than ninety.
+- `runs/rmm_block/campaign-02-3/`: run 3 of the second campaign, 14:20 UTC, under
+  fixture digest `a1861664…`, the fixtures of commit 34bc77c, which predate the current
+  ones; cited by scenario 7's section, since no stub reached a run that asked nothing.
+  `failed_ungrounded` with zero tool calls: `benign_true_positive` at confidence 0.85
+  with no observed fact, one assumption and one missing-context entry. No `run.raw/`.
+- `runs/rmm_block/campaign-02-4/`: run 4 of the second campaign, 14:21 UTC, same
+  digest, cited the same way. `failed_ungrounded` with zero tool calls:
+  `benign_true_positive` at confidence 1.0 with no observed fact, no assumption and no
+  missing-context entry, the only one of the seven runs on this scenario that named
+  nothing it did not know. No `run.raw/`.
+- `runs/rmm_block/campaign-02-5/`: run 5 of the second campaign, 14:21 UTC, same
+  digest, cited the same way. `failed_ungrounded` with zero tool calls:
+  `benign_true_positive` at confidence 0.9 with no observed fact, one assumption and
+  one missing-context entry. No `run.raw/`.
 
 The gaps named above are closed since 2026-09-15 and each refused request is replayed
 from the recording in `tests/test_fixtures.py`, so the check cannot drift from the run.

@@ -96,8 +96,9 @@ def test_the_committed_recordings_are_the_ones_the_spec_decided():
     """One demonstration run per scenario that has a completed real run, the first such
     run by rule, plus every run the spec cites: the first recording under the defaults,
     the two no-fact runs of scenario 5, the two spray runs that pivoted on the address,
-    and scenario 7's run that called no tool, and the three gate runs of the priced
-    tiers on scenario 1, cited for the asset question and the strict binding."""
+    scenario 7's run that called no tool and the three of its second-campaign cell
+    that called none either, and the three gate runs of the priced tiers on scenario
+    1, cited for the asset question and the strict binding."""
     assert {recording_id(p) for p in RECORDINGS} == {
         "atypical_travel/defaults-2026-09-14",
         "atypical_travel/campaign-0",
@@ -114,13 +115,21 @@ def test_the_committed_recordings_are_the_ones_the_spec_decided():
         "password_spray/campaign-3",
         "password_spray/campaign-5",
         "rmm_block/campaign-0",
+        "rmm_block/campaign-02-3",
+        "rmm_block/campaign-02-4",
+        "rmm_block/campaign-02-5",
     }
 
 
-def test_the_recording_that_called_no_tool_is_a_served_run_with_no_raw_store():
-    """Scenario 7's real run: two model turns, no request, no raw response, so no
+SILENT = ["campaign-0", "campaign-02-3", "campaign-02-4", "campaign-02-5"]
+"""Scenario 7's recordings, every one a served run in which the model called no tool."""
+
+
+@pytest.mark.parametrize("recording", SILENT)
+def test_the_recording_that_called_no_tool_is_a_served_run_with_no_raw_store(recording):
+    """Scenario 7's real runs: two model turns, no request, no raw response, so no
     directory beside it; the trace refers to nothing and git keeps no empty directory."""
-    path = RUNS / "rmm_block" / "campaign-0" / "run.json"
+    path = RUNS / "rmm_block" / recording / "run.json"
     artifact = RunArtifact.model_validate_json(path.read_text())
     assert artifact.trace.records == [] and len(artifact.trace.usage) == 2
     assert not (path.parent / artifact.raw_store).exists()
