@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 dist/
 results/
+gates/
 results.bak
 campaigns/
 .env

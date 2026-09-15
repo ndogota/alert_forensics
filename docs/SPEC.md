@@ -1414,7 +1414,8 @@ could never be read clean. Decided:
   opens with it, so a number cannot be read without the fixtures it was measured under.
 - **Where the gate run goes.** The gate run of step 2 above is one run whose purpose is
   to be read, and step 3 may change the stubs after it. It is made with `--results`
-  naming a directory that is not the campaign's, `gates/` in this repository. When
+  naming a directory that is not the campaign's, `gates/` in this repository, ignored
+  by git as `results/` and `campaigns/` are. When
   step 3 closes a gap the digest changes, and the harness refuses the cell into the
   gate's directory and the gate run into the cell's whichever way the operator points,
   so the separation holds by structure. When the gate closes nothing, as scenario 8's
