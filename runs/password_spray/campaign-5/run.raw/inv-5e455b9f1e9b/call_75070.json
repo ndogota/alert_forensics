@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-15T11:32:01Z",
+ "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+ "status": "proposed",
+ "summary": "Azure AD Identity Protection detected a password spray attack involving multiple source IP addresses, including successful authentication to user rbennett@contoso.com's account from 192.0.2.44 in Lagos, Nigeria. The user's normal location is London, UK, and the sign-in used legacy protocols (BAV2ROPC) followed by a suspicious browser login and a subsequent inbox manipulation rule alert, confirming account compromise.",
+ "verdict": "true_positive"
+}

@@ -332,6 +332,379 @@
           "message": "File \"c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912\" not found"
         }
       }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "indicator": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a"
+      },
+      "response": {
+        "data": {
+          "id": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+          "type": "file",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/files/a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a"
+          },
+          "attributes": {
+            "type_description": "Win32 EXE",
+            "type_tag": "peexe",
+            "size": 8421376,
+            "sha256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "meaningful_name": "RemoteSupport.Agent.exe",
+            "names": [
+              "RemoteSupport.Agent.exe"
+            ],
+            "first_submission_date": 1741478400,
+            "last_submission_date": 1789290000,
+            "last_analysis_date": 1789290000,
+            "times_submitted": 61,
+            "unique_sources": 20,
+            "last_analysis_stats": {
+              "harmless": 0,
+              "type-unsupported": 3,
+              "suspicious": 0,
+              "confirmed-timeout": 0,
+              "timeout": 0,
+              "failure": 0,
+              "malicious": 0,
+              "undetected": 72
+            },
+            "last_analysis_results": {
+              "Bkav": {
+                "category": "undetected",
+                "engine_name": "Bkav",
+                "result": null,
+                "method": "blacklist"
+              }
+            },
+            "reputation": 0,
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
+            "signature_info": {
+              "product": "RemoteSupport.Agent",
+              "verified": "Signed",
+              "description": "RemoteSupport.Agent.exe",
+              "signers": "RemoteSupport Software Ltd; Example Code Signing CA G2; Example Root CA"
+            },
+            "tags": [
+              "peexe",
+              "signed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "indicator": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a"
+      },
+      "response": {
+        "data": {
+          "id": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+          "type": "file",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/files/3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a"
+          },
+          "attributes": {
+            "type_description": "Win32 EXE",
+            "type_tag": "peexe",
+            "size": 23068672,
+            "sha256": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+            "meaningful_name": "RemoteSupport.ClientSetup.exe",
+            "names": [
+              "RemoteSupport.ClientSetup.exe"
+            ],
+            "first_submission_date": 1741478400,
+            "last_submission_date": 1789290000,
+            "last_analysis_date": 1789290000,
+            "times_submitted": 88,
+            "unique_sources": 29,
+            "last_analysis_stats": {
+              "harmless": 0,
+              "type-unsupported": 3,
+              "suspicious": 0,
+              "confirmed-timeout": 0,
+              "timeout": 0,
+              "failure": 0,
+              "malicious": 0,
+              "undetected": 72
+            },
+            "last_analysis_results": {
+              "Bkav": {
+                "category": "undetected",
+                "engine_name": "Bkav",
+                "result": null,
+                "method": "blacklist"
+              }
+            },
+            "reputation": 0,
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
+            "signature_info": {
+              "product": "RemoteSupport.ClientSetup",
+              "verified": "Signed",
+              "description": "RemoteSupport.ClientSetup.exe",
+              "signers": "RemoteSupport Software Ltd; Example Code Signing CA G2; Example Root CA"
+            },
+            "tags": [
+              "peexe",
+              "signed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "scenario": "shared",
+      "match": {
+        "indicator": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+      },
+      "response": {
+        "data": {
+          "id": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
+          "type": "file",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/files/6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+          },
+          "attributes": {
+            "type_description": "Win32 EXE",
+            "type_tag": "peexe",
+            "size": 14336,
+            "sha256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
+            "meaningful_name": "mshta.exe",
+            "names": [
+              "mshta.exe"
+            ],
+            "first_submission_date": 1541030400,
+            "last_submission_date": 1789290000,
+            "last_analysis_date": 1789290000,
+            "times_submitted": 2910,
+            "unique_sources": 970,
+            "last_analysis_stats": {
+              "harmless": 0,
+              "type-unsupported": 3,
+              "suspicious": 0,
+              "confirmed-timeout": 0,
+              "timeout": 0,
+              "failure": 0,
+              "malicious": 0,
+              "undetected": 72
+            },
+            "last_analysis_results": {
+              "Bkav": {
+                "category": "undetected",
+                "engine_name": "Bkav",
+                "result": null,
+                "method": "blacklist"
+              }
+            },
+            "reputation": 64,
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
+            "signature_info": {
+              "product": "mshta",
+              "verified": "Signed",
+              "description": "mshta.exe",
+              "signers": "Microsoft Windows; Microsoft Windows Production PCA 2011; Microsoft Root Certificate Authority 2010"
+            },
+            "tags": [
+              "peexe",
+              "signed",
+              "known-distributor"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "indicator": "relay.example.net"
+      },
+      "response": {
+        "data": {
+          "id": "relay.example.net",
+          "type": "domain",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/domains/relay.example.net"
+          },
+          "attributes": {
+            "registrar": "Example Registrar, Inc.",
+            "creation_date": 1788340440,
+            "last_update_date": 1788340440,
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 58,
+              "malicious": 2,
+              "suspicious": 1,
+              "undetected": 33,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": 0,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
+            "categories": {},
+            "popularity_ranks": {},
+            "whois": "Domain Name: relay.example.net\nRegistrar: Example Registrar, Inc.\nRegistrant Email: REDACTED FOR PRIVACY\n"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "indicator": "https://relay.example.net/invoice.hta"
+      },
+      "response": {
+        "data": {
+          "id": "aHR0cHM6Ly9yZWxheS5leGFtcGxlLm5ldC9pbnZvaWNlLmh0YQ",
+          "type": "url",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/urls/aHR0cHM6Ly9yZWxheS5leGFtcGxlLm5ldC9pbnZvaWNlLmh0YQ"
+          },
+          "attributes": {
+            "url": "https://relay.example.net/invoice.hta",
+            "last_final_url": "https://relay.example.net/invoice.hta",
+            "title": "",
+            "first_submission_date": 1789260000,
+            "last_analysis_date": 1789290000,
+            "times_submitted": 2,
+            "last_analysis_stats": {
+              "harmless": 60,
+              "malicious": 2,
+              "suspicious": 0,
+              "undetected": 32,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Phishtank": {
+                "category": "malicious",
+                "result": "phishing",
+                "method": "blacklist",
+                "engine_name": "Phishtank"
+              }
+            },
+            "reputation": 0,
+            "tags": [],
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "indicator": "upload.photodrive.example"
+      },
+      "response": {
+        "data": {
+          "id": "upload.photodrive.example",
+          "type": "domain",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/domains/upload.photodrive.example"
+          },
+          "attributes": {
+            "registrar": "Example Registrar, Inc.",
+            "creation_date": 1420070400,
+            "last_update_date": 1767225600,
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 70,
+              "malicious": 0,
+              "suspicious": 0,
+              "undetected": 24,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": 41,
+            "tags": [],
+            "total_votes": {
+              "harmless": 5,
+              "malicious": 0
+            },
+            "categories": {
+              "Example Category Service": "file storage/sharing"
+            },
+            "popularity_ranks": {},
+            "whois": "Domain Name: upload.photodrive.example\nRegistrar: Example Registrar, Inc.\n"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "indicator": "photodrive.example"
+      },
+      "response": {
+        "data": {
+          "id": "photodrive.example",
+          "type": "domain",
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/domains/photodrive.example"
+          },
+          "attributes": {
+            "registrar": "Example Registrar, Inc.",
+            "creation_date": 1420070400,
+            "last_update_date": 1767225600,
+            "last_analysis_date": 1789290000,
+            "last_analysis_stats": {
+              "harmless": 70,
+              "malicious": 0,
+              "suspicious": 0,
+              "undetected": 24,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
+            "reputation": 41,
+            "tags": [],
+            "total_votes": {
+              "harmless": 5,
+              "malicious": 0
+            },
+            "categories": {
+              "Example Category Service": "file storage/sharing"
+            },
+            "popularity_ranks": {},
+            "whois": "Domain Name: photodrive.example\nRegistrar: Example Registrar, Inc.\n"
+          }
+        }
+      }
     }
   ]
 }

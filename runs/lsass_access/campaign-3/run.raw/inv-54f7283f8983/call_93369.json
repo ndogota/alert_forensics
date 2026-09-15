@@ -1,0 +1,18 @@
+{
+ "hits": [
+  {
+   "excerpt": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC. The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list. An LSASS read from svc-purpleops on a listed host inside the window is expected and authorised, not an incident; confirm the attack surface reduction block held and that the prevention worked, document the run against the exercise, and do not escalate. An LSASS read from any other account, from any other host, or outside the window is exactly what this rule exists to catch.",
+   "id": "RB-0520",
+   "score": 0.93,
+   "source": "runbooks/endpoint/red-team-lsass.md",
+   "title": "LSASS credential access during authorised red team exercises"
+  },
+  {
+   "excerpt": "Confirm the outcome, the account priority and whether the activity maps to a change or an authorised exercise before escalating.",
+   "id": "RB-0021",
+   "score": 0.55,
+   "source": "runbooks/identity/checklist.md",
+   "title": "Identity Protection triage checklist"
+  }
+ ]
+}

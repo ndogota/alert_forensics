@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T11:37:06Z",
+ "recommended_action": "Verify whether svc-purpleops and rt-cred.exe are part of an authorized internal red team or purple team exercise. If unauthorized, revoke the service account credentials and isolate ws-eng-0148 for forensic investigation.",
+ "status": "proposed",
+ "summary": "An automated Attack Surface Reduction (ASR) rule successfully blocked an attempt by rt-cred.exe running as svc-purpleops to access LSASS memory on ws-eng-0148. The process command line explicitly references target lsass and minidump, aligning with credential harvesting techniques. However, the presence of 'purpleops' in the username and file path suggests this may be related to an internal purple team exercise or testing activity.",
+ "verdict": "true_positive"
+}

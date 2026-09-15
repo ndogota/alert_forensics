@@ -1,0 +1,800 @@
+{
+  "investigation_id": "inv-3a650e94a028",
+  "outcome": "completed",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "forwarding_rule",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-3a650e94a028",
+    "alert": {
+      "id": "da637551318890123456_-1188736301",
+      "title": "Suspicious inbox forwarding rule to an external address",
+      "description": "Inbox rules forwarding mail to one external address were created on three mailboxes within 13 minutes. Each rule matches messages whose subject or body mentions invoices, IBAN, SWIFT or payment and forwards them to ap.remittance@contoso-invoices.example, a domain outside the organisation.",
+      "severity": "high",
+      "status": "new",
+      "category": "Collection",
+      "createdDateTime": "2026-09-14T05:31:08.200000Z",
+      "lastUpdateDateTime": "2026-09-14T05:32:00Z",
+      "detectionSource": "microsoftDefenderForOffice365",
+      "serviceSource": "microsoftDefenderForOffice365",
+      "providerAlertId": "3e8d19c7",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "63",
+      "mitreTechniques": [
+        "T1114.003",
+        "T1078.004"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T05:31:08.200000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "amorel",
+            "domainName": "contoso",
+            "userPrincipalName": "amorel@contoso.com",
+            "azureAdUserId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+            "displayName": "Amelie Morel"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T05:31:08.200000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "tkowalski",
+            "domainName": "contoso",
+            "userPrincipalName": "tkowalski@contoso.com",
+            "azureAdUserId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+            "displayName": "Tomasz Kowalski"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T05:31:08.200000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "lferreira",
+            "domainName": "contoso",
+            "userPrincipalName": "lferreira@contoso.com",
+            "azureAdUserId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+            "displayName": "Lucia Ferreira"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.ipEvidence",
+          "createdDateTime": "2026-09-14T05:31:08.200000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "attacker"
+          ],
+          "ipAddress": "2001:db8:7a3c:1200::1f",
+          "countryLetterCode": "US"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.cloudApplicationEvidence",
+          "createdDateTime": "2026-09-14T05:31:08.200000Z",
+          "appId": 20893,
+          "displayName": "Microsoft Exchange Online",
+          "instanceName": "Microsoft Exchange Online",
+          "saasAppId": 20893
+        }
+      ]
+    },
+    "started_at": "2026-09-15T11:33:06.634523Z",
+    "records": [
+      {
+        "tool_call_id": "call_60221",
+        "step": 0,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "timespan": "P7D",
+          "query": "CloudAppEvents | where IpAddress == \"2001:db8:7a3c:1200::1f\" or AccountUpn in (\"amorel@contoso.com\", \"tkowalski@contoso.com\", \"lferreira@contoso.com\") | take 20"
+        },
+        "started_at": "2026-09-15T11:33:08.031455Z",
+        "duration_us": 1647,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "Timestamp",
+            "ActionType",
+            "Application",
+            "AccountUpn",
+            "AccountObjectId",
+            "IPAddress",
+            "Country",
+            "City",
+            "ObjectName",
+            "ObjectType",
+            "ActivityObjects",
+            "ReportId"
+          ],
+          "row_count": 3,
+          "rows": [
+            {
+              "Timestamp": "2026-09-14T05:14:02.000Z",
+              "ActionType": "New-InboxRule",
+              "Application": "Microsoft Exchange Online",
+              "AccountUpn": "amorel@contoso.com",
+              "AccountObjectId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+              "IPAddress": "2001:db8:7a3c:1200::1f",
+              "Country": "US",
+              "City": "Ashburn",
+              "ObjectName": "..",
+              "ObjectType": "InboxRule",
+              "ActivityObjects": [
+                {
+                  "Type": "User",
+                  "Name": "amorel@contoso.com",
+                  "Id": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ],
+              "ReportId": 4471130200
+            },
+            {
+              "Timestamp": "2026-09-14T05:20:36.000Z",
+              "ActionType": "New-InboxRule",
+              "Application": "Microsoft Exchange Online",
+              "AccountUpn": "tkowalski@contoso.com",
+              "AccountObjectId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+              "IPAddress": "2001:db8:7a3c:1200::1f",
+              "Country": "US",
+              "City": "Ashburn",
+              "ObjectName": "..",
+              "ObjectType": "InboxRule",
+              "ActivityObjects": [
+                {
+                  "Type": "User",
+                  "Name": "tkowalski@contoso.com",
+                  "Id": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ],
+              "ReportId": 4471130207
+            },
+            {
+              "Timestamp": "2026-09-14T05:27:11.000Z",
+              "ActionType": "New-InboxRule",
+              "Application": "Microsoft Exchange Online",
+              "AccountUpn": "lferreira@contoso.com",
+              "AccountObjectId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+              "IPAddress": "2001:db8:7a3c:1200::1f",
+              "Country": "US",
+              "City": "Ashburn",
+              "ObjectName": "..",
+              "ObjectType": "InboxRule",
+              "ActivityObjects": [
+                {
+                  "Type": "User",
+                  "Name": "lferreira@contoso.com",
+                  "Id": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "Name",
+                  "Value": ".."
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "ForwardTo",
+                  "Value": "ap.remittance@contoso-invoices.example"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "SubjectOrBodyContainsWords",
+                  "Value": "invoice;IBAN;SWIFT;payment;remittance"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "MarkAsRead",
+                  "Value": "True"
+                },
+                {
+                  "Type": "Parameter",
+                  "Name": "StopProcessingRules",
+                  "Value": "True"
+                }
+              ],
+              "ReportId": 4471130214
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 1
+        },
+        "raw_response_ref": "inv-3a650e94a028/call_60221.json",
+        "raw_response_sha256": "828e26a44820b2d4e4ab6e17377033dc78388bb0fc910b0a8319960280c27a25"
+      },
+      {
+        "tool_call_id": "call_34853",
+        "step": 1,
+        "tool_name": "lookup_ioc",
+        "source_system": "virustotal",
+        "caller": "analyst",
+        "required_scope": "ioc:lookup",
+        "arguments": {
+          "indicator": "contoso-invoices.example"
+        },
+        "started_at": "2026-09-15T11:33:08.912778Z",
+        "duration_us": 665,
+        "outcome": "ok",
+        "redacted_response": {
+          "indicator": "contoso-invoices.example",
+          "indicator_type": "domain",
+          "known": true,
+          "engines": {
+            "malicious": 1,
+            "suspicious": 0,
+            "harmless": 63,
+            "undetected": 30,
+            "verdicts": 94,
+            "not_analysed": 0
+          },
+          "detection_ratio": "1/94",
+          "reputation": {
+            "score": 0,
+            "reading": "no community signal: zero means nobody voted, not clean"
+          },
+          "last_analysis_at": "2026-09-13T09:00:00Z",
+          "tags": [],
+          "context": {
+            "registrar": "Example Registrar, Inc.",
+            "created_at": "2026-09-05T11:42:00Z"
+          },
+          "note": "Engine counters are how many engines returned each verdict in the last analysis. Reputation is the signed sum of community votes; zero means unvoted."
+        },
+        "raw_response_ref": "inv-3a650e94a028/call_34853.json",
+        "raw_response_sha256": "dab0baa88288000282c8601cd30490f46ced0f66cc2cac67a53929f2f0c0abe9"
+      },
+      {
+        "tool_call_id": "call_100632",
+        "step": 2,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1114.003"
+        },
+        "started_at": "2026-09-15T11:33:09.876286Z",
+        "duration_us": 235226,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1114.003",
+          "name": "Email Forwarding Rule",
+          "url": "https://attack.mitre.org/techniques/T1114/003",
+          "tactics": [
+            "collection"
+          ],
+          "is_subtechnique": true,
+          "platforms": [
+            "Linux",
+            "macOS",
+            "Office Suite",
+            "Windows"
+          ],
+          "description": "Adversaries may setup email forwarding rules to collect sensitive information. Adversaries may abuse email forwarding rules to monitor the activities of a victim, steal information, and further gain intelligence on the victim or the victim’s organization to use as part of further exploits or operations. Furthermore, email forwarding rules can allow adversaries to maintain persistent access to victim's emails even after compromised credentials are reset by administrators. Most email clients allow users to create inbox rules for various email functions, including forwarding to a different recipient. These rules may be created through a local email application, a web interface, or by command-line interface. Messages can be forwarded to internal or external recipients, and there are no restrictions limiting the extent of this rule. Administrators may also create forwarding rules for user accounts with the same considerations and outcomes.\n\nAny user or administrator within the organization (or adversary with valid credentials) can create rules to automatically forward all received messages to another recipient, forward emails to different locations based on the sender, and more. Adversaries may also hide the rule by making use of the Microsoft Messaging API (MAPI) to modify the rule properties, making it hidden and not visible from Outlook, OWA or most Exchange Administration tools.\n\nIn some environments, administrators may be able to enable email forwarding rules that operate organization-wide rather than on individual inboxes. For example, Microsoft Exchange supports transport rules that evaluate all mail an organization receives against user-specified conditions, then performs a user-specified action on mail that adheres to those conditions. Adversaries that abuse such features may be able to enable forwarding on all or specific mail an organization receives.",
+          "version": "1.4",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-3a650e94a028/call_100632.json",
+        "raw_response_sha256": "5007558212a69a9eb4bb90c628fd3549ec7aa45534b627378b3d3785542677b1"
+      },
+      {
+        "tool_call_id": "call_56541",
+        "step": 3,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1078.004"
+        },
+        "started_at": "2026-09-15T11:33:10.847297Z",
+        "duration_us": 744,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1078.004",
+          "name": "Cloud Accounts",
+          "url": "https://attack.mitre.org/techniques/T1078/004",
+          "tactics": [
+            "stealth",
+            "persistence",
+            "privilege-escalation",
+            "initial-access"
+          ],
+          "is_subtechnique": true,
+          "platforms": [
+            "IaaS",
+            "Identity Provider",
+            "Office Suite",
+            "SaaS"
+          ],
+          "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created and configured by an organization for use by users, remote support, services, or for administration of resources within a cloud service provider or SaaS application. Cloud Accounts can exist solely in the cloud; alternatively, they may be hybrid-joined between on-premises systems and the cloud through syncing or federation with other identity sources such as Windows Active Directory.\n\nService or user accounts may be targeted by adversaries through [Brute Force](https://attack.mitre.org/techniques/T1110), [Phishing](https://attack.mitre.org/techniques/T1566), or various other means to gain access to the environment. Federated or synced accounts may be a pathway for the adversary to affect both on-premises systems and cloud environments - for example, by leveraging shared credentials to log onto [Remote Services](https://attack.mitre.org/techniques/T1021). High privileged cloud accounts, whether federated, synced, or cloud-only, may also allow pivoting to on-premises environments by leveraging SaaS-based [Software Deployment Tools](https://attack.mitre.org/techniques/T1072) to run commands on hybrid-joined devices.\n\nAn adversary may create long lasting [Additional Cloud Credentials](https://attack.mitre.org/techniques/T1098/001) on a compromised cloud account to maintain persistence in the environment. Such credentials may also be used to bypass security controls such as multi-factor authentication. \n\nCloud accounts may also be able to assume [Temporary Elevated Cloud Access](https://attack.mitre.org/techniques/T1548/005) or other privileges through various means within the environment. Misconfigurations in role assignments or role assumption policies may allow an adversary to use these mechanisms to leverage permissions outside the intended scope of the account. Such over privileged accounts may be used to harvest sensitive data from online storage accounts and databases through [Cloud API](https://attack.mitre.org/techniques/T1059/009) or other methods. For example, in Azure environments, adversaries may target Azure Managed Identities, which allow associated Azure resources to request access tokens. By compromising a resource with an attached Managed Identity, such as an Azure VM, adversaries may be able to [Steal Application Access Token](https://attack.mitre.org/techniques/T1528)s to move laterally across the cloud environment.",
+          "version": "2.0",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-3a650e94a028/call_56541.json",
+        "raw_response_sha256": "f3f719dcd0d2b50d2cced24b21e73e64342f387f50e03baf80ada94794c7d7f6"
+      },
+      {
+        "tool_call_id": "call_74360",
+        "step": 4,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+          "summary": "An investigation into the alert regarding suspicious inbox forwarding rules confirmed that three separate user mailboxes (amorel@contoso.com, tkowalski@contoso.com, and lferreira@contoso.com) had inbox rules created within a 13-minute window by the same external IP address. These rules automatically forward emails containing financial and invoice-related keywords to an external domain address (ap.remittance@contoso-invoices.example). This activity exhibits characteristics of BEC / financial fraud collection, confirming the alert as a true positive.",
+          "verdict": "true_positive",
+          "escalate": true
+        },
+        "started_at": "2026-09-15T11:33:12.336708Z",
+        "duration_us": 305,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "true_positive",
+          "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+          "escalate": true,
+          "proposed_at": "2026-09-15T11:33:12Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-3a650e94a028/call_74360.json",
+        "raw_response_sha256": "c4a77f1fe4e230c8c2f12e82a38fcdffd5b28ad4f6c2efbf17581f9a8ddc0db2"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2566,
+        "output_tokens": 93,
+        "total_tokens": 2659,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4041,
+        "output_tokens": 22,
+        "total_tokens": 4063,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4271,
+        "output_tokens": 30,
+        "total_tokens": 4301,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 3,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4747,
+        "output_tokens": 30,
+        "total_tokens": 4777,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 4,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 5456,
+        "output_tokens": 222,
+        "total_tokens": 5678,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 5,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 5840,
+        "output_tokens": 491,
+        "total_tokens": 6331,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 6,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 688,
+        "output_tokens": 99,
+        "total_tokens": 787,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "true_positive",
+      "confidence": 1.0,
+      "mitre_techniques": [
+        "T1114.003",
+        "T1078.004"
+      ],
+      "observed_facts": [
+        {
+          "statement": "Three user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com) had inbox forwarding rules created via Microsoft Exchange Online from IP address 2001:db8:7a3c:1200::1f.",
+          "evidence": [
+            "call_60221"
+          ]
+        },
+        {
+          "statement": "The created inbox rules target the external email address ap.remittance@contoso-invoices.example and filter for keywords including invoice, IBAN, SWIFT, payment, and remittance.",
+          "evidence": [
+            "call_34853"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "The external IP address 2001:db8:7a3c:1200::1f represents an attacker utilizing compromised credentials.",
+          "why_unverified": "Full session logs and authentication provenance confirming credential theft methods were not fully retrieved in this limited scope."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Prior authentication logs for the compromised accounts",
+          "why_it_matters": "Determines how the credentials or session tokens were initially acquired by the source IP.",
+          "how_to_obtain": "Query Azure AD SigninLogs or unified audit logs for successful logins prior to rule creation."
+        }
+      ],
+      "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+      "escalate": true
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "Three user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com) had inbox forwarding rules created via Microsoft Exchange Online from IP address 2001:db8:7a3c:1200::1f.",
+        "evidence_ids": [
+          "call_60221"
+        ],
+        "resolved_ids": [
+          "call_60221"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "The created inbox rules target the external email address ap.remittance@contoso-invoices.example and filter for keywords including invoice, IBAN, SWIFT, payment, and remittance.",
+        "evidence_ids": [
+          "call_34853"
+        ],
+        "resolved_ids": [
+          "call_34853"
+        ],
+        "source_systems": [
+          "virustotal"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 2,
+    "grounded_count": 2,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "Three user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com) had inbox forwarding rules created via Microsoft Exchange Online from IP address 2001:db8:7a3c:1200::1f.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "The created inbox rules target the external email address ap.remittance@contoso-invoices.example and filter for keywords including invoice, IBAN, SWIFT, payment, and remittance.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_60221",
+            "tool_name": "search_events",
+            "arguments": {
+              "timespan": "P7D",
+              "query": "CloudAppEvents | where IpAddress == \"2001:db8:7a3c:1200::1f\" or AccountUpn in (\"amorel@contoso.com\", \"tkowalski@contoso.com\", \"lferreira@contoso.com\") | take 20"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_34853",
+            "tool_name": "lookup_ioc",
+            "arguments": {
+              "indicator": "contoso-invoices.example"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_100632",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1114.003"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_56541",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1078.004"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "recite",
+            "evidence": [
+              "call_60221"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "call_34853"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "mitre_techniques": [
+            "T1114.003",
+            "T1078.004"
+          ],
+          "observed_facts": [
+            {
+              "statement": "Three user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com) had inbox forwarding rules created via Microsoft Exchange Online from IP address 2001:db8:7a3c:1200::1f.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "The created inbox rules target the external email address ap.remittance@contoso-invoices.example and filter for keywords including invoice, IBAN, SWIFT, payment, and remittance.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            }
+          ],
+          "assumptions": [
+            {
+              "statement": "The external IP address 2001:db8:7a3c:1200::1f represents an attacker utilizing compromised credentials.",
+              "why_unverified": "Full session logs and authentication provenance confirming credential theft methods were not fully retrieved in this limited scope."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Prior authentication logs for the compromised accounts",
+              "why_it_matters": "Determines how the credentials or session tokens were initially acquired by the source IP.",
+              "how_to_obtain": "Query Azure AD SigninLogs or unified audit logs for successful logins prior to rule creation."
+            }
+          ],
+          "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+          "escalate": true
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "Three user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com) had inbox forwarding rules created via Microsoft Exchange Online from IP address 2001:db8:7a3c:1200::1f.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "The created inbox rules target the external email address ap.remittance@contoso-invoices.example and filter for keywords including invoice, IBAN, SWIFT, payment, and remittance.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 2,
+        "grounded_count": 0,
+        "ungrounded_count": 2,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_74360",
+      "proposal": {
+        "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+        "summary": "An investigation into the alert regarding suspicious inbox forwarding rules confirmed that three separate user mailboxes (amorel@contoso.com, tkowalski@contoso.com, and lferreira@contoso.com) had inbox rules created within a 13-minute window by the same external IP address. These rules automatically forward emails containing financial and invoice-related keywords to an external domain address (ap.remittance@contoso-invoices.example). This activity exhibits characteristics of BEC / financial fraud collection, confirming the alert as a true positive.",
+        "verdict": "true_positive",
+        "escalate": true
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

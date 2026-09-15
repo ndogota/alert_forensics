@@ -13,9 +13,9 @@ that created the rule came from the question "VPN SASE corporate egress proxy Am
 Paris", and a stub keyed on those words passes the alert probe.
 
 The recording probe is the nearest thing to that corpus: every request every committed
-recording under ``runs/<scenario>/`` actually made, put to every stub that does not
-serve that recording's scenario, as it was sent, through the matcher the adapter uses.
-It is one run today and grows with every recording.
+recording under ``runs/<scenario>/<recording>/`` actually made, put to every stub that
+does not serve that recording's scenario, as it was sent, through the matcher the
+adapter uses. It grows with every recording.
 """
 
 import json
@@ -79,14 +79,15 @@ def _strings(value: object, into: list[str]) -> None:
 
 
 def recorded_requests(runs_dir: Path, scenarios: Sequence[Scenario]) -> list[RecordedRequest]:
-    """Every request of every recording under ``runs_dir/<scenario>/run.json``, in trace
-    order. The directory names the scenario; a name no scenario present carries, or a
-    recording of another scenario's alert, cannot be attributed and is refused rather
-    than skipped, since a request that is put to nothing checks nothing."""
+    """Every request of every recording under ``runs_dir/<scenario>/<recording>/run.json``,
+    in trace order. The scenario directory names the scenario; a name no scenario
+    present carries, or a recording of another scenario's alert, cannot be attributed
+    and is refused rather than skipped, since a request that is put to nothing checks
+    nothing."""
     by_name = {s.name: s for s in scenarios}
     requests: list[RecordedRequest] = []
-    for path in sorted(runs_dir.glob(f"*/{RUN_FILE}")):
-        name = path.parent.name
+    for path in sorted(runs_dir.glob(f"*/*/{RUN_FILE}")):
+        name = path.parent.parent.name
         scenario = by_name.get(name)
         if scenario is None:
             raise ValueError(

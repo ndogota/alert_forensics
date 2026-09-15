@@ -1,0 +1,597 @@
+{
+  "investigation_id": "inv-54f7283f8983",
+  "outcome": "failed_ungrounded",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "lsass_access",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-54f7283f8983",
+    "alert": {
+      "id": "da637551355667788990_-1188736503",
+      "title": "LSASS credential memory access blocked",
+      "description": "A process opened lsass.exe with read access on ws-eng-0148 and was blocked by the attack surface reduction rule for LSASS credential theft. The accessing process was rt-cred.exe running as svc-purpleops.",
+      "severity": "high",
+      "status": "new",
+      "category": "CredentialAccess",
+      "createdDateTime": "2026-09-14T03:23:41.200000Z",
+      "lastUpdateDateTime": "2026-09-14T03:24:05Z",
+      "detectionSource": "microsoftDefenderForEndpoint",
+      "serviceSource": "microsoftDefenderForEndpoint",
+      "providerAlertId": "c3e18b40",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "71",
+      "mitreTechniques": [
+        "T1003.001"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.deviceEvidence",
+          "createdDateTime": "2026-09-14T03:23:41.200000Z",
+          "verdict": "unknown",
+          "roles": [
+            "contextual"
+          ],
+          "deviceDnsName": "ws-eng-0148.contoso.com",
+          "mdeDeviceId": "9c7e2a1f4b8d6c5a3e0f1d9b8a7c6e5d4f3a2b10",
+          "osPlatform": "Windows11",
+          "healthStatus": "active",
+          "riskScore": "high",
+          "rbacGroupName": "Engineering workstations"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T03:23:41.200000Z",
+          "verdict": "suspicious",
+          "roles": [],
+          "userAccount": {
+            "accountName": "svc-purpleops",
+            "domainName": "CONTOSO",
+            "userPrincipalName": "svc-purpleops@contoso.com",
+            "azureAdUserId": "b21f6c90-3a4d-4e77-9c1b-6d2e8f0a5c33"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.processEvidence",
+          "createdDateTime": "2026-09-14T03:23:41.200000Z",
+          "verdict": "suspicious",
+          "roles": [],
+          "processId": 8124,
+          "parentProcessId": 6620,
+          "processCommandLine": "rt-cred.exe --target lsass --mode minidump --out C:\\ProgramData\\PurpleOps\\out.bin",
+          "processCreationDateTime": "2026-09-14T03:23:40Z",
+          "parentProcessCreationDateTime": "2026-09-14T03:20:11Z",
+          "imageFile": {
+            "fileName": "rt-cred.exe",
+            "filePath": "C:\\ProgramData\\PurpleOps",
+            "fileSize": 284672,
+            "filePublisher": "",
+            "sha256": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912",
+            "issuer": "",
+            "signer": ""
+          },
+          "userAccount": {
+            "accountName": "svc-purpleops",
+            "domainName": "CONTOSO",
+            "userSid": "S-1-5-21-1004336348-1177238915-682003330-4471"
+          },
+          "detectionStatus": "prevented"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.fileEvidence",
+          "createdDateTime": "2026-09-14T03:23:41.200000Z",
+          "verdict": "unknown",
+          "roles": [],
+          "fileDetails": {
+            "fileName": "rt-cred.exe",
+            "filePath": "C:\\ProgramData\\PurpleOps",
+            "fileSize": 284672,
+            "sha1": "2b5d8a0c3e6f9b1d4a7c0e2f5b8d1a3c6e9f2b4d",
+            "sha256": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912",
+            "issuer": "",
+            "signer": ""
+          },
+          "detectionStatus": "prevented"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T11:36:04.012005Z",
+    "records": [
+      {
+        "tool_call_id": "call_72076",
+        "step": 0,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "purpleops"
+        },
+        "started_at": "2026-09-15T11:36:05.097422Z",
+        "duration_us": 414,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "search_runbook",
+          "detail": "no fixture stub for search_runbook matches arguments {\"query\": \"purpleops\", \"top_k\": 3}"
+        },
+        "raw_response_ref": "inv-54f7283f8983/call_72076.json",
+        "raw_response_sha256": "6577a06d974eb17301be0249c12d183dd0b1898e8b3a74ae1e79510dacbe6e96"
+      },
+      {
+        "tool_call_id": "call_52999",
+        "step": 1,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "PurpleOps"
+        },
+        "started_at": "2026-09-15T11:36:05.991063Z",
+        "duration_us": 161,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "search_runbook",
+          "detail": "no fixture stub for search_runbook matches arguments {\"query\": \"PurpleOps\", \"top_k\": 3}"
+        },
+        "raw_response_ref": "inv-54f7283f8983/call_52999.json",
+        "raw_response_sha256": "912334cd057e4e837ef17fd3017825f43a72812f2675c863c22bcd40fca5ff45"
+      },
+      {
+        "tool_call_id": "call_93369",
+        "step": 2,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "ws-eng-0148"
+        },
+        "started_at": "2026-09-15T11:36:06.792090Z",
+        "duration_us": 596,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 2,
+          "hits": [
+            {
+              "id": "RB-0520",
+              "title": "LSASS credential access during authorised red team exercises",
+              "score": 0.93,
+              "source": "runbooks/endpoint/red-team-lsass.md",
+              "excerpt": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC. The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list. An LSASS read from svc-purpleops on a listed host inside the window is expected and authorised, not an incident; confirm the attack surface reduction block held and that the prevention worked, document the run against the exercise, and do not escalate. An LSASS read from any other account, from any other host, or outside the window is exactly what this rule exists to catch."
+            },
+            {
+              "id": "RB-0021",
+              "title": "Identity Protection triage checklist",
+              "score": 0.55,
+              "source": "runbooks/identity/checklist.md",
+              "excerpt": "Confirm the outcome, the account priority and whether the activity maps to a change or an authorised exercise before escalating."
+            }
+          ]
+        },
+        "raw_response_ref": "inv-54f7283f8983/call_93369.json",
+        "raw_response_sha256": "79ff53c177cd4b3280148cb481ccb61074df57ce6b7d7d56cf53c78d50b4ea0d"
+      },
+      {
+        "tool_call_id": "call_42438",
+        "step": 3,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1003.001"
+        },
+        "started_at": "2026-09-15T11:36:07.666953Z",
+        "duration_us": 236487,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1003.001",
+          "name": "LSASS Memory",
+          "url": "https://attack.mitre.org/techniques/T1003/001",
+          "tactics": [
+            "credential-access"
+          ],
+          "is_subtechnique": true,
+          "platforms": [
+            "Windows"
+          ],
+          "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS). After a user logs on, the system generates and stores a variety of credential materials in LSASS process memory. These credential materials can be harvested by an administrative user or SYSTEM and used to conduct [Lateral Movement](https://attack.mitre.org/tactics/TA0008) using [Use Alternate Authentication Material](https://attack.mitre.org/techniques/T1550).\n\nAs well as in-memory techniques, the LSASS process memory can be dumped from the target host and analyzed on a local system.\n\nFor example, on the target host use procdump:\n\n* <code>procdump -ma lsass.exe lsass_dump</code>\n\nLocally, mimikatz can be run using:\n\n* <code>sekurlsa::Minidump lsassdump.dmp</code>\n* <code>sekurlsa::logonPasswords</code>\n\nBuilt-in Windows tools such as `comsvcs.dll` can also be used:\n\n* <code>rundll32.exe C:\\Windows\\System32\\comsvcs.dll MiniDump PID  lsass.dmp full</code>\n\nSimilar to [Image File Execution Options Injection](https://attack.mitre.org/techniques/T1546/012), the silent process exit mechanism can be abused to create a memory dump of `lsass.exe` through Windows Error Reporting (`WerFault.exe`).\n\nWindows Security Support Provider (SSP) DLLs are loaded into LSASS process at system start. Once loaded into the LSA, SSP DLLs have access to encrypted and plaintext passwords that are stored in Windows, such as any logged-on user's Domain password or smart card PINs. The SSP configuration is stored in two Registry keys: <code>HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Security Packages</code> and <code>HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\OSConfig\\Security Packages</code>. An adversary may modify these Registry keys to add new SSPs, which will be loaded the next time the system boots, or when the AddSecurityPackage Windows API function is called.\n\nThe following SSPs can be used to access credentials:\n\n* Msv: Interactive logons, batch logons, and service logons are done through the MSV authentication package.\n* Wdigest: The Digest Authentication protocol is designed for use with Hypertext Transfer Protocol (HTTP) and Simple Authentication Security Layer (SASL) exchanges.\n* Kerberos: Preferred for mutual client-server domain authentication in Windows 2000 and later.\n* CredSSP:  Provides SSO and Network Level Authentication for Remote Desktop Services.",
+          "version": "1.5",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-54f7283f8983/call_42438.json",
+        "raw_response_sha256": "2de88310468a975e483c11d2193140b68d07a028d438f8d98908049cb274e3ac"
+      },
+      {
+        "tool_call_id": "call_63135",
+        "step": 4,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "summary": "The alert fired because rt-cred.exe executed by svc-purpleops attempted to dump lsass.exe memory on ws-eng-0148. Internal runbook RB-0520 confirms this activity was part of authorised red team exercise PT-2026-0914 within the approved time window. The attack surface reduction rule successfully blocked the memory access attempt, demonstrating that the control functioned correctly for authorised testing.",
+          "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+          "verdict": "benign_true_positive",
+          "escalate": false
+        },
+        "started_at": "2026-09-15T11:36:09.421825Z",
+        "duration_us": 324,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "benign_true_positive",
+          "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+          "escalate": false,
+          "proposed_at": "2026-09-15T11:36:09Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-54f7283f8983/call_63135.json",
+        "raw_response_sha256": "6a8d4b6c447a1e046c77aab73e5ca9a867e2e6cc3baff15046a472fe4fe1c5d5"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2803,
+        "output_tokens": 18,
+        "total_tokens": 2821,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2877,
+        "output_tokens": 18,
+        "total_tokens": 2895,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2951,
+        "output_tokens": 24,
+        "total_tokens": 2975,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 3,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3511,
+        "output_tokens": 30,
+        "total_tokens": 3541,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 4,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4232,
+        "output_tokens": 170,
+        "total_tokens": 4402,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 5,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4535,
+        "output_tokens": 396,
+        "total_tokens": 4931,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 6,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 655,
+        "output_tokens": 196,
+        "total_tokens": 851,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "benign_true_positive",
+      "confidence": 1.0,
+      "mitre_techniques": [
+        "T1003.001"
+      ],
+      "observed_facts": [],
+      "assumptions": [
+        {
+          "statement": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC.",
+          "why_unverified": "The evidence RB-0520 does not exist in the present calls and cannot be verified."
+        },
+        {
+          "statement": "The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list, and an LSASS read from svc-purpleops on a listed host inside the window is expected and authorised.",
+          "why_unverified": "The evidence RB-0520 does not exist in the present calls and cannot be verified."
+        },
+        {
+          "statement": "The attack surface reduction rule blocked the memory access attempt by rt-cred.exe running as svc-purpleops on ws-eng-0148.",
+          "why_unverified": "The evidence ids RB-0520 and da637551355667788990_-1188736503 do not exist in the present successful tool calls."
+        }
+      ],
+      "missing_context": [],
+      "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+      "escalate": false
+    },
+    "facts": [],
+    "total_facts": 0,
+    "grounded_count": 0,
+    "ungrounded_count": 0,
+    "no_facts": true,
+    "ungrounded_claim_rate": 1.0,
+    "is_grounded": false
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC.",
+            "evidence_id": "RB-0520",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list, and an LSASS read from svc-purpleops on a listed host inside the window is expected and authorised.",
+            "evidence_id": "RB-0520",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "The attack surface reduction rule blocked the memory access attempt by rt-cred.exe running as svc-purpleops on ws-eng-0148.",
+            "evidence_id": "RB-0520",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "The attack surface reduction rule blocked the memory access attempt by rt-cred.exe running as svc-purpleops on ws-eng-0148.",
+            "evidence_id": "da637551355667788990_-1188736503",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_93369",
+            "tool_name": "search_runbook",
+            "arguments": {
+              "query": "ws-eng-0148"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_42438",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1003.001"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The evidence RB-0520 does not exist in the present calls and cannot be verified."
+          },
+          {
+            "index": 1,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The evidence RB-0520 does not exist in the present calls and cannot be verified."
+          },
+          {
+            "index": 2,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The evidence ids RB-0520 and da637551355667788990_-1188736503 do not exist in the present successful tool calls."
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "mitre_techniques": [
+            "T1003.001"
+          ],
+          "observed_facts": [
+            {
+              "statement": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC.",
+              "evidence": [
+                "RB-0520"
+              ]
+            },
+            {
+              "statement": "The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list, and an LSASS read from svc-purpleops on a listed host inside the window is expected and authorised.",
+              "evidence": [
+                "RB-0520"
+              ]
+            },
+            {
+              "statement": "The attack surface reduction rule blocked the memory access attempt by rt-cred.exe running as svc-purpleops on ws-eng-0148.",
+              "evidence": [
+                "RB-0520",
+                "da637551355667788990_-1188736503"
+              ]
+            }
+          ],
+          "assumptions": [],
+          "missing_context": [],
+          "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+          "escalate": false
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC.",
+            "evidence_ids": [
+              "RB-0520"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "RB-0520",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list, and an LSASS read from svc-purpleops on a listed host inside the window is expected and authorised.",
+            "evidence_ids": [
+              "RB-0520"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "RB-0520",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "The attack surface reduction rule blocked the memory access attempt by rt-cred.exe running as svc-purpleops on ws-eng-0148.",
+            "evidence_ids": [
+              "RB-0520",
+              "da637551355667788990_-1188736503"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "RB-0520",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              },
+              {
+                "evidence_id": "da637551355667788990_-1188736503",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 3,
+        "grounded_count": 0,
+        "ungrounded_count": 3,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_63135",
+      "proposal": {
+        "summary": "The alert fired because rt-cred.exe executed by svc-purpleops attempted to dump lsass.exe memory on ws-eng-0148. Internal runbook RB-0520 confirms this activity was part of authorised red team exercise PT-2026-0914 within the approved time window. The attack surface reduction rule successfully blocked the memory access attempt, demonstrating that the control functioned correctly for authorised testing.",
+        "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+        "verdict": "benign_true_positive",
+        "escalate": false
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

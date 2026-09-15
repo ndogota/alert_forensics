@@ -41,9 +41,11 @@ it could not establish, and is measured against ground truth. The design authori
   by outcome and error kind. Every proportion carries its Wilson 95 percent interval.
   Cost is derived at report time from a price table in the evaluation package; latency
   is the wall clock the harness measured. `alert-forensics eval` keeps one artifact per
-  run and derives the summary; `eval-report` recomputes it. Scenarios 1 to 4 have a
-  ground truth and fixtures; the other four are the next slices, written against this
-  contract. The replay viewer is also still to come.
+  run and derives the summary; `eval-report` recomputes it. All eight scenarios have a
+  ground truth and fixtures, and six have been run for real once; a scenario is not
+  measured until one real run has been read and its fixture gaps closed, as the spec
+  says under "One real run before a cell is paid for". The replay viewer is still to
+  come.
 
 ## Tools: which are live, which are fixture-backed
 
@@ -74,15 +76,16 @@ Without a key, replay a recorded run:
 
 ```
 uv sync
-uv run alert-forensics replay runs/atypical_travel/run.json
+uv run alert-forensics replay runs/atypical_travel/campaign-0/run.json
 ```
 
 `replay` reads a committed artifact, verifies every raw tool response beside it against
 the recorded hashes, states the model and the date, and prints the result: verdict,
 grounded facts with their citations, assumptions, missing context, human decisions.
 What it prints is a recording of a real model run, not a live one: nothing is called,
-nothing is generated. The recording under `runs/atypical_travel/` is scenario 1 on a
-real model, produced with the command under "With a model" below. A recording of the
+nothing is generated. The recordings under `runs/<scenario>/<recording>/` are real
+model runs, ten across six scenarios, each listed in `runs/README.md` with what it shows;
+which runs are committed is a rule in the spec, not a choice. A recording of the
 scripted client is refused by the test suite: a fake demo is worse than none.
 
 A plumbing check, no key and no model:

@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T11:36:25Z",
+ "recommended_action": "Close the alert as a benign true positive (authorized security testing), confirming that the internal red team / purple team identity svc-purpleops executed testing under authorized operations.",
+ "status": "proposed",
+ "summary": "The alert correctly fired on an attempt by rt-cred.exe running under the authorized service account svc-purpleops to dump LSASS memory on ws-eng-0148. Identity lookup reveals svc-purpleops belongs to the Security Operations business unit and is tagged with the redteam category, and related historical alerts show identical security testing activity classified as informationalExpectedActivity. Therefore, this is benign true positive activity.",
+ "verdict": "benign_true_positive"
+}

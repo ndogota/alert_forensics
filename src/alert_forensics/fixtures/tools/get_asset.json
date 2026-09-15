@@ -123,6 +123,88 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "asset": {
+          "$regex": "(?i)^ws-fin-0042(\\.contoso\\.com)?$|^10\\.20\\.31\\.42$"
+        }
+      },
+      "response": {
+        "sid": "1789310012.20112",
+        "preview": false,
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "ip": "10.20.31.42",
+            "mac": "00:1a:2b:3c:4d:71",
+            "nt_host": "WS-FIN-0042",
+            "dns": "ws-fin-0042.contoso.com",
+            "owner": "pnovak@contoso.com",
+            "priority": "medium",
+            "lat": "51.5074",
+            "long": "-0.1278",
+            "city": "London",
+            "country": "GB",
+            "bunit": "Trade Finance",
+            "category": "endpoint|workstation",
+            "pci_domain": "",
+            "is_expected": "true",
+            "should_timesync": "true",
+            "should_update": "true",
+            "requires_av": "true"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "asset": {
+          "$regex": "(?i)^ws-mkt-0117(\\.contoso\\.com)?$|^10\\.20\\.61\\.117$"
+        }
+      },
+      "response": {
+        "sid": "1789310013.20113",
+        "preview": false,
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "ip": "10.20.61.117",
+            "mac": "00:1a:2b:3c:4d:83",
+            "nt_host": "WS-MKT-0117",
+            "dns": "ws-mkt-0117.contoso.com",
+            "owner": "dlarsen@contoso.com",
+            "priority": "medium",
+            "lat": "51.5074",
+            "long": "-0.1278",
+            "city": "London",
+            "country": "GB",
+            "bunit": "Marketing",
+            "category": "endpoint|workstation",
+            "pci_domain": "",
+            "is_expected": "true",
+            "should_timesync": "true",
+            "should_update": "true",
+            "requires_av": "true"
+          }
+        ]
+      }
     }
   ]
 }

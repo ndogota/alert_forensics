@@ -1,0 +1,38 @@
+{
+ "data": {
+  "attributes": {
+   "as_owner": "EXAMPLE-RESIDENTIAL-PROXY",
+   "asn": 64500,
+   "country": "NG",
+   "last_analysis_date": 1789290000,
+   "last_analysis_results": {
+    "Abusix": {
+     "category": "harmless",
+     "engine_name": "Abusix",
+     "method": "blacklist",
+     "result": "clean"
+    }
+   },
+   "last_analysis_stats": {
+    "harmless": 61,
+    "malicious": 4,
+    "suspicious": 2,
+    "timeout": 0,
+    "undetected": 27
+   },
+   "network": "192.0.2.0/24",
+   "reputation": -3,
+   "tags": [],
+   "total_votes": {
+    "harmless": 0,
+    "malicious": 3
+   },
+   "whois": "inetnum: 192.0.2.0 - 192.0.2.255\nphone: +1 555 0100\n"
+  },
+  "id": "192.0.2.44",
+  "links": {
+   "self": "https://www.virustotal.com/api/v3/ip_addresses/192.0.2.44"
+  },
+  "type": "ip_address"
+ }
+}

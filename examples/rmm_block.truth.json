@@ -1,0 +1,137 @@
+{
+  "scenario": "rmm_block",
+  "alert_id": "da637551384455667788_-1188736705",
+  "verdict": "true_positive",
+  "escalate": true,
+  "required_findings": [
+    {
+      "name": "the_rmm_agent_was_blocked_on_the_workstation",
+      "tools": [
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "ws-fin-0042.contoso.com",
+          "ws-fin-0042",
+          "WS-FIN-0042"
+        ],
+        [
+          "RemoteSupport.Agent.exe",
+          "RemoteSupport"
+        ],
+        [
+          "blocked",
+          "prevented",
+          "denied",
+          "quarantined"
+        ]
+      ]
+    },
+    {
+      "name": "mshta_was_launched_by_the_mail_client",
+      "tools": [
+        "get_process_tree",
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "mshta.exe",
+          "mshta"
+        ],
+        [
+          "outlook.exe",
+          "outlook",
+          "Outlook",
+          "OUTLOOK.EXE"
+        ]
+      ]
+    },
+    {
+      "name": "the_installer_was_launched_by_mshta_naming_the_relay",
+      "tools": [
+        "get_process_tree",
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "RemoteSupport.ClientSetup.exe",
+          "ClientSetup"
+        ],
+        [
+          "mshta.exe",
+          "mshta"
+        ],
+        [
+          "relay=relay.example.net",
+          "relay.example.net"
+        ]
+      ]
+    },
+    {
+      "name": "the_providers_relay_is_named_by_the_runbook",
+      "tools": [
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "rmm.contoso-itsupport.example"
+        ],
+        [
+          "provider",
+          "IT provider",
+          "service desk",
+          "Intune",
+          "approved",
+          "sanctioned"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "the_mail_that_delivered_the_hta",
+      "tokens": [
+        [
+          "email",
+          "mail",
+          "message",
+          "phishing",
+          "Outlook"
+        ],
+        [
+          "invoice.hta",
+          "hta",
+          "sender",
+          "attachment",
+          "link",
+          "trace",
+          "delivered"
+        ]
+      ]
+    },
+    {
+      "name": "whether_the_first_agent_reached_the_relay",
+      "tokens": [
+        [
+          "relay.example.net",
+          "relay"
+        ],
+        [
+          "established",
+          "connected",
+          "connection",
+          "connections",
+          "traffic",
+          "session",
+          "outbound",
+          "network",
+          "proxy",
+          "firewall",
+          "beacon"
+        ]
+      ]
+    }
+  ]
+}

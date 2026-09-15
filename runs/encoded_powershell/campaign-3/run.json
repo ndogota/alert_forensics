@@ -1,0 +1,535 @@
+{
+  "investigation_id": "inv-1db7d99a56e1",
+  "outcome": "completed",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "encoded_powershell",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-1db7d99a56e1",
+    "alert": {
+      "id": "da637551341122334455_-1188736402",
+      "title": "Encoded PowerShell command on a production server",
+      "description": "powershell.exe was launched with an encoded command line (-EncodedCommand) on srv-prd-app01, a production server in the PCI zone. The parent process was cfgagent.exe running as SYSTEM.",
+      "severity": "medium",
+      "status": "new",
+      "category": "Execution",
+      "createdDateTime": "2026-09-14T02:49:30.700000Z",
+      "lastUpdateDateTime": "2026-09-14T02:50:12Z",
+      "detectionSource": "microsoftDefenderForEndpoint",
+      "serviceSource": "microsoftDefenderForEndpoint",
+      "providerAlertId": "b7f04a2d",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "66",
+      "mitreTechniques": [
+        "T1059.001",
+        "T1027.010"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.deviceEvidence",
+          "createdDateTime": "2026-09-14T02:49:30.700000Z",
+          "verdict": "unknown",
+          "roles": [
+            "contextual"
+          ],
+          "deviceDnsName": "srv-prd-app01.contoso.com",
+          "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c",
+          "osPlatform": "WindowsServer2022",
+          "healthStatus": "active",
+          "riskScore": "medium",
+          "rbacGroupName": "Production servers"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.processEvidence",
+          "createdDateTime": "2026-09-14T02:49:30.700000Z",
+          "verdict": "suspicious",
+          "roles": [],
+          "processId": 5216,
+          "parentProcessId": 1840,
+          "processCommandLine": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwB0AG8AcAAnADsAIABJAG0AcABvAHIAdAAtAE0AbwBkAHUAbABlACAAVwBlAGIAQQBkAG0AaQBuAGkAcwB0AHIAYQB0AGkAbwBuADsAIABTAGUAdAAtAEkAdABlAG0AUAByAG8AcABlAHIAdAB5ACAAJwBJAEkAUwA6AFwAQQBwAHAAUABvAG8AbABzAFwAUABhAHkAbQBlAG4AdABzAEEAcABpACcAIAAtAE4AYQBtAGUAIAByAGUAYwB5AGMAbABpAG4AZwAuAHAAZQByAGkAbwBkAGkAYwBSAGUAcwB0AGEAcgB0AC4AdABpAG0AZQAgAC0AVgBhAGwAdQBlACAAJwAwADEAOgAzADAAOgAwADAAJwA7ACAAUgBlAHMAdABhAHIAdAAtAFcAZQBiAEEAcABwAFAAbwBvAGwAIAAtAE4AYQBtAGUAIAAnAFAAYQB5AG0AZQBuAHQAcwBBAHAAaQAnAA==",
+          "processCreationDateTime": "2026-09-14T02:47:12Z",
+          "parentProcessCreationDateTime": "2026-08-16T22:03:40Z",
+          "imageFile": {
+            "fileName": "powershell.exe",
+            "filePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "fileSize": 452608,
+            "filePublisher": "Microsoft Corporation",
+            "sha256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "issuer": "Microsoft Windows Production PCA 2011",
+            "signer": "Microsoft Windows"
+          },
+          "parentProcessImageFile": {
+            "fileName": "cfgagent.exe",
+            "filePath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "fileSize": 1873920,
+            "filePublisher": "Contoso Bank plc",
+            "sha256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "issuer": "Contoso Internal Code Signing CA",
+            "signer": "Contoso Bank plc"
+          },
+          "userAccount": {
+            "accountName": "SYSTEM",
+            "domainName": "NT AUTHORITY",
+            "userSid": "S-1-5-18"
+          },
+          "detectionStatus": "detected",
+          "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.fileEvidence",
+          "createdDateTime": "2026-09-14T02:49:30.700000Z",
+          "verdict": "unknown",
+          "roles": [],
+          "fileDetails": {
+            "fileName": "cfgagent.exe",
+            "filePath": "C:\\Program Files\\Contoso\\ConfigAgent",
+            "fileSize": 1873920,
+            "filePublisher": "Contoso Bank plc",
+            "sha1": "1c9a4e7f2b5d8a0c3e6f9b1d4a7c0e2f5b8d1a3c",
+            "sha256": "b41c7e2f9a0d3c6e8f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+            "issuer": "Contoso Internal Code Signing CA",
+            "signer": "Contoso Bank plc"
+          },
+          "detectionStatus": "detected",
+          "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T11:34:47.723949Z",
+    "records": [
+      {
+        "tool_call_id": "call_42452",
+        "step": 0,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "cfgagent.exe"
+        },
+        "started_at": "2026-09-15T11:34:48.531891Z",
+        "duration_us": 767,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 2,
+          "hits": [
+            {
+              "id": "RB-0410",
+              "title": "Configuration management on production Windows servers",
+              "score": 0.92,
+              "source": "runbooks/endpoint/configuration-management.md",
+              "excerpt": "Production Windows servers are managed by the Contoso configuration agent, cfgagent.exe, installed under C:\\Program Files\\Contoso\\ConfigAgent and running as SYSTEM under the ContosoConfigAgent service. It applies state by launching powershell.exe with -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand, so an encoded command whose parent is cfgagent.exe from that path, as SYSTEM, inside a declared maintenance window, is the expected shape of a run and the agent doing its job. Document the exception on the triplet (device, parent image path, account) in the detection's exclusions for that server; do not disable the rule, since an encoded command from any other parent, from any other path, as any other account, or outside a window is exactly what it exists to catch."
+            },
+            {
+              "id": "RB-0412",
+              "title": "Change calendar: CHG0042117",
+              "score": 0.88,
+              "source": "change-calendar/2026-09/CHG0042117.md",
+              "excerpt": "CHG0042117, standard change, approved. srv-prd-app01: IIS application pool recycling drift correction (PaymentsApi), applied by configuration management. Maintenance window 2026-09-14 02:00 to 04:00 UTC. Owner platform-ops@contoso.com."
+            }
+          ]
+        },
+        "raw_response_ref": "inv-1db7d99a56e1/call_42452.json",
+        "raw_response_sha256": "ddef48f03a7fb17d6286e83f5737322837d1f2b00b697cfcd4a5e76cfdaf3b0b"
+      },
+      {
+        "tool_call_id": "call_66953",
+        "step": 1,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "summary": "The alert triggered on an encoded PowerShell command launched by the internal configuration agent (cfgagent.exe) as SYSTEM on srv-prd-app01. Decoding the command reveals routine administrative activity (IIS app pool recycling configuration update and restart for PaymentsApi). Furthermore, this execution occurred precisely within an approved change window (CHG0042117). The detection logic functioned correctly in flagging encoded PowerShell, but the activity is entirely authorized and benign.",
+          "verdict": "benign_true_positive",
+          "escalate": false,
+          "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows."
+        },
+        "started_at": "2026-09-15T11:34:50.097754Z",
+        "duration_us": 123,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "benign_true_positive",
+          "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows.",
+          "escalate": false,
+          "proposed_at": "2026-09-15T11:34:50Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-1db7d99a56e1/call_66953.json",
+        "raw_response_sha256": "cb707b2e220093f86ee8cdb57d3e36ee6b8a95e50eaf8c43452fb48de1b87335"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3231,
+        "output_tokens": 20,
+        "total_tokens": 3251,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3861,
+        "output_tokens": 175,
+        "total_tokens": 4036,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4172,
+        "output_tokens": 389,
+        "total_tokens": 4561,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 3,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 500,
+        "output_tokens": 186,
+        "total_tokens": 686,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "benign_true_positive",
+      "confidence": 1.0,
+      "mitre_techniques": [
+        "T1059.001",
+        "T1027.010"
+      ],
+      "observed_facts": [
+        {
+          "statement": "The execution occurred during an approved standard change window (CHG0042117) for IIS application pool recycling drift correction on srv-prd-app01.",
+          "evidence": [
+            "call_42452"
+          ]
+        },
+        {
+          "statement": "Production Windows servers managed by Contoso configuration agent (cfgagent.exe) are expected to apply state via encoded PowerShell commands during authorized maintenance windows.",
+          "evidence": [
+            "call_42452"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "powershell.exe was launched with an encoded command line by parent process cfgagent.exe running as SYSTEM on srv-prd-app01.",
+          "why_unverified": "The tool call providing endpoint evidence is not present or failed."
+        },
+        {
+          "statement": "Decoding the PowerShell command reveals routine administrative configuration changes, specifically updating recycling settings for the PaymentsApi IIS application pool and restarting the app pool.",
+          "why_unverified": "The tool call providing endpoint evidence is not present or failed."
+        }
+      ],
+      "missing_context": [],
+      "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows.",
+      "escalate": false
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "The execution occurred during an approved standard change window (CHG0042117) for IIS application pool recycling drift correction on srv-prd-app01.",
+        "evidence_ids": [
+          "call_42452"
+        ],
+        "resolved_ids": [
+          "call_42452"
+        ],
+        "source_systems": [
+          "runbook"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "Production Windows servers managed by Contoso configuration agent (cfgagent.exe) are expected to apply state via encoded PowerShell commands during authorized maintenance windows.",
+        "evidence_ids": [
+          "call_42452"
+        ],
+        "resolved_ids": [
+          "call_42452"
+        ],
+        "source_systems": [
+          "runbook"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 2,
+    "grounded_count": 2,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "powershell.exe was launched with an encoded command line by parent process cfgagent.exe running as SYSTEM on srv-prd-app01.",
+            "evidence_id": "microsoftDefenderForEndpoint",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "Decoding the PowerShell command reveals routine administrative configuration changes, specifically updating recycling settings for the PaymentsApi IIS application pool and restarting the app pool.",
+            "evidence_id": "microsoftDefenderForEndpoint",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "The execution occurred during an approved standard change window (CHG0042117) for IIS application pool recycling drift correction on srv-prd-app01.",
+            "evidence_id": "RB-0412",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 3,
+            "statement": "Production Windows servers managed by Contoso configuration agent (cfgagent.exe) are expected to apply state via encoded PowerShell commands during authorized maintenance windows.",
+            "evidence_id": "RB-0410",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_42452",
+            "tool_name": "search_runbook",
+            "arguments": {
+              "query": "cfgagent.exe"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The tool call providing endpoint evidence is not present or failed."
+          },
+          {
+            "index": 1,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The tool call providing endpoint evidence is not present or failed."
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "call_42452"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 3,
+            "action": "recite",
+            "evidence": [
+              "call_42452"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "mitre_techniques": [
+            "T1059.001",
+            "T1027.010"
+          ],
+          "observed_facts": [
+            {
+              "statement": "powershell.exe was launched with an encoded command line by parent process cfgagent.exe running as SYSTEM on srv-prd-app01.",
+              "evidence": [
+                "microsoftDefenderForEndpoint"
+              ]
+            },
+            {
+              "statement": "Decoding the PowerShell command reveals routine administrative configuration changes, specifically updating recycling settings for the PaymentsApi IIS application pool and restarting the app pool.",
+              "evidence": [
+                "microsoftDefenderForEndpoint"
+              ]
+            },
+            {
+              "statement": "The execution occurred during an approved standard change window (CHG0042117) for IIS application pool recycling drift correction on srv-prd-app01.",
+              "evidence": [
+                "RB-0412"
+              ]
+            },
+            {
+              "statement": "Production Windows servers managed by Contoso configuration agent (cfgagent.exe) are expected to apply state via encoded PowerShell commands during authorized maintenance windows.",
+              "evidence": [
+                "RB-0410"
+              ]
+            }
+          ],
+          "assumptions": [],
+          "missing_context": [],
+          "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows.",
+          "escalate": false
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "powershell.exe was launched with an encoded command line by parent process cfgagent.exe running as SYSTEM on srv-prd-app01.",
+            "evidence_ids": [
+              "microsoftDefenderForEndpoint"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "microsoftDefenderForEndpoint",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "Decoding the PowerShell command reveals routine administrative configuration changes, specifically updating recycling settings for the PaymentsApi IIS application pool and restarting the app pool.",
+            "evidence_ids": [
+              "microsoftDefenderForEndpoint"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "microsoftDefenderForEndpoint",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "The execution occurred during an approved standard change window (CHG0042117) for IIS application pool recycling drift correction on srv-prd-app01.",
+            "evidence_ids": [
+              "RB-0412"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "RB-0412",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 3,
+            "statement": "Production Windows servers managed by Contoso configuration agent (cfgagent.exe) are expected to apply state via encoded PowerShell commands during authorized maintenance windows.",
+            "evidence_ids": [
+              "RB-0410"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "RB-0410",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 4,
+        "grounded_count": 0,
+        "ungrounded_count": 4,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_66953",
+      "proposal": {
+        "summary": "The alert triggered on an encoded PowerShell command launched by the internal configuration agent (cfgagent.exe) as SYSTEM on srv-prd-app01. Decoding the command reveals routine administrative activity (IIS app pool recycling configuration update and restart for PaymentsApi). Furthermore, this execution occurred precisely within an approved change window (CHG0042117). The detection logic functioned correctly in flagging encoded PowerShell, but the activity is entirely authorized and benign.",
+        "verdict": "benign_true_positive",
+        "escalate": false,
+        "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows."
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

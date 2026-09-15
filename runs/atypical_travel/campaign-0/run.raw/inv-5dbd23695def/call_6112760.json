@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T10:20:45Z",
+ "recommended_action": "Close the alert as a false positive. The sign-in locations correspond to corporate SASE gateway transitions rather than actual impossible travel.",
+ "status": "proposed",
+ "summary": "The user jdoe@contoso.com performed two successful sign-ins within 40 minutes from the same IP address 203.0.113.7, which is documented in the corporate runbooks as a SASE gateway egress point in Amsterdam covering regional traffic, while the initial location was reported as Paris due to geo-IP inaccuracy or proxy routing. Both sign-ins originated from the same corporate network range and do not represent unauthorized access.",
+ "verdict": "false_positive"
+}

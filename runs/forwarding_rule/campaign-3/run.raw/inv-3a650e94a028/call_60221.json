@@ -1,0 +1,283 @@
+{
+ "results": [
+  {
+   "AccountObjectId": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+   "AccountUpn": "amorel@contoso.com",
+   "ActionType": "New-InboxRule",
+   "ActivityObjects": [
+    {
+     "Id": "9a1f3c5e-7b2d-4e06-8c1a-3d5f7a9b1c02",
+     "Name": "amorel@contoso.com",
+     "Type": "User"
+    },
+    {
+     "Name": "Name",
+     "Type": "Parameter",
+     "Value": ".."
+    },
+    {
+     "Name": "ForwardTo",
+     "Type": "Parameter",
+     "Value": "ap.remittance@contoso-invoices.example"
+    },
+    {
+     "Name": "SubjectOrBodyContainsWords",
+     "Type": "Parameter",
+     "Value": "invoice;IBAN;SWIFT;payment;remittance"
+    },
+    {
+     "Name": "MarkAsRead",
+     "Type": "Parameter",
+     "Value": "True"
+    },
+    {
+     "Name": "StopProcessingRules",
+     "Type": "Parameter",
+     "Value": "True"
+    }
+   ],
+   "Application": "Microsoft Exchange Online",
+   "City": "Ashburn",
+   "Country": "US",
+   "IPAddress": "2001:db8:7a3c:1200::1f",
+   "ObjectName": "..",
+   "ObjectType": "InboxRule",
+   "RawEventData": {
+    "ClientIP": "2001:db8:7a3c:1200::1f",
+    "ClientInfoString": "Client=OWA;Action=ViaProxy",
+    "Operation": "New-InboxRule",
+    "Parameters": [
+     {
+      "Name": "Name",
+      "Value": ".."
+     },
+     {
+      "Name": "ForwardTo",
+      "Value": "ap.remittance@contoso-invoices.example"
+     },
+     {
+      "Name": "SubjectOrBodyContainsWords",
+      "Value": "invoice;IBAN;SWIFT;payment;remittance"
+     },
+     {
+      "Name": "MarkAsRead",
+      "Value": "True"
+     },
+     {
+      "Name": "StopProcessingRules",
+      "Value": "True"
+     }
+    ],
+    "ResultStatus": "True",
+    "SessionId": "7d3f1a09-5c2e-4b8a-9f0d-1e3c5a7b9d01",
+    "UserId": "amorel@contoso.com"
+   },
+   "ReportId": 4471130200,
+   "Timestamp": "2026-09-14T05:14:02.000Z"
+  },
+  {
+   "AccountObjectId": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+   "AccountUpn": "tkowalski@contoso.com",
+   "ActionType": "New-InboxRule",
+   "ActivityObjects": [
+    {
+     "Id": "b2c4d6e8-1a3f-4b5d-9e7c-0f2a4c6e8b13",
+     "Name": "tkowalski@contoso.com",
+     "Type": "User"
+    },
+    {
+     "Name": "Name",
+     "Type": "Parameter",
+     "Value": ".."
+    },
+    {
+     "Name": "ForwardTo",
+     "Type": "Parameter",
+     "Value": "ap.remittance@contoso-invoices.example"
+    },
+    {
+     "Name": "SubjectOrBodyContainsWords",
+     "Type": "Parameter",
+     "Value": "invoice;IBAN;SWIFT;payment;remittance"
+    },
+    {
+     "Name": "MarkAsRead",
+     "Type": "Parameter",
+     "Value": "True"
+    },
+    {
+     "Name": "StopProcessingRules",
+     "Type": "Parameter",
+     "Value": "True"
+    }
+   ],
+   "Application": "Microsoft Exchange Online",
+   "City": "Ashburn",
+   "Country": "US",
+   "IPAddress": "2001:db8:7a3c:1200::1f",
+   "ObjectName": "..",
+   "ObjectType": "InboxRule",
+   "RawEventData": {
+    "ClientIP": "2001:db8:7a3c:1200::1f",
+    "ClientInfoString": "Client=OWA;Action=ViaProxy",
+    "Operation": "New-InboxRule",
+    "Parameters": [
+     {
+      "Name": "Name",
+      "Value": ".."
+     },
+     {
+      "Name": "ForwardTo",
+      "Value": "ap.remittance@contoso-invoices.example"
+     },
+     {
+      "Name": "SubjectOrBodyContainsWords",
+      "Value": "invoice;IBAN;SWIFT;payment;remittance"
+     },
+     {
+      "Name": "MarkAsRead",
+      "Value": "True"
+     },
+     {
+      "Name": "StopProcessingRules",
+      "Value": "True"
+     }
+    ],
+    "ResultStatus": "True",
+    "SessionId": "7d3f1a19-5c2e-4b8a-9f0d-1e3c5a7b9d11",
+    "UserId": "tkowalski@contoso.com"
+   },
+   "ReportId": 4471130207,
+   "Timestamp": "2026-09-14T05:20:36.000Z"
+  },
+  {
+   "AccountObjectId": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+   "AccountUpn": "lferreira@contoso.com",
+   "ActionType": "New-InboxRule",
+   "ActivityObjects": [
+    {
+     "Id": "c3d5e7f9-2b4a-4c6e-8d0f-1a3b5c7d9e24",
+     "Name": "lferreira@contoso.com",
+     "Type": "User"
+    },
+    {
+     "Name": "Name",
+     "Type": "Parameter",
+     "Value": ".."
+    },
+    {
+     "Name": "ForwardTo",
+     "Type": "Parameter",
+     "Value": "ap.remittance@contoso-invoices.example"
+    },
+    {
+     "Name": "SubjectOrBodyContainsWords",
+     "Type": "Parameter",
+     "Value": "invoice;IBAN;SWIFT;payment;remittance"
+    },
+    {
+     "Name": "MarkAsRead",
+     "Type": "Parameter",
+     "Value": "True"
+    },
+    {
+     "Name": "StopProcessingRules",
+     "Type": "Parameter",
+     "Value": "True"
+    }
+   ],
+   "Application": "Microsoft Exchange Online",
+   "City": "Ashburn",
+   "Country": "US",
+   "IPAddress": "2001:db8:7a3c:1200::1f",
+   "ObjectName": "..",
+   "ObjectType": "InboxRule",
+   "RawEventData": {
+    "ClientIP": "2001:db8:7a3c:1200::1f",
+    "ClientInfoString": "Client=OWA;Action=ViaProxy",
+    "Operation": "New-InboxRule",
+    "Parameters": [
+     {
+      "Name": "Name",
+      "Value": ".."
+     },
+     {
+      "Name": "ForwardTo",
+      "Value": "ap.remittance@contoso-invoices.example"
+     },
+     {
+      "Name": "SubjectOrBodyContainsWords",
+      "Value": "invoice;IBAN;SWIFT;payment;remittance"
+     },
+     {
+      "Name": "MarkAsRead",
+      "Value": "True"
+     },
+     {
+      "Name": "StopProcessingRules",
+      "Value": "True"
+     }
+    ],
+    "ResultStatus": "True",
+    "SessionId": "7d3f1a29-5c2e-4b8a-9f0d-1e3c5a7b9d21",
+    "UserId": "lferreira@contoso.com"
+   },
+   "ReportId": 4471130214,
+   "Timestamp": "2026-09-14T05:27:11.000Z"
+  }
+ ],
+ "schema": [
+  {
+   "name": "Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "ActionType",
+   "type": "String"
+  },
+  {
+   "name": "Application",
+   "type": "String"
+  },
+  {
+   "name": "AccountUpn",
+   "type": "String"
+  },
+  {
+   "name": "AccountObjectId",
+   "type": "String"
+  },
+  {
+   "name": "IPAddress",
+   "type": "String"
+  },
+  {
+   "name": "Country",
+   "type": "String"
+  },
+  {
+   "name": "City",
+   "type": "String"
+  },
+  {
+   "name": "ObjectName",
+   "type": "String"
+  },
+  {
+   "name": "ObjectType",
+   "type": "String"
+  },
+  {
+   "name": "ActivityObjects",
+   "type": "Dynamic"
+  },
+  {
+   "name": "ReportId",
+   "type": "Int64"
+  },
+  {
+   "name": "RawEventData",
+   "type": "Dynamic"
+  }
+ ]
+}

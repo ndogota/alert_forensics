@@ -1,0 +1,124 @@
+{
+ "results": [
+  {
+   "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+   "AccountUpn": "rbennett@contoso.com",
+   "ActionType": "LogonFailed",
+   "Application": "Office 365 Exchange Online",
+   "AuthenticationRequirement": "singleFactorAuthentication",
+   "City": "Sao Paulo",
+   "ClientAppUsed": "Other clients",
+   "ConditionalAccessStatus": "notApplied",
+   "Country": "BR",
+   "ErrorCode": 50126,
+   "FailureReason": "Invalid username or password",
+   "IPAddress": "192.0.2.17",
+   "Latitude": -23.5505,
+   "Longitude": -46.6333,
+   "Timestamp": "2026-09-14T06:32:11.000Z",
+   "UserAgent": "BAV2ROPC"
+  },
+  {
+   "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+   "AccountUpn": "rbennett@contoso.com",
+   "ActionType": "LogonSuccess",
+   "Application": "Office 365 Exchange Online",
+   "AuthenticationRequirement": "singleFactorAuthentication",
+   "City": "Lagos",
+   "ClientAppUsed": "Other clients",
+   "ConditionalAccessStatus": "notApplied",
+   "Country": "NG",
+   "ErrorCode": 0,
+   "FailureReason": "",
+   "IPAddress": "192.0.2.44",
+   "Latitude": 6.5244,
+   "Longitude": 3.3792,
+   "Timestamp": "2026-09-14T06:41:03.000Z",
+   "UserAgent": "BAV2ROPC"
+  },
+  {
+   "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+   "AccountUpn": "rbennett@contoso.com",
+   "ActionType": "LogonSuccess",
+   "Application": "Office 365 Exchange Online",
+   "AuthenticationRequirement": "multiFactorAuthentication",
+   "City": "Lagos",
+   "ClientAppUsed": "Browser",
+   "ConditionalAccessStatus": "success",
+   "Country": "NG",
+   "ErrorCode": 0,
+   "FailureReason": "",
+   "IPAddress": "192.0.2.44",
+   "Latitude": 6.5244,
+   "Longitude": 3.3792,
+   "Timestamp": "2026-09-14T06:46:58.000Z",
+   "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+  }
+ ],
+ "schema": [
+  {
+   "name": "Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "ActionType",
+   "type": "String"
+  },
+  {
+   "name": "AccountUpn",
+   "type": "String"
+  },
+  {
+   "name": "AccountObjectId",
+   "type": "String"
+  },
+  {
+   "name": "Application",
+   "type": "String"
+  },
+  {
+   "name": "ClientAppUsed",
+   "type": "String"
+  },
+  {
+   "name": "AuthenticationRequirement",
+   "type": "String"
+  },
+  {
+   "name": "ConditionalAccessStatus",
+   "type": "String"
+  },
+  {
+   "name": "IPAddress",
+   "type": "String"
+  },
+  {
+   "name": "Country",
+   "type": "String"
+  },
+  {
+   "name": "City",
+   "type": "String"
+  },
+  {
+   "name": "ErrorCode",
+   "type": "Int32"
+  },
+  {
+   "name": "FailureReason",
+   "type": "String"
+  },
+  {
+   "name": "UserAgent",
+   "type": "String"
+  },
+  {
+   "name": "Latitude",
+   "type": "Real"
+  },
+  {
+   "name": "Longitude",
+   "type": "Real"
+  }
+ ]
+}

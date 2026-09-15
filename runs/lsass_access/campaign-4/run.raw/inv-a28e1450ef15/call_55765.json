@@ -1,0 +1,33 @@
+{
+ "fields": [
+  {
+   "name": "nt_host"
+  },
+  {
+   "name": "priority"
+  }
+ ],
+ "preview": false,
+ "results": [
+  {
+   "bunit": "Engineering",
+   "category": "endpoint|workstation",
+   "city": "London",
+   "country": "GB",
+   "dns": "ws-eng-0148.contoso.com",
+   "ip": "10.20.30.55",
+   "is_expected": "true",
+   "lat": "51.5074",
+   "long": "-0.1278",
+   "mac": "00:1a:2b:3c:4d:5e",
+   "nt_host": "WS-ENG-0148",
+   "owner": "jhalvorsen@contoso.com",
+   "pci_domain": "",
+   "priority": "medium",
+   "requires_av": "true",
+   "should_timesync": "true",
+   "should_update": "true"
+  }
+ ],
+ "sid": "1789310001.20101"
+}

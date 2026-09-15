@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T11:36:09Z",
+ "recommended_action": "Verify the block held as intended, record the event against authorized red team exercise PT-2026-0914, and close the alert as benign true positive.",
+ "status": "proposed",
+ "summary": "The alert fired because rt-cred.exe executed by svc-purpleops attempted to dump lsass.exe memory on ws-eng-0148. Internal runbook RB-0520 confirms this activity was part of authorised red team exercise PT-2026-0914 within the approved time window. The attack surface reduction rule successfully blocked the memory access attempt, demonstrating that the control functioned correctly for authorised testing.",
+ "verdict": "benign_true_positive"
+}

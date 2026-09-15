@@ -1,0 +1,174 @@
+{
+  "scenario": "cloud_upload",
+  "alert_id": "da637551398811223344_-1188736806",
+  "verdict": "false_positive",
+  "escalate": false,
+  "required_findings": [
+    {
+      "name": "the_volume_and_the_personal_destination",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "dlarsen@contoso.com",
+          "dlarsen"
+        ],
+        [
+          "6657199308",
+          "6.2 GB",
+          "6.2GB",
+          "2340"
+        ],
+        [
+          "PhotoDrive",
+          "photodrive",
+          "upload.photodrive.example",
+          "photodrive.example"
+        ]
+      ]
+    },
+    {
+      "name": "the_content_is_photographs",
+      "tools": [
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "94"
+        ],
+        [
+          "image",
+          "images",
+          "photo",
+          "photos",
+          "photograph",
+          "photographs",
+          "picture",
+          "pictures",
+          "JPEG",
+          "jpeg",
+          "image/jpeg"
+        ]
+      ]
+    },
+    {
+      "name": "no_label_and_no_corporate_source",
+      "tools": [
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "sensitivity",
+          "label",
+          "labels",
+          "labelled",
+          "labeled",
+          "classification",
+          "classified"
+        ],
+        [
+          "none",
+          "no",
+          "not",
+          "without",
+          "zero",
+          "unlabelled",
+          "unlabeled"
+        ]
+      ]
+    },
+    {
+      "name": "the_user_is_a_leaver",
+      "tools": [
+        "get_identity"
+      ],
+      "tokens": [
+        [
+          "dlarsen@contoso.com",
+          "dlarsen"
+        ],
+        [
+          "leaver",
+          "leavers",
+          "resigned",
+          "resignation",
+          "departing",
+          "leaving",
+          "watchlist",
+          "2026-09-30"
+        ]
+      ]
+    },
+    {
+      "name": "the_runbook_routes_personal_use_to_hr",
+      "tools": [
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "HR",
+          "human resources"
+        ],
+        [
+          "personal use",
+          "personal"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "the_names_and_origin_of_the_non_image_files",
+      "tokens": [
+        [
+          "non-image",
+          "remaining",
+          "other",
+          "PDF",
+          "pdf",
+          "documents",
+          "document",
+          "6"
+        ],
+        [
+          "names",
+          "name",
+          "origin",
+          "content",
+          "contents",
+          "list",
+          "listing",
+          "what",
+          "which"
+        ]
+      ]
+    },
+    {
+      "name": "the_hr_record_or_the_users_own_account",
+      "tokens": [
+        [
+          "HR",
+          "human resources",
+          "manager",
+          "user",
+          "employee",
+          "interview"
+        ],
+        [
+          "account",
+          "explanation",
+          "confirm",
+          "confirmed",
+          "confirmation",
+          "statement",
+          "ask",
+          "asked",
+          "record",
+          "exit"
+        ]
+      ]
+    }
+  ]
+}

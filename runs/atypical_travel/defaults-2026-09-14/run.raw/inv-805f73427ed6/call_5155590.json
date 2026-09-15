@@ -1,0 +1,38 @@
+{
+ "data": {
+  "attributes": {
+   "as_owner": "EXAMPLE-SASE-NET",
+   "asn": 64496,
+   "country": "NL",
+   "last_analysis_date": 1789300000,
+   "last_analysis_results": {
+    "Abusix": {
+     "category": "harmless",
+     "engine_name": "Abusix",
+     "method": "blacklist",
+     "result": "clean"
+    }
+   },
+   "last_analysis_stats": {
+    "harmless": 60,
+    "malicious": 0,
+    "suspicious": 0,
+    "timeout": 0,
+    "undetected": 34
+   },
+   "network": "203.0.113.0/24",
+   "reputation": 0,
+   "tags": [],
+   "total_votes": {
+    "harmless": 0,
+    "malicious": 0
+   },
+   "whois": "inetnum: 203.0.113.0 - 203.0.113.255\nphone: +31 20 000 0000\n"
+  },
+  "id": "203.0.113.7",
+  "links": {
+   "self": "https://www.virustotal.com/api/v3/ip_addresses/203.0.113.7"
+  },
+  "type": "ip_address"
+ }
+}

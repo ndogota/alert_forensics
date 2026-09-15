@@ -365,7 +365,9 @@ def gateway_tokens():
 
 
 def test_the_recorded_real_run_scores_as_the_spec_says():
-    artifact = RunArtifact.model_validate_json(Path("runs/atypical_travel/run.json").read_text())
+    artifact = RunArtifact.model_validate_json(
+        Path("runs/atypical_travel/defaults-2026-09-14/run.json").read_text()
+    )
     score = score_run(artifact, TRUTH)
     assert score.outcome is RunOutcome.completed
     assert score.verdict_correct is True

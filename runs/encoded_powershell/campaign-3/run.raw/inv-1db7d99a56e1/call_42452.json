@@ -1,0 +1,18 @@
+{
+ "hits": [
+  {
+   "excerpt": "Production Windows servers are managed by the Contoso configuration agent, cfgagent.exe, installed under C:\\Program Files\\Contoso\\ConfigAgent and running as SYSTEM under the ContosoConfigAgent service. It applies state by launching powershell.exe with -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand, so an encoded command whose parent is cfgagent.exe from that path, as SYSTEM, inside a declared maintenance window, is the expected shape of a run and the agent doing its job. Document the exception on the triplet (device, parent image path, account) in the detection's exclusions for that server; do not disable the rule, since an encoded command from any other parent, from any other path, as any other account, or outside a window is exactly what it exists to catch.",
+   "id": "RB-0410",
+   "score": 0.92,
+   "source": "runbooks/endpoint/configuration-management.md",
+   "title": "Configuration management on production Windows servers"
+  },
+  {
+   "excerpt": "CHG0042117, standard change, approved. srv-prd-app01: IIS application pool recycling drift correction (PaymentsApi), applied by configuration management. Maintenance window 2026-09-14 02:00 to 04:00 UTC. Owner platform-ops@contoso.com.",
+   "id": "RB-0412",
+   "score": 0.88,
+   "source": "change-calendar/2026-09/CHG0042117.md",
+   "title": "Change calendar: CHG0042117"
+  }
+ ]
+}

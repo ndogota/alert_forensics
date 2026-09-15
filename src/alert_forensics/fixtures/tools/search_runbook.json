@@ -54,6 +54,17 @@
       }
     },
     {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$regex": "192\\.0\\.2\\.44"
+        }
+      },
+      "response": {
+        "hits": []
+      }
+    },
+    {
       "scenario": "forwarding_rule",
       "match": {
         "query": {
@@ -109,7 +120,7 @@
       "scenario": "lsass_access",
       "match": {
         "query": {
-          "$regex": "(?i)lsass|mimikatz|credential[_ -]?theft|credential dumping|purple[_ -]?team|red[_ -]?team|exercise|PT-2026|svc-purpleops|ws-eng-0148|T1003"
+          "$regex": "(?i)lsass|mimikatz|credential[_ -]?theft|credential dumping|purple|red[_ -]?team|exercise|PT-2026|svc-purpleops|ws-eng-0148|rt-cred|T1003"
         }
       },
       "response": {
@@ -153,6 +164,58 @@
             "score": 0.3,
             "source": "runbooks/identity/password-spray.md",
             "excerpt": "Unrelated: spray thresholds and response."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "query": {
+          "$regex": "(?i)RemoteSupport|remote[ -]?(management|support|access|monitoring)( and monitoring)? tool|\\bRMM\\b|relay\\.example\\.net|rmm\\.contoso-itsupport|mshta|\\.hta\\b|ws-fin-0042|pnovak|T1219|T1218"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0610",
+            "title": "Remote management tools: the approved RMM and its relay",
+            "score": 0.94,
+            "source": "runbooks/endpoint/remote-management-tools.md",
+            "excerpt": "The group's IT provider, Contoso IT Services, operates RemoteSupport for the service desk. The provider's agent is deployed by Intune from the software catalogue and reports to the provider's relay rmm.contoso-itsupport.example; the service desk never installs it from a user's Temp folder, never by script, and never to any other relay. A RemoteSupport install that arrives outside Intune, or that names any other relay, is not the provider's, and a signed binary with a clean VirusTotal reading does not change that: the tool is legitimate software and the operator is not. Sixteen RMM tools were documented as abused for initial access in 2025, and an installer launched by mshta.exe or a script from a mail client is that shape. Do not close on the signature: isolate the device, capture the relay, and escalate to IR."
+          },
+          {
+            "id": "RB-0034",
+            "title": "Endpoint block triage checklist",
+            "score": 0.58,
+            "source": "runbooks/endpoint/checklist.md",
+            "excerpt": "A block on a signed binary is triaged on where it came from and what launched it, not on its signature: read the process lineage back to the first user-facing application, and treat a mail client or a browser as the entry."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "query": {
+          "$regex": "(?i)leaver|departing|resign|personal cloud|cloud storage|PhotoDrive|photodrive|exfiltration|mass upload|T1567|dlarsen|ws-mkt-0117"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0705",
+            "title": "Data movement by users on the leaver watchlist",
+            "score": 0.92,
+            "source": "runbooks/data/leaver-watchlist.md",
+            "excerpt": "HR places resigning employees on the leaver watchlist until their end date, and the upload rule fires on more than 1 GB to a personal cloud storage category in 24 hours by a listed user. Triage on content and origin, never on volume: read the CASB content-type breakdown and the sensitivity labels of the uploaded files, and check whether any file came from a SharePoint site, a file share or a labelled location. Where the content is personal, photographs and personal documents, no file carries a label and none came from a corporate location, the alert is a false positive: no organisational data left. The rule is not tuned, because the next upload by the next leaver may be source code and this one was doing its job; route the finding to HR as personal use of a corporate device, and do not escalate. Where any labelled or site-sourced file is among the uploads, treat it as exfiltration, escalate to IR and to HR, and preserve the device."
+          },
+          {
+            "id": "RB-0021",
+            "title": "Identity Protection triage checklist",
+            "score": 0.51,
+            "source": "runbooks/identity/checklist.md",
+            "excerpt": "Confirm the outcome, the account priority and whether the activity maps to a change or an authorised exercise before escalating."
           }
         ]
       }

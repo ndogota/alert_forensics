@@ -1,0 +1,693 @@
+{
+  "investigation_id": "inv-dbf68614b7d7",
+  "outcome": "completed",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "password_spray",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-dbf68614b7d7",
+    "alert": {
+      "id": "da637551302218456123_-1188736045",
+      "title": "Password spray",
+      "description": "Failed sign-ins with a single password attempt per account were observed against many accounts from a shared set of source IP addresses within a short window. One of the attempts succeeded.",
+      "severity": "high",
+      "status": "new",
+      "category": "CredentialAccess",
+      "createdDateTime": "2026-09-14T07:03:52.400000Z",
+      "lastUpdateDateTime": "2026-09-14T07:05:10Z",
+      "detectionSource": "azureAdIdentityProtection",
+      "serviceSource": "azureAdIdentityProtection",
+      "providerAlertId": "9c2e7a41",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "57",
+      "mitreTechniques": [
+        "T1110.003",
+        "T1078.004"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T07:03:52.400000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "rbennett",
+            "domainName": "contoso",
+            "userPrincipalName": "rbennett@contoso.com",
+            "azureAdUserId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "displayName": "Rowan Bennett"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.ipEvidence",
+          "createdDateTime": "2026-09-14T07:03:52.400000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "attacker"
+          ],
+          "ipAddress": "192.0.2.44",
+          "countryLetterCode": "NG"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T11:29:21.645638Z",
+    "records": [
+      {
+        "tool_call_id": "call_76639",
+        "step": 0,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "timespan": "P1D",
+          "query": "SigninLogs | where UserPrincipalName == \"rbennett@contoso.com\" or IPAddress == \"192.0.2.44\" | top 20 by TimeGenerated desc"
+        },
+        "started_at": "2026-09-15T11:29:47.034854Z",
+        "duration_us": 926,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "Timestamp",
+            "ActionType",
+            "AccountUpn",
+            "AccountObjectId",
+            "Application",
+            "ClientAppUsed",
+            "AuthenticationRequirement",
+            "ConditionalAccessStatus",
+            "IPAddress",
+            "Country",
+            "City",
+            "ErrorCode",
+            "FailureReason",
+            "UserAgent"
+          ],
+          "row_count": 3,
+          "rows": [
+            {
+              "Timestamp": "2026-09-14T06:32:11.000Z",
+              "ActionType": "LogonFailed",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Other clients",
+              "AuthenticationRequirement": "singleFactorAuthentication",
+              "ConditionalAccessStatus": "notApplied",
+              "IPAddress": "192.0.2.17",
+              "Country": "BR",
+              "City": "Sao Paulo",
+              "ErrorCode": 50126,
+              "FailureReason": "Invalid username or password",
+              "UserAgent": "BAV2ROPC"
+            },
+            {
+              "Timestamp": "2026-09-14T06:41:03.000Z",
+              "ActionType": "LogonSuccess",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Other clients",
+              "AuthenticationRequirement": "singleFactorAuthentication",
+              "ConditionalAccessStatus": "notApplied",
+              "IPAddress": "192.0.2.44",
+              "Country": "NG",
+              "City": "Lagos",
+              "ErrorCode": 0,
+              "FailureReason": "",
+              "UserAgent": "BAV2ROPC"
+            },
+            {
+              "Timestamp": "2026-09-14T06:46:58.000Z",
+              "ActionType": "LogonSuccess",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Browser",
+              "AuthenticationRequirement": "multiFactorAuthentication",
+              "ConditionalAccessStatus": "success",
+              "IPAddress": "192.0.2.44",
+              "Country": "NG",
+              "City": "Lagos",
+              "ErrorCode": 0,
+              "FailureReason": "",
+              "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 2
+        },
+        "raw_response_ref": "inv-dbf68614b7d7/call_76639.json",
+        "raw_response_sha256": "3842c47af0a7121c427ea596c50a7a7027e98613213eef169f9dfac1c1238930"
+      },
+      {
+        "tool_call_id": "call_76640",
+        "step": 0,
+        "tool_name": "lookup_ioc",
+        "source_system": "virustotal",
+        "caller": "analyst",
+        "required_scope": "ioc:lookup",
+        "arguments": {
+          "indicator": "192.0.2.44"
+        },
+        "started_at": "2026-09-15T11:29:47.039105Z",
+        "duration_us": 428,
+        "outcome": "ok",
+        "redacted_response": {
+          "indicator": "192.0.2.44",
+          "indicator_type": "ip_address",
+          "known": true,
+          "engines": {
+            "malicious": 4,
+            "suspicious": 2,
+            "harmless": 61,
+            "undetected": 27,
+            "verdicts": 94,
+            "not_analysed": 0
+          },
+          "detection_ratio": "4/94",
+          "reputation": {
+            "score": -3,
+            "reading": "community votes lean malicious"
+          },
+          "last_analysis_at": "2026-09-13T09:00:00Z",
+          "tags": [],
+          "context": {
+            "country": "NG",
+            "as_owner": "EXAMPLE-RESIDENTIAL-PROXY",
+            "asn": 64500,
+            "network": "192.0.2.0/24"
+          },
+          "note": "Engine counters are how many engines returned each verdict in the last analysis. Reputation is the signed sum of community votes; zero means unvoted."
+        },
+        "raw_response_ref": "inv-dbf68614b7d7/call_76640.json",
+        "raw_response_sha256": "3729c2f03c25831464cc6ebf08e86d99c95901d7906fd4dc4c999ac86c1cba35"
+      },
+      {
+        "tool_call_id": "call_76641",
+        "step": 0,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "192.0.2.44"
+        },
+        "started_at": "2026-09-15T11:29:47.041764Z",
+        "duration_us": 276,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "search_runbook",
+          "detail": "no fixture stub for search_runbook matches arguments {\"query\": \"192.0.2.44\", \"top_k\": 3}"
+        },
+        "raw_response_ref": "inv-dbf68614b7d7/call_76641.json",
+        "raw_response_sha256": "03b6d6277d8c682daada012b40eb4c6e0ed21ee7ef0cf8a0f55e5c3f8b426887"
+      },
+      {
+        "tool_call_id": "call_16287",
+        "step": 1,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "query": "SigninLogs | where IPAddress == \"192.0.2.44\" | summarize AccountCount = dcount(AccountUpn), SuccessCount = countif(ActionType == \"LogonSuccess\"), FailureCount = countif(ActionType == \"LogonFailed\") by IPAddress",
+          "timespan": "P1D"
+        },
+        "started_at": "2026-09-15T11:29:47.931597Z",
+        "duration_us": 1362,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "min_Timestamp",
+            "max_Timestamp",
+            "dcount_AccountUpn",
+            "dcount_IPAddress",
+            "dcount_Country",
+            "count_",
+            "make_set_Country",
+            "make_set_IPAddress"
+          ],
+          "row_count": 1,
+          "rows": [
+            {
+              "min_Timestamp": "2026-09-14T06:02:37.000Z",
+              "max_Timestamp": "2026-09-14T06:41:56.000Z",
+              "dcount_AccountUpn": 137,
+              "dcount_IPAddress": 31,
+              "dcount_Country": 12,
+              "count_": 152,
+              "make_set_Country": [
+                "NG",
+                "BR",
+                "VN",
+                "ID",
+                "IN",
+                "PK",
+                "TR",
+                "EG",
+                "CO",
+                "PH",
+                "BD",
+                "ZA"
+              ],
+              "make_set_IPAddress": [
+                "192.0.2.3",
+                "192.0.2.9",
+                "192.0.2.17",
+                "192.0.2.21",
+                "192.0.2.26",
+                "192.0.2.31",
+                "192.0.2.38",
+                "192.0.2.44",
+                "192.0.2.52",
+                "192.0.2.57",
+                "192.0.2.63",
+                "192.0.2.70",
+                "192.0.2.77",
+                "192.0.2.84",
+                "192.0.2.91",
+                "192.0.2.98",
+                "192.0.2.105",
+                "192.0.2.112",
+                "192.0.2.119",
+                "192.0.2.126",
+                "192.0.2.133",
+                "192.0.2.140",
+                "192.0.2.147",
+                "192.0.2.154",
+                "192.0.2.161",
+                "192.0.2.168",
+                "192.0.2.175",
+                "192.0.2.182",
+                "192.0.2.189",
+                "192.0.2.196",
+                "192.0.2.203"
+              ]
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 0
+        },
+        "raw_response_ref": "inv-dbf68614b7d7/call_16287.json",
+        "raw_response_sha256": "c64637409d8e1455c4736901363aee33eb48a0541a7fb18f5d78947754500ba8"
+      },
+      {
+        "tool_call_id": "call_131980",
+        "step": 2,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+          "verdict": "true_positive",
+          "summary": "Azure AD Identity Protection detected a password spray attack involving numerous source IPs targeting multiple user accounts. Sign-in logs confirm that user rbennett@contoso.com experienced a successful authentication from IP 192.0.2.44 following failed sign-in attempts from other distributed IPs, validating the credential compromise.",
+          "escalate": true
+        },
+        "started_at": "2026-09-15T11:30:28.694768Z",
+        "duration_us": 418,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "true_positive",
+          "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+          "escalate": true,
+          "proposed_at": "2026-09-15T11:30:28Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-dbf68614b7d7/call_131980.json",
+        "raw_response_sha256": "22d4d4e114a16ebc050ee3b660f942ef9b618e8a5459c84e6888cd53ba503996"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2035,
+        "output_tokens": 118,
+        "total_tokens": 2153,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3366,
+        "output_tokens": 86,
+        "total_tokens": 3452,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4112,
+        "output_tokens": 155,
+        "total_tokens": 4267,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 3,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4410,
+        "output_tokens": 342,
+        "total_tokens": 4752,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 4,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 685,
+        "output_tokens": 161,
+        "total_tokens": 846,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "true_positive",
+      "confidence": 1.0,
+      "mitre_techniques": [
+        "T1110.003",
+        "T1078.004"
+      ],
+      "observed_facts": [
+        {
+          "statement": "User rbennett@contoso.com had a successful logon from IP address 192.0.2.44 using client application Other clients.",
+          "evidence": [
+            "call_76639"
+          ]
+        },
+        {
+          "statement": "IP address 192.0.2.44 is associated with an AS owner offering residential proxy services and has a suspicious reputation.",
+          "evidence": [
+            "call_76640"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "Sign-in logs show a password spray pattern with 152 attempts across 137 accounts from multiple IP addresses and countries within a short timeframe.",
+          "why_unverified": "The event search for a password spray pattern with 152 attempts across 137 accounts was not executed or returned by the available tool calls."
+        }
+      ],
+      "missing_context": [],
+      "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+      "escalate": true
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "User rbennett@contoso.com had a successful logon from IP address 192.0.2.44 using client application Other clients.",
+        "evidence_ids": [
+          "call_76639"
+        ],
+        "resolved_ids": [
+          "call_76639"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "IP address 192.0.2.44 is associated with an AS owner offering residential proxy services and has a suspicious reputation.",
+        "evidence_ids": [
+          "call_76640"
+        ],
+        "resolved_ids": [
+          "call_76640"
+        ],
+        "source_systems": [
+          "virustotal"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 2,
+    "grounded_count": 2,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "Sign-in logs show a password spray pattern with 152 attempts across 137 accounts from multiple IP addresses and countries within a short timeframe.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "User rbennett@contoso.com had a successful logon from IP address 192.0.2.44 using client application Other clients.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "IP address 192.0.2.44 is associated with an AS owner offering residential proxy services and has a suspicious reputation.",
+            "evidence_id": "default_api:lookup_ioc",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_76639",
+            "tool_name": "search_events",
+            "arguments": {
+              "timespan": "P1D",
+              "query": "SigninLogs | where UserPrincipalName == \"rbennett@contoso.com\" or IPAddress == \"192.0.2.44\" | top 20 by TimeGenerated desc"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_76640",
+            "tool_name": "lookup_ioc",
+            "arguments": {
+              "indicator": "192.0.2.44"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_16287",
+            "tool_name": "search_events",
+            "arguments": {
+              "query": "SigninLogs | where IPAddress == \"192.0.2.44\" | summarize AccountCount = dcount(AccountUpn), SuccessCount = countif(ActionType == \"LogonSuccess\"), FailureCount = countif(ActionType == \"LogonFailed\") by IPAddress",
+              "timespan": "P1D"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "The event search for a password spray pattern with 152 attempts across 137 accounts was not executed or returned by the available tool calls."
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "call_76639"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "call_76640"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "mitre_techniques": [
+            "T1110.003",
+            "T1078.004"
+          ],
+          "observed_facts": [
+            {
+              "statement": "Sign-in logs show a password spray pattern with 152 attempts across 137 accounts from multiple IP addresses and countries within a short timeframe.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "User rbennett@contoso.com had a successful logon from IP address 192.0.2.44 using client application Other clients.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "IP address 192.0.2.44 is associated with an AS owner offering residential proxy services and has a suspicious reputation.",
+              "evidence": [
+                "default_api:lookup_ioc"
+              ]
+            }
+          ],
+          "assumptions": [],
+          "missing_context": [],
+          "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+          "escalate": true
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "Sign-in logs show a password spray pattern with 152 attempts across 137 accounts from multiple IP addresses and countries within a short timeframe.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "User rbennett@contoso.com had a successful logon from IP address 192.0.2.44 using client application Other clients.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "IP address 192.0.2.44 is associated with an AS owner offering residential proxy services and has a suspicious reputation.",
+            "evidence_ids": [
+              "default_api:lookup_ioc"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:lookup_ioc",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 3,
+        "grounded_count": 0,
+        "ungrounded_count": 3,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_131980",
+      "proposal": {
+        "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+        "verdict": "true_positive",
+        "summary": "Azure AD Identity Protection detected a password spray attack involving numerous source IPs targeting multiple user accounts. Sign-in logs confirm that user rbennett@contoso.com experienced a successful authentication from IP 192.0.2.44 following failed sign-in attempts from other distributed IPs, validating the credential compromise.",
+        "escalate": true
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

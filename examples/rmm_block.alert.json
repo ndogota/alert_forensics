@@ -1,0 +1,98 @@
+{
+  "id": "da637551384455667788_-1188736705",
+  "title": "Remote management tool blocked on endpoint",
+  "description": "Microsoft Defender Antivirus blocked RemoteSupport.Agent.exe, a remote management and monitoring agent classified as a potentially unwanted application, on ws-fin-0042. The agent was launched from the user's local application data folder by RemoteSupport.ClientSetup.exe running as pnovak. The binary is signed by RemoteSupport Software Ltd.",
+  "severity": "medium",
+  "status": "new",
+  "category": "CommandAndControl",
+  "createdDateTime": "2026-09-14T08:47:31.4Z",
+  "lastUpdateDateTime": "2026-09-14T08:48:02Z",
+  "detectionSource": "microsoftDefenderForEndpoint",
+  "serviceSource": "microsoftDefenderForEndpoint",
+  "providerAlertId": "e7a24c19",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "79",
+  "mitreTechniques": [
+    "T1219"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.deviceEvidence",
+      "createdDateTime": "2026-09-14T08:47:31.4Z",
+      "verdict": "unknown",
+      "roles": [
+        "contextual"
+      ],
+      "deviceDnsName": "ws-fin-0042.contoso.com",
+      "mdeDeviceId": "0b7d3e9a2c5f4816a9e3d1c7b5f2a8e4c6d0b3a1",
+      "osPlatform": "Windows11",
+      "healthStatus": "active",
+      "riskScore": "medium",
+      "rbacGroupName": "Finance workstations"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T08:47:31.4Z",
+      "verdict": "unknown",
+      "roles": [],
+      "userAccount": {
+        "accountName": "pnovak",
+        "userPrincipalName": "pnovak@contoso.com",
+        "domainName": "CONTOSO",
+        "azureAdUserId": "5e8d1c3a-7b2f-4a9e-8c6d-1f0b3a5e7c91"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.processEvidence",
+      "createdDateTime": "2026-09-14T08:47:31.4Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "processId": 5088,
+      "parentProcessId": 4530,
+      "processCommandLine": "RemoteSupport.Agent.exe --relay relay.example.net --unattended",
+      "processCreationDateTime": "2026-09-14T08:47:16Z",
+      "parentProcessCreationDateTime": "2026-09-14T08:41:15Z",
+      "imageFile": {
+        "fileName": "RemoteSupport.Agent.exe",
+        "filePath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+        "fileSize": 8421376,
+        "filePublisher": "RemoteSupport Software Ltd",
+        "sha256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+        "signer": "RemoteSupport Software Ltd",
+        "issuer": "Example Code Signing CA G2"
+      },
+      "parentProcessImageFile": {
+        "fileName": "RemoteSupport.ClientSetup.exe",
+        "filePath": "C:\\Users\\pnovak\\AppData\\Local\\Temp",
+        "fileSize": 23068672,
+        "filePublisher": "RemoteSupport Software Ltd",
+        "sha256": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+        "signer": "RemoteSupport Software Ltd",
+        "issuer": "Example Code Signing CA G2"
+      },
+      "userAccount": {
+        "accountName": "pnovak",
+        "domainName": "CONTOSO",
+        "userSid": "S-1-5-21-1004336348-1177238915-682003330-5102"
+      },
+      "detectionStatus": "prevented"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.fileEvidence",
+      "createdDateTime": "2026-09-14T08:47:31.4Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "fileDetails": {
+        "fileName": "RemoteSupport.Agent.exe",
+        "filePath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+        "fileSize": 8421376,
+        "filePublisher": "RemoteSupport Software Ltd",
+        "sha1": "7e2c9b4a1d6f8e0c3a5b7d9f1e3c5a7b9d1f3e5c",
+        "sha256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+        "signer": "RemoteSupport Software Ltd",
+        "issuer": "Example Code Signing CA G2"
+      },
+      "detectionStatus": "prevented"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+ "hits": [
+  {
+   "excerpt": "The credentialed vulnerability scanner svc-vulnscan requests Kerberos service tickets for service principal names across the estate during authenticated scan windows, which fires this rule as apparent Kerberoasting. This is expected and is not Kerberoasting: the scanner obtains the tickets to authenticate to the services it scans, the tickets are AES256 rather than the RC4 downgrade Kerberoasting relies on, and nothing is harvested for offline cracking. Requalify the alert as a false positive and add a tuning exclusion for svc-vulnscan on this rule rather than closing it by hand again; do not escalate. Genuine Kerberoasting shows RC4-downgraded tickets requested by an account that is not the scanner, and tickets that are never followed by authentication to the service.",
+   "id": "RB-0615",
+   "score": 0.94,
+   "source": "runbooks/identity/kerberoasting-scanner.md",
+   "title": "Kerberoasting alerts from the credentialed vulnerability scanner"
+  },
+  {
+   "excerpt": "Unrelated: spray thresholds and response.",
+   "id": "RB-0207",
+   "score": 0.3,
+   "source": "runbooks/identity/password-spray.md",
+   "title": "Password spray: playbook"
+  }
+ ]
+}

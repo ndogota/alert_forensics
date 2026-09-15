@@ -1,0 +1,35 @@
+{
+ "fields": [
+  {
+   "name": "identity"
+  },
+  {
+   "name": "priority"
+  }
+ ],
+ "messages": [],
+ "preview": false,
+ "results": [
+  {
+   "bunit": "Security Operations",
+   "category": "group|service|redteam",
+   "email": "svc-purpleops@contoso.com",
+   "endDate": "",
+   "first": "",
+   "identity": "svc-purpleops|svc-purpleops@contoso.com|CONTOSO\\svc-purpleops",
+   "last": "",
+   "managedBy": "soc-lead@contoso.com",
+   "nick": "",
+   "phone": "",
+   "phone2": "",
+   "prefix": "",
+   "priority": "medium",
+   "startDate": "2024-04-02",
+   "suffix": "",
+   "watchlist": "false",
+   "work_city": "London",
+   "work_country": "GB"
+  }
+ ],
+ "sid": "1789310002.20102"
+}

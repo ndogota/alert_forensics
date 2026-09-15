@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T11:34:50Z",
+ "recommended_action": "Close the alert as a benign true positive and add an exclusion or annotation for the legitimate configuration agent (cfgagent.exe) on srv-prd-app01 during approved maintenance windows.",
+ "status": "proposed",
+ "summary": "The alert triggered on an encoded PowerShell command launched by the internal configuration agent (cfgagent.exe) as SYSTEM on srv-prd-app01. Decoding the command reveals routine administrative activity (IIS app pool recycling configuration update and restart for PaymentsApi). Furthermore, this execution occurred precisely within an approved change window (CHG0042117). The detection logic functioned correctly in flagging encoded PowerShell, but the activity is entirely authorized and benign.",
+ "verdict": "benign_true_positive"
+}

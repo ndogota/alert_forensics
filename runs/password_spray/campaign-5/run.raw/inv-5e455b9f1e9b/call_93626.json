@@ -1,0 +1,39 @@
+{
+ "fields": [
+  {
+   "name": "identity"
+  },
+  {
+   "name": "email"
+  },
+  {
+   "name": "priority"
+  }
+ ],
+ "preview": false,
+ "results": [
+  {
+   "bunit": "Treasury Operations",
+   "category": "employee|payments",
+   "email": "rbennett@contoso.com",
+   "endDate": "",
+   "first": "Rowan",
+   "identity": "rbennett|rbennett@contoso.com|CONTOSO\\rbennett",
+   "last": "Bennett",
+   "managedBy": "kpatel@contoso.com",
+   "nick": "",
+   "phone": "+44 20 7946 0000",
+   "phone2": "",
+   "prefix": "",
+   "priority": "high",
+   "startDate": "2021-06-14",
+   "suffix": "",
+   "watchlist": "false",
+   "work_city": "London",
+   "work_country": "GB",
+   "work_lat": "51.5074",
+   "work_long": "-0.1278"
+  }
+ ],
+ "sid": "1789300013.12358"
+}

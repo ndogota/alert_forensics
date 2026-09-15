@@ -1,0 +1,5 @@
+{
+ "detail": "no fixture stub for search_events matches arguments {\"query\": \"SigninLogs | where IPAddress == \\\"192.0.2.44\\\" | summarize AccountCount = dcount(AccountUpn) by IPAddress\", \"timespan\": \"P1D\"}",
+ "error": "no_fixture",
+ "tool": "search_events"
+}

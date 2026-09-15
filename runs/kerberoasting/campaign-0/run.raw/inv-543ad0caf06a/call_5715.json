@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T10:16:06Z",
+ "recommended_action": "Close the alert as a false positive in accordance with runbook RB-0615, and apply the recommended tuning exclusion for the credentialed vulnerability scanner account svc-vulnscan on this detection rule.",
+ "status": "proposed",
+ "summary": "The alert triggered on a high volume of Kerberos service ticket requests by the authorized service account svc-vulnscan from scan-ops-01. Internal runbook RB-0615 explicitly identifies this scanner behavior as expected activity during authenticated vulnerability scanning runs, not malicious Kerberoasting, rendering the assertion false.",
+ "verdict": "false_positive"
+}

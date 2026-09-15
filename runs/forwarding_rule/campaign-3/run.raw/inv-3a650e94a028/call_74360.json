@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-15T11:33:12Z",
+ "recommended_action": "Immediately disable the unauthorized inbox forwarding rules across the affected mailboxes, force password resets for the compromised user accounts (amorel@contoso.com, tkowalski@contoso.com, lferreira@contoso.com), revoke their active sessions, and investigate the source IP address for broader credential access or session hijacking activity.",
+ "status": "proposed",
+ "summary": "An investigation into the alert regarding suspicious inbox forwarding rules confirmed that three separate user mailboxes (amorel@contoso.com, tkowalski@contoso.com, and lferreira@contoso.com) had inbox rules created within a 13-minute window by the same external IP address. These rules automatically forward emails containing financial and invoice-related keywords to an external domain address (ap.remittance@contoso-invoices.example). This activity exhibits characteristics of BEC / financial fraud collection, confirming the alert as a true positive.",
+ "verdict": "true_positive"
+}

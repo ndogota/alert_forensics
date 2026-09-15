@@ -363,25 +363,27 @@ def test_a_runbook_query_on_another_subject_is_a_no_fixture_error(fixture_set, r
     """Infrastructure words are every scenario's words; the entry is about one subject."""
     # Subjects no scenario present holds: no stub answers them, under every label.
     for query in (
-        "RMM tool blocked by EDR, is the relay our IT provider egress",
         "corporate egress proxy gateway VPN",
         "DNS tunnelling over TXT records from a build agent",
     ):
         assert gap(runner, "search_runbook", query=query), query
-    # Kerberoasting is scenario 6's subject since it arrived, so the claim is that
-    # scenario 1's own stub does not answer it, under the atypical_travel binding, which
-    # is the weaker claim used where a later scenario legitimately holds the subject.
+    # Kerberoasting is scenario 6's subject since it arrived, and the RMM relay is
+    # scenario 7's, so the claim is that scenario 1's own stub does not answer them,
+    # under the atypical_travel binding, which is the weaker claim used where a later
+    # scenario legitimately holds the subject.
     travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel-rb")
-    assert gap(
-        travel,
-        "search_runbook",
-        query="kerberoasting 180 SPNs in 90 seconds credentialed vulnerability scanner",
-    )
+    for query in (
+        "kerberoasting 180 SPNs in 90 seconds credentialed vulnerability scanner",
+        "RMM tool blocked by EDR, is the relay our IT provider egress",
+    ):
+        assert gap(travel, "search_runbook", query=query), query
 
 
 def test_the_recordings_own_requests_still_hit(runner):
     """Replayed from the artifact itself, so the check cannot drift from the recording."""
-    artifact = RunArtifact.model_validate_json(Path("runs/atypical_travel/run.json").read_text())
+    artifact = RunArtifact.model_validate_json(
+        Path("runs/atypical_travel/defaults-2026-09-14/run.json").read_text()
+    )
     replayed = {}
     for record in artifact.trace.records:
         if record.tool_name not in ("search_events", "search_runbook", "get_identity"):
@@ -568,6 +570,8 @@ def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
         "encoded_powershell": "da637551341122334455_-1188736402",
         "lsass_access": "da637551355667788990_-1188736503",
         "kerberoasting": "da637551369900112233_-1188736604",
+        "rmm_block": "da637551384455667788_-1188736705",
+        "cloud_upload": "da637551398811223344_-1188736806",
     }
     assert fixture_set.in_view(Alert.model_validate(ALERT_PAYLOAD)) == {"shared", "atypical_travel"}
     unknown = Alert.model_validate({**ALERT_PAYLOAD, "id": "nobody-knows-this-alert"})
@@ -581,6 +585,8 @@ def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
         "encoded_powershell",
         "lsass_access",
         "kerberoasting",
+        "rmm_block",
+        "cloud_upload",
     }
 
 
@@ -606,13 +612,35 @@ def test_shared_stubs_are_always_offered_and_test_stubs_only_when_named(fixture_
     assert ok(nothing, "lookup_ioc", indicator="never-seen.example")["known"] is False
     assert gap(nothing, "lookup_ioc", indicator="203.0.113.7")
     assert gap(nothing, "get_identity", identity="jdoe")
-    tests = bound_runner(fixture_set, {"test"}, "inv-test")
-    assert gap(tests, "get_asset", asset="srv-prd-app01.contoso.com")
-    tree = ok(tests, "get_process_tree", device_name="ws-fin-0042.contoso.com", process_id=4412)
-    assert tree["found"] is True
     server = bound_runner(fixture_set, {"encoded_powershell"}, "inv-server")
     assert ok(server, "get_asset", asset="srv-prd-app01.contoso.com")["found"] is True
     assert gap(server, "get_process_tree", device_name="ws-fin-0042.contoso.com", process_id=4412)
+
+
+def test_a_test_stub_is_offered_only_when_named(tmp_path):
+    """No shipped stub is labelled test any more, so the one this needs is built here:
+    the right place for a stub that serves no scenario."""
+    (tmp_path / "scenarios.json").write_text(
+        (FIXTURE_TOOLS_DIR / "scenarios.json").read_text(encoding="utf-8")
+    )
+    (tmp_path / "get_asset.json").write_text(
+        json.dumps(
+            {
+                "tool": "get_asset",
+                "stubs": [
+                    {
+                        "scenario": "test",
+                        "match": {"asset": "lab-01"},
+                        "response": {"sid": "1", "results": [{"nt_host": "LAB-01"}]},
+                    }
+                ],
+            }
+        )
+    )
+    suite = FixtureSet.load(tmp_path)
+    assert ok(bound_runner(suite, {"test"}, "inv-test"), "get_asset", asset="lab-01")["found"]
+    assert gap(bound_runner(suite, {"atypical_travel"}, "inv-travel"), "get_asset", asset="lab-01")
+    assert gap(bound_runner(suite, set(), "inv-none"), "get_asset", asset="lab-01")
 
 
 def test_a_withheld_stub_is_not_named_in_the_no_fixture_error(fixture_set):
@@ -735,7 +763,9 @@ def test_scenario_3_stubs_answer_the_requests_a_model_plausibly_makes(runner):
     assert "message trace" in text and "payments desk" in text and "beneficiary" in text
 
 
-def test_scenario_3_stubs_answer_nothing_about_another_account_and_hold_their_gaps(runner):
+def test_scenario_3_stubs_answer_nothing_about_another_account_and_hold_their_gaps(
+    fixture_set, runner
+):
     """The sign-in stub is the three users'. What no stub carries is carried by nothing:
     the message trace and the phishing click are the expected missing context."""
     assert gap(
@@ -757,8 +787,11 @@ def test_scenario_3_stubs_answer_nothing_about_another_account_and_hold_their_ga
     )
     assert gap(runner, "lookup_ioc", indicator="2001:db8:7a3c:1200::2f")
     assert gap(runner, "get_related_alerts", user_principal_name="mmartin@contoso.com")
+    # The leaver upload is scenario 8's subject since it arrived, so the claim is that
+    # scenario 3's own stub does not answer it, under its own binding: the weaker claim.
+    forwarding = bound_runner(fixture_set, {"forwarding_rule"}, "inv-fwd-rb")
     assert gap(
-        runner, "search_runbook", query="6.2 GB upload to personal cloud storage by a leaver"
+        forwarding, "search_runbook", query="6.2 GB upload to personal cloud storage by a leaver"
     )
 
 
@@ -1040,19 +1073,321 @@ def test_scenario_6_answers_nothing_about_another_subject(fixture_set):
     assert gap(kerb, "get_related_alerts", user_principal_name="mmartin@contoso.com")
 
 
+# --- the gaps the first campaign found, closed and replayed from the recordings ---------
+
+
+def replay(runner, path, tools):
+    """Every request of the recording that named one of ``tools``, put to the runner as
+    it was sent, so the check cannot drift from the run."""
+    artifact = RunArtifact.model_validate_json(Path(path).read_text())
+    out = []
+    for record in artifact.trace.records:
+        if record.tool_name in tools:
+            out.append(
+                (
+                    record.arguments,
+                    runner.invoke(
+                        tool_call_id=f"tc-replay-{record.tool_call_id}",
+                        step=0,
+                        tool_name=record.tool_name,
+                        arguments=record.arguments,
+                        turn_siblings=[],
+                    ),
+                )
+            )
+    return out
+
+
+def test_scenario_5_answers_the_runbook_questions_the_campaign_asked(fixture_set):
+    """purpleops, PurpleOps, purple and rt-cred: the programme's name as the account and
+    the folder carry it, and the tool. Seven refusals on the campaign, none now."""
+    lsass = bound_runner(fixture_set, {"lsass_access"}, "inv-lsass-replay")
+    asked = []
+    for recording in ("campaign-3", "campaign-4", "campaign-5"):
+        for arguments, record in replay(
+            lsass, f"runs/lsass_access/{recording}/run.json", {"search_runbook"}
+        ):
+            asked.append(arguments["query"])
+            assert record.outcome is ToolOutcome.ok, (recording, arguments)
+            assert "RB-0520" in json.dumps(record.redacted_response), (recording, arguments)
+    assert {"purpleops", "PurpleOps", "purple", "rt-cred", "ws-eng-0148"} <= set(asked)
+    # Still keyed on this scenario's names: another programme is a gap.
+    assert gap(lsass, "search_runbook", query="blueops")
+    assert gap(lsass, "search_runbook", query="rt-shell")
+
+
+def test_scenario_2_answers_the_address_pivot_the_campaign_made(fixture_set):
+    """The address is the other entity the sign-in rows hold: the hunting API and the
+    SIEM answer a query naming it with the address's own rows, and the runbook answers
+    the bare address with a declared empty reading, not a gap."""
+    spray = bound_runner(fixture_set, {"password_spray"}, "inv-spray-replay")
+    asked = []
+    for recording in ("campaign-3", "campaign-5"):
+        for arguments, record in replay(
+            spray,
+            f"runs/password_spray/{recording}/run.json",
+            {"search_events", "search_runbook"},
+        ):
+            asked.append((record.tool_name, arguments.get("query")))
+            assert record.outcome is ToolOutcome.ok, (recording, arguments)
+    # Three questions about the address alone: two were refused on the campaign, and
+    # one was answered by the tenant-wide aggregate, which is about 31 addresses and was
+    # the wrong reading for a question about one; the address stub answers it now.
+    queries = [q for tool, q in asked if tool == "search_events" and "rbennett" not in q]
+    assert len(queries) == 3 and all("192.0.2.44" in q for q in queries)
+    assert ("search_runbook", "192.0.2.44") in asked
+    # The address's rows: the accounts it tried, then rbennett's success and follow-on.
+    view = ok(
+        spray,
+        "search_events",
+        query='SigninLogs | where IPAddress == "192.0.2.44" '
+        "| summarize dcount(AccountUpn) by IPAddress",
+    )
+    assert view["row_count"] == 7
+    assert all(r["IPAddress"] == "192.0.2.44" for r in view["rows"])
+    accounts = {r["AccountUpn"] for r in view["rows"]}
+    assert "rbennett@contoso.com" in accounts and len(accounts) == 6
+    assert [r["ActionType"] for r in view["rows"]].count("LogonSuccess") == 2
+    view = ok(spray, "search_siem", search='index=auth src="192.0.2.44" | stats dc(user)')
+    assert view["row_count"] == 7 and {r["src"] for r in view["rows"]} == {"192.0.2.44"}
+    # A query naming both still gets the account's rows, as before.
+    both = ok(
+        spray,
+        "search_events",
+        query='SigninLogs | where UserPrincipalName == "rbennett@contoso.com" '
+        'or IPAddress == "192.0.2.44"',
+    )
+    assert {r["AccountUpn"] for r in both["rows"]} == {"rbennett@contoso.com"}
+    # The runbook: the bare address is a declared empty reading; the spray is the entry.
+    assert ok(spray, "search_runbook", query="192.0.2.44") == {"count": 0, "hits": []}
+    assert ok(spray, "search_runbook", query="password spray from 192.0.2.44")["count"] >= 1
+    # Another address is still a gap.
+    assert gap(spray, "search_events", query='SigninLogs | where IPAddress == "192.0.2.99"')
+    assert gap(spray, "search_siem", search='index=auth src="192.0.2.99" | stats dc(user)')
+
+
+# --- scenario 7, the trap: an RMM tool blocked by the EDR --------------------------------
+
+WS_FIN = "ws-fin-0042.contoso.com"
+PNOVAK = "pnovak@contoso.com"
+RMM_AGENT_SHA256 = "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a"
+RMM_INSTALLER_SHA256 = "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a"
+MSHTA_SHA256 = "6d1d8b5c0f0f4c2c9e1a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6"
+
+
+def test_scenario_7_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    # The tree, pivoted on the blocked agent, the installer, or mshta: one set of rows.
+    agent = ok(runner, "get_process_tree", device_name=WS_FIN, process_id=5088)
+    assert agent["found"] is True
+    chain = [(n["relation"], n["file_name"]) for n in agent["lineage"]]
+    assert ("self", "RemoteSupport.Agent.exe") in chain
+    assert ("parent", "RemoteSupport.ClientSetup.exe") in chain
+    assert ("grandparent", "mshta.exe") in chain
+    installer = ok(runner, "get_process_tree", device_name="WS-FIN-0042", process_id=4530)
+    chain = [(n["relation"], n["file_name"]) for n in installer["lineage"]]
+    assert ("parent", "mshta.exe") in chain and ("grandparent", "outlook.exe") in chain
+    assert ("child", "RemoteSupport.Agent.exe") in chain
+    mshta = ok(runner, "get_process_tree", device_name=WS_FIN, process_id=4412)
+    assert [n["file_name"] for n in mshta["lineage"]] == [
+        "explorer.exe",
+        "outlook.exe",
+        "mshta.exe",
+        "powershell.exe",
+        "RemoteSupport.ClientSetup.exe",
+    ]
+    # The hunting API: the chain on the device or the account, and the detection.
+    for query in (
+        f"DeviceProcessEvents | where DeviceName == '{WS_FIN}' | where FileName =~ 'mshta.exe'",
+        "DeviceProcessEvents | where AccountName == 'pnovak' "
+        "| project FileName, ProcessCommandLine",
+    ):
+        view = ok(runner, "search_events", query=query)
+        names = {(r["FileName"], r["InitiatingProcessFileName"]) for r in view["rows"]}
+        assert ("mshta.exe", "outlook.exe") in names, query
+        assert ("RemoteSupport.ClientSetup.exe", "mshta.exe") in names, query
+        assert ("RemoteSupport.Agent.exe", "RemoteSupport.ClientSetup.exe") in names, query
+    assert "Hunter2!" not in json.dumps(view) and "relay=relay.example.net" in json.dumps(view)
+    view = ok(
+        runner, "search_events", query=f"DeviceEvents | where DeviceName == '{WS_FIN}' | take 20"
+    )
+    assert [r["ActionType"] for r in view["rows"]] == ["AntivirusDetection"]
+    assert view["rows"][0]["FileName"] == "RemoteSupport.Agent.exe"
+    assert "AdditionalFields" not in view["columns"] and view["dropped_columns"] == 1
+    assert "PUA:Win32/RemoteSupport" not in json.dumps(view)
+    # The SIEM: the block as a discrete field, the chain in CIM fields.
+    view = ok(runner, "search_siem", search="index=mde host=ws-fin-0042 RemoteSupport")
+    blocked = [r for r in view["rows"] if r["action"] == "blocked"]
+    assert [r["process_name"] for r in blocked] == ["RemoteSupport.Agent.exe"]
+    parents = {(r["process_name"], r["parent_process_name"]) for r in view["rows"]}
+    assert ("mshta.exe", "outlook.exe") in parents
+    assert ("RemoteSupport.ClientSetup.exe", "mshta.exe") in parents
+    # Identity, asset, sign-ins, related alerts, on the entities the alert names.
+    ident = ok(runner, "get_identity", identity="pnovak")
+    assert ident["found"] is True and ident["business_unit"] == "Trade Finance"
+    assert ok(runner, "get_asset", asset="ws-fin-0042")["categories"] == ["endpoint", "workstation"]
+    assert (
+        ok(runner, "search_events", query=f"SigninLogs | where AccountUpn == '{PNOVAK}'")[
+            "row_count"
+        ]
+        == 1
+    )
+    assert ok(runner, "search_siem", search="index=auth user=pnovak")["row_count"] == 1
+    for arguments in (
+        {"user_principal_name": PNOVAK},
+        {"device_name": WS_FIN},
+        {"incident_id": "79"},
+    ):
+        related = ok(runner, "get_related_alerts", **arguments)
+        assert related["count"] == 1 and "mshta" in related["alerts"][0]["title"].lower()
+    # VirusTotal: the trap reading, and the readings that point the other way.
+    agent = ok(runner, "lookup_ioc", indicator=RMM_AGENT_SHA256)
+    assert agent["known"] is True and agent["engines"]["malicious"] == 0
+    assert agent["detection_ratio"] == "0/72" and agent["context"]["signed"] is True
+    assert "nobody voted" in agent["reputation"]["reading"]
+    assert ok(runner, "lookup_ioc", indicator=RMM_INSTALLER_SHA256)["engines"]["malicious"] == 0
+    assert ok(runner, "lookup_ioc", indicator=MSHTA_SHA256)["context"]["signed"] is True
+    relay = ok(runner, "lookup_ioc", indicator="relay.example.net")
+    assert relay["engines"]["malicious"] == 2 and relay["context"]["created_at"].startswith(
+        "2026-09-02"
+    )
+    assert (
+        ok(runner, "lookup_ioc", indicator="https://relay.example.net/invoice.hta")["engines"][
+            "malicious"
+        ]
+        == 2
+    )
+    # The runbook: the provider's relay, and the shape of RMM abuse.
+    for query in (
+        "Remote management tool blocked on endpoint",
+        "RemoteSupport approved RMM relay IT provider",
+        "mshta invoice.hta launched from outlook",
+        "relay.example.net",
+    ):
+        text = json.dumps(ok(runner, "search_runbook", query=query))
+        assert "rmm.contoso-itsupport.example" in text and "provider" in text, query
+
+
+def test_scenario_7_answers_nothing_about_another_device_and_holds_its_gaps(fixture_set):
+    rmm = bound_runner(fixture_set, {"rmm_block"}, "inv-rmm-gap")
+    assert gap(rmm, "get_process_tree", device_name="ws-fin-0043.contoso.com", process_id=4412)
+    assert gap(
+        rmm, "search_events", query="DeviceProcessEvents | where DeviceName == 'ws-fin-0043'"
+    )
+    assert gap(rmm, "search_siem", search="index=mde host=ws-fin-0043 RemoteSupport")
+    assert gap(rmm, "get_identity", identity="mmartin")
+    assert gap(
+        rmm, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
+    )
+    # On purpose: the network telemetry and the mail are the expected missing context.
+    assert gap(rmm, "search_events", query=f"DeviceNetworkEvents | where DeviceName == '{WS_FIN}'")
+    assert gap(
+        rmm, "search_events", query=f"EmailEvents | where RecipientEmailAddress == '{PNOVAK}'"
+    )
+    assert gap(rmm, "search_siem", search="index=proxy dest=relay.example.net")
+
+
+# --- scenario 8, the reverse trap: 6.2 GB to personal cloud storage by a leaver ----------
+
+WS_MKT = "ws-mkt-0117.contoso.com"
+DLARSEN = "dlarsen@contoso.com"
+
+
+def test_scenario_8_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    ident = ok(runner, "get_identity", identity="dlarsen")
+    assert ident["found"] is True and "leaver" in ident["categories"]
+    assert ident["watchlist"] is True and ident["end_date"] == "2026-09-30"
+    assert ok(runner, "get_asset", asset="ws-mkt-0117")["business_unit"] == "Marketing"
+    # The hunting API: an aggregate query reads the count and the byte sum; a detail
+    # query reads file names and sizes; the aggregate stub precedes the detail stub.
+    view = ok(
+        runner,
+        "search_events",
+        query=f"CloudAppEvents | where AccountUpn == '{DLARSEN}' "
+        "| summarize count(), sum(FileSize) by Application",
+    )
+    assert view["row_count"] == 1
+    row = view["rows"][0]
+    assert row["count_"] == 2340 and row["sum_FileSize"] == 6657199308
+    assert row["Application"] == "PhotoDrive"
+    view = ok(
+        runner,
+        "search_events",
+        query=f"CloudAppEvents | where AccountUpn == '{DLARSEN}' "
+        "| where ActionType == 'FileUploaded'",
+    )
+    assert view["row_count"] == 10 and all(r["Application"] == "PhotoDrive" for r in view["rows"])
+    assert all(r["ObjectName"].lower().endswith((".jpg", ".heic", ".mov")) for r in view["rows"])
+    view = ok(
+        runner, "search_events", query=f"DeviceNetworkEvents | where DeviceName == '{WS_MKT}'"
+    )
+    assert {r["RemoteUrl"] for r in view["rows"]} == {"upload.photodrive.example"}
+    assert (
+        ok(runner, "search_events", query=f"SigninLogs | where AccountUpn == '{DLARSEN}'")[
+            "row_count"
+        ]
+        == 1
+    )
+    # The SIEM: the CASB reading carries the breakdown, the labels and the origin.
+    for search in (
+        'index=casb user="dlarsen" | stats count sum(bytes_out) by app',
+        "index=proxy dest=upload.photodrive.example",
+    ):
+        view = ok(runner, "search_siem", search=search)
+        row = view["rows"][0]
+        assert row["user"] == "dlarsen" and row["app"] == "PhotoDrive", search
+        assert row["sum(bytes_out)"] == "6657199308" and row["count"] == "2340", search
+        assert "image content types 94%" in row["object_attrs"], search
+        assert "sensitivity labels: none" in row["object_attrs"], search
+    assert ok(runner, "search_siem", search="index=auth user=dlarsen")["row_count"] == 1
+    related = ok(runner, "get_related_alerts", user_principal_name=DLARSEN)
+    assert related["count"] == 1 and related["alerts"][0]["severity"] == "informational"
+    assert ok(runner, "get_related_alerts", incident_id="83")["count"] == 1
+    domain = ok(runner, "lookup_ioc", indicator="upload.photodrive.example")
+    assert domain["known"] is True and domain["engines"]["malicious"] == 0
+    assert ok(runner, "lookup_ioc", indicator="photodrive.example")["known"] is True
+    for query in (
+        "Mass upload to personal cloud storage by a user on the leaver watchlist",
+        "leaver personal cloud storage upload",
+        "PhotoDrive",
+        "dlarsen",
+    ):
+        text = json.dumps(ok(runner, "search_runbook", query=query))
+        assert "HR" in text and "personal use" in text and "not tuned" in text, query
+
+
+def test_scenario_8_answers_nothing_about_another_user_and_holds_its_gaps(fixture_set):
+    cloud = bound_runner(fixture_set, {"cloud_upload"}, "inv-cloud-gap")
+    assert gap(cloud, "get_identity", identity="mmartin")
+    assert gap(
+        cloud, "search_events", query="CloudAppEvents | where AccountUpn == 'mmartin@contoso.com'"
+    )
+    # A shape alone: the table without the user.
+    assert gap(cloud, "search_events", query="CloudAppEvents | where Application == 'PhotoDrive'")
+    assert gap(
+        cloud, "search_events", query="DeviceNetworkEvents | where DeviceName == 'ws-mkt-0118'"
+    )
+    assert gap(cloud, "search_siem", search='index=casb user="mmartin" | stats count')
+    assert gap(
+        cloud, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
+    )
+
+
 # --- what carries which label -----------------------------------------------------------
 
 
-def test_the_only_test_stub_left_is_the_workstation_tree_scenario_7_will_claim(fixture_set):
+def test_no_shipped_stub_is_labelled_test(fixture_set):
+    """The workstation tree was the last, and it was always scenario 7's."""
     remaining = [
         (tool, index)
         for tool in sorted(fixture_set.tools)
         for index, stub in enumerate(fixture_set.tools[tool].stubs)
         if stub.scenario == "test"
     ]
-    assert remaining == [("get_process_tree", 0)]
+    assert remaining == []
     stub = fixture_set.for_tool("get_process_tree").stubs[0]
+    assert stub.scenario == "rmm_block"
     assert stub.match["device_name"] == {"$regex": "(?i)^ws-fin-0042"}
+    assert stub.match["process_id"] == {"$any": True}
 
 
 def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
@@ -1063,11 +1398,12 @@ def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
     )
     assert counts == {
         "atypical_travel": 6,
-        "password_spray": 11,
+        "password_spray": 14,
         "forwarding_rule": 14,
         "encoded_powershell": 11,
         "lsass_access": 11,
         "kerberoasting": 10,
-        "shared": 5,
-        "test": 1,
+        "rmm_block": 16,
+        "cloud_upload": 13,
+        "shared": 6,
     }

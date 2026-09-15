@@ -1,0 +1,942 @@
+{
+  "investigation_id": "inv-5e455b9f1e9b",
+  "outcome": "completed",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "password_spray",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-5e455b9f1e9b",
+    "alert": {
+      "id": "da637551302218456123_-1188736045",
+      "title": "Password spray",
+      "description": "Failed sign-ins with a single password attempt per account were observed against many accounts from a shared set of source IP addresses within a short window. One of the attempts succeeded.",
+      "severity": "high",
+      "status": "new",
+      "category": "CredentialAccess",
+      "createdDateTime": "2026-09-14T07:03:52.400000Z",
+      "lastUpdateDateTime": "2026-09-14T07:05:10Z",
+      "detectionSource": "azureAdIdentityProtection",
+      "serviceSource": "azureAdIdentityProtection",
+      "providerAlertId": "9c2e7a41",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "57",
+      "mitreTechniques": [
+        "T1110.003",
+        "T1078.004"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T07:03:52.400000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "rbennett",
+            "domainName": "contoso",
+            "userPrincipalName": "rbennett@contoso.com",
+            "azureAdUserId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+            "displayName": "Rowan Bennett"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.ipEvidence",
+          "createdDateTime": "2026-09-14T07:03:52.400000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "attacker"
+          ],
+          "ipAddress": "192.0.2.44",
+          "countryLetterCode": "NG"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T11:31:33.975612Z",
+    "records": [
+      {
+        "tool_call_id": "call_79161",
+        "step": 0,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "timespan": "P1D",
+          "query": "SigninLogs | where UserPrincipalName == \"rbennett@contoso.com\" or IPAddress == \"192.0.2.44\" | top 20 by TimeGenerated desc"
+        },
+        "started_at": "2026-09-15T11:31:34.793312Z",
+        "duration_us": 1269,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "Timestamp",
+            "ActionType",
+            "AccountUpn",
+            "AccountObjectId",
+            "Application",
+            "ClientAppUsed",
+            "AuthenticationRequirement",
+            "ConditionalAccessStatus",
+            "IPAddress",
+            "Country",
+            "City",
+            "ErrorCode",
+            "FailureReason",
+            "UserAgent"
+          ],
+          "row_count": 3,
+          "rows": [
+            {
+              "Timestamp": "2026-09-14T06:32:11.000Z",
+              "ActionType": "LogonFailed",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Other clients",
+              "AuthenticationRequirement": "singleFactorAuthentication",
+              "ConditionalAccessStatus": "notApplied",
+              "IPAddress": "192.0.2.17",
+              "Country": "BR",
+              "City": "Sao Paulo",
+              "ErrorCode": 50126,
+              "FailureReason": "Invalid username or password",
+              "UserAgent": "BAV2ROPC"
+            },
+            {
+              "Timestamp": "2026-09-14T06:41:03.000Z",
+              "ActionType": "LogonSuccess",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Other clients",
+              "AuthenticationRequirement": "singleFactorAuthentication",
+              "ConditionalAccessStatus": "notApplied",
+              "IPAddress": "192.0.2.44",
+              "Country": "NG",
+              "City": "Lagos",
+              "ErrorCode": 0,
+              "FailureReason": "",
+              "UserAgent": "BAV2ROPC"
+            },
+            {
+              "Timestamp": "2026-09-14T06:46:58.000Z",
+              "ActionType": "LogonSuccess",
+              "AccountUpn": "rbennett@contoso.com",
+              "AccountObjectId": "7c3e9a51-2b8d-4f06-9e1a-5d4c3b2a1f00",
+              "Application": "Office 365 Exchange Online",
+              "ClientAppUsed": "Browser",
+              "AuthenticationRequirement": "multiFactorAuthentication",
+              "ConditionalAccessStatus": "success",
+              "IPAddress": "192.0.2.44",
+              "Country": "NG",
+              "City": "Lagos",
+              "ErrorCode": 0,
+              "FailureReason": "",
+              "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 2
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_79161.json",
+        "raw_response_sha256": "3842c47af0a7121c427ea596c50a7a7027e98613213eef169f9dfac1c1238930"
+      },
+      {
+        "tool_call_id": "call_105208",
+        "step": 1,
+        "tool_name": "lookup_ioc",
+        "source_system": "virustotal",
+        "caller": "analyst",
+        "required_scope": "ioc:lookup",
+        "arguments": {
+          "indicator": "192.0.2.44"
+        },
+        "started_at": "2026-09-15T11:31:35.464690Z",
+        "duration_us": 572,
+        "outcome": "ok",
+        "redacted_response": {
+          "indicator": "192.0.2.44",
+          "indicator_type": "ip_address",
+          "known": true,
+          "engines": {
+            "malicious": 4,
+            "suspicious": 2,
+            "harmless": 61,
+            "undetected": 27,
+            "verdicts": 94,
+            "not_analysed": 0
+          },
+          "detection_ratio": "4/94",
+          "reputation": {
+            "score": -3,
+            "reading": "community votes lean malicious"
+          },
+          "last_analysis_at": "2026-09-13T09:00:00Z",
+          "tags": [],
+          "context": {
+            "country": "NG",
+            "as_owner": "EXAMPLE-RESIDENTIAL-PROXY",
+            "asn": 64500,
+            "network": "192.0.2.0/24"
+          },
+          "note": "Engine counters are how many engines returned each verdict in the last analysis. Reputation is the signed sum of community votes; zero means unvoted."
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_105208.json",
+        "raw_response_sha256": "3729c2f03c25831464cc6ebf08e86d99c95901d7906fd4dc4c999ac86c1cba35"
+      },
+      {
+        "tool_call_id": "call_98544",
+        "step": 2,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "query": "SigninLogs | where IPAddress == \"192.0.2.44\" | summarize AccountCount = dcount(AccountUpn) by IPAddress",
+          "timespan": "P1D"
+        },
+        "started_at": "2026-09-15T11:31:36.306208Z",
+        "duration_us": 268,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "search_events",
+          "detail": "no fixture stub for search_events matches arguments {\"query\": \"SigninLogs | where IPAddress == \\\"192.0.2.44\\\" | summarize AccountCount = dcount(AccountUpn) by IPAddress\", \"timespan\": \"P1D\"}"
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_98544.json",
+        "raw_response_sha256": "5b6c5f6becc844a9f79eb265919d39e5e825422d796e4356bf8c0c19ff82836d"
+      },
+      {
+        "tool_call_id": "call_88543",
+        "step": 3,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "query": "SigninLogs | where IPAddress == \"192.0.2.44\" | project Timestamp, AccountUpn, ActionType, City, Country, IPAddress",
+          "timespan": "P1D"
+        },
+        "started_at": "2026-09-15T11:31:58.426856Z",
+        "duration_us": 275,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "search_events",
+          "detail": "no fixture stub for search_events matches arguments {\"query\": \"SigninLogs | where IPAddress == \\\"192.0.2.44\\\" | project Timestamp, AccountUpn, ActionType, City, Country, IPAddress\", \"timespan\": \"P1D\"}"
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_88543.json",
+        "raw_response_sha256": "3060b5b068adc6f3a103fb0b68de50bba90c1b2a6f58b2daad34061c3b65ddd3"
+      },
+      {
+        "tool_call_id": "call_27427",
+        "step": 4,
+        "tool_name": "get_related_alerts",
+        "source_system": "graph_security",
+        "caller": "analyst",
+        "required_scope": "alerts:read",
+        "arguments": {
+          "user_principal_name": "rbennett@contoso.com",
+          "hours": 24
+        },
+        "started_at": "2026-09-15T11:31:59.172370Z",
+        "duration_us": 431,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 1,
+          "alerts": [
+            {
+              "id": "da637551302218456123_-1188736099",
+              "title": "Suspicious inbox manipulation rule",
+              "severity": "medium",
+              "status": "new",
+              "category": "Persistence",
+              "classification": null,
+              "determination": null,
+              "created_date_time": "2026-09-14T06:53:30Z",
+              "detection_source": "microsoftCloudAppSecurity",
+              "incident_id": "57",
+              "mitre_techniques": [
+                "T1564.008"
+              ]
+            }
+          ],
+          "truncated": false
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_27427.json",
+        "raw_response_sha256": "6814fbdd8926c8fd4e4d032bc7cb9acf4e6d94b2a5b8b406710d7d6151400560"
+      },
+      {
+        "tool_call_id": "call_93626",
+        "step": 5,
+        "tool_name": "get_identity",
+        "source_system": "splunk",
+        "caller": "analyst",
+        "required_scope": "identity:read",
+        "arguments": {
+          "identity": "rbennett@contoso.com"
+        },
+        "started_at": "2026-09-15T11:31:59.880148Z",
+        "duration_us": 663,
+        "outcome": "ok",
+        "redacted_response": {
+          "found": true,
+          "identities": [
+            "rbennett",
+            "rbennett@contoso.com",
+            "CONTOSO\\rbennett"
+          ],
+          "email": "rbennett@contoso.com",
+          "priority": "high",
+          "business_unit": "Treasury Operations",
+          "categories": [
+            "employee",
+            "payments"
+          ],
+          "watchlist": false,
+          "managed_by": "kpatel@contoso.com",
+          "start_date": "2021-06-14",
+          "end_date": null,
+          "work_city": "London",
+          "work_country": "GB"
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_93626.json",
+        "raw_response_sha256": "26f48366b7ac308274bb5492ad12345b6de2e61f1c37bec13bcec9e4842dee49"
+      },
+      {
+        "tool_call_id": "call_75070",
+        "step": 6,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "verdict": "true_positive",
+          "summary": "Azure AD Identity Protection detected a password spray attack involving multiple source IP addresses, including successful authentication to user rbennett@contoso.com's account from 192.0.2.44 in Lagos, Nigeria. The user's normal location is London, UK, and the sign-in used legacy protocols (BAV2ROPC) followed by a suspicious browser login and a subsequent inbox manipulation rule alert, confirming account compromise.",
+          "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+          "escalate": true
+        },
+        "started_at": "2026-09-15T11:32:01.248869Z",
+        "duration_us": 473,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "true_positive",
+          "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+          "escalate": true,
+          "proposed_at": "2026-09-15T11:32:01Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-5e455b9f1e9b/call_75070.json",
+        "raw_response_sha256": "305335f6bfcc06173f39ed1e83943d0ecdd2a6f9bf47deedde14ca4e31bf4f5e"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 2035,
+        "output_tokens": 67,
+        "total_tokens": 2102,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3042,
+        "output_tokens": 25,
+        "total_tokens": 3067,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 2,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3280,
+        "output_tokens": 58,
+        "total_tokens": 3338,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 3,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3424,
+        "output_tokens": 60,
+        "total_tokens": 3484,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 4,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3572,
+        "output_tokens": 34,
+        "total_tokens": 3606,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 5,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3756,
+        "output_tokens": 23,
+        "total_tokens": 3779,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 6,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3911,
+        "output_tokens": 170,
+        "total_tokens": 4081,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 7,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 4213,
+        "output_tokens": 730,
+        "total_tokens": 4943,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 8,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 868,
+        "output_tokens": 229,
+        "total_tokens": 1097,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "true_positive",
+      "confidence": 0.99,
+      "mitre_techniques": [
+        "T1110.003",
+        "T1078.004",
+        "T1564.008"
+      ],
+      "observed_facts": [
+        {
+          "statement": "User rbennett@contoso.com experienced a successful logon from IP address 192.0.2.44 located in Lagos, Nigeria, using BAV2ROPC client app.",
+          "evidence": [
+            "call_79161"
+          ]
+        },
+        {
+          "statement": "Subsequent to the logon from Nigeria, a browser session authenticated successfully for rbennett@contoso.com from IP 192.0.2.44.",
+          "evidence": [
+            "call_79161"
+          ]
+        },
+        {
+          "statement": "IP address 192.0.2.44 is associated with an EXAMPLE-RESIDENTIAL-PROXY ASN and has been flagged with community votes leaning malicious.",
+          "evidence": [
+            "call_105208"
+          ]
+        },
+        {
+          "statement": "A related alert for a suspicious inbox manipulation rule was triggered for user rbennett@contoso.com.",
+          "evidence": [
+            "call_27427"
+          ]
+        },
+        {
+          "statement": "The identity rbennett@contoso.com belongs to Treasury Operations with a high priority and works in London, UK, making a login from Nigeria anomalous.",
+          "evidence": [
+            "call_93626"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "The broader password spray campaign referenced in the alert description targeted additional corporate accounts beyond rbennett@contoso.com.",
+          "why_unverified": "The query scope was focused on the specific user and IP address provided in the alert evidence rather than retrieving all tenant-wide sign-in failure logs."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Full tenant-wide sign-in logs for the password spray window",
+          "why_it_matters": "Would confirm the full scope of targeted accounts and additional attacking IPs involved in the password spray campaign.",
+          "how_to_obtain": "Run a broader KQL query across SigninLogs filtering by the specific timeframe and failure patterns."
+        },
+        {
+          "what": "Details of the inbox manipulation rule created on the compromised account",
+          "why_it_matters": "Determines whether the attacker established persistence or data exfiltration mechanisms via email forwarding/rules.",
+          "how_to_obtain": "Inspect Exchange Online audit logs or Microsoft Defender for Cloud Apps alerts for the specific rule details."
+        }
+      ],
+      "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+      "escalate": true
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "User rbennett@contoso.com experienced a successful logon from IP address 192.0.2.44 located in Lagos, Nigeria, using BAV2ROPC client app.",
+        "evidence_ids": [
+          "call_79161"
+        ],
+        "resolved_ids": [
+          "call_79161"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "Subsequent to the logon from Nigeria, a browser session authenticated successfully for rbennett@contoso.com from IP 192.0.2.44.",
+        "evidence_ids": [
+          "call_79161"
+        ],
+        "resolved_ids": [
+          "call_79161"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 2,
+        "statement": "IP address 192.0.2.44 is associated with an EXAMPLE-RESIDENTIAL-PROXY ASN and has been flagged with community votes leaning malicious.",
+        "evidence_ids": [
+          "call_105208"
+        ],
+        "resolved_ids": [
+          "call_105208"
+        ],
+        "source_systems": [
+          "virustotal"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 3,
+        "statement": "A related alert for a suspicious inbox manipulation rule was triggered for user rbennett@contoso.com.",
+        "evidence_ids": [
+          "call_27427"
+        ],
+        "resolved_ids": [
+          "call_27427"
+        ],
+        "source_systems": [
+          "graph_security"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 4,
+        "statement": "The identity rbennett@contoso.com belongs to Treasury Operations with a high priority and works in London, UK, making a login from Nigeria anomalous.",
+        "evidence_ids": [
+          "call_93626"
+        ],
+        "resolved_ids": [
+          "call_93626"
+        ],
+        "source_systems": [
+          "splunk"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 5,
+    "grounded_count": 5,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "User rbennett@contoso.com experienced a successful logon from IP address 192.0.2.44 located in Lagos, Nigeria, using BAV2ROPC client app.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "Subsequent to the logon from Nigeria, a browser session authenticated successfully for rbennett@contoso.com from IP 192.0.2.44.",
+            "evidence_id": "default_api:search_events",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "IP address 192.0.2.44 is associated with an EXAMPLE-RESIDENTIAL-PROXY ASN and has been flagged with community votes leaning malicious.",
+            "evidence_id": "default_api:lookup_ioc",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 3,
+            "statement": "A related alert for a suspicious inbox manipulation rule was triggered for user rbennett@contoso.com.",
+            "evidence_id": "default_api:get_related_alerts",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 4,
+            "statement": "The identity rbennett@contoso.com belongs to Treasury Operations with a high priority and works in London, UK, making a login from Nigeria anomalous.",
+            "evidence_id": "default_api:get_identity",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_79161",
+            "tool_name": "search_events",
+            "arguments": {
+              "timespan": "P1D",
+              "query": "SigninLogs | where UserPrincipalName == \"rbennett@contoso.com\" or IPAddress == \"192.0.2.44\" | top 20 by TimeGenerated desc"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_105208",
+            "tool_name": "lookup_ioc",
+            "arguments": {
+              "indicator": "192.0.2.44"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_27427",
+            "tool_name": "get_related_alerts",
+            "arguments": {
+              "user_principal_name": "rbennett@contoso.com",
+              "hours": 24
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_93626",
+            "tool_name": "get_identity",
+            "arguments": {
+              "identity": "rbennett@contoso.com"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "recite",
+            "evidence": [
+              "call_79161"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "call_79161"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "call_105208"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 3,
+            "action": "recite",
+            "evidence": [
+              "call_27427"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 4,
+            "action": "recite",
+            "evidence": [
+              "call_93626"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "true_positive",
+          "confidence": 0.99,
+          "mitre_techniques": [
+            "T1110.003",
+            "T1078.004",
+            "T1564.008"
+          ],
+          "observed_facts": [
+            {
+              "statement": "User rbennett@contoso.com experienced a successful logon from IP address 192.0.2.44 located in Lagos, Nigeria, using BAV2ROPC client app.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "Subsequent to the logon from Nigeria, a browser session authenticated successfully for rbennett@contoso.com from IP 192.0.2.44.",
+              "evidence": [
+                "default_api:search_events"
+              ]
+            },
+            {
+              "statement": "IP address 192.0.2.44 is associated with an EXAMPLE-RESIDENTIAL-PROXY ASN and has been flagged with community votes leaning malicious.",
+              "evidence": [
+                "default_api:lookup_ioc"
+              ]
+            },
+            {
+              "statement": "A related alert for a suspicious inbox manipulation rule was triggered for user rbennett@contoso.com.",
+              "evidence": [
+                "default_api:get_related_alerts"
+              ]
+            },
+            {
+              "statement": "The identity rbennett@contoso.com belongs to Treasury Operations with a high priority and works in London, UK, making a login from Nigeria anomalous.",
+              "evidence": [
+                "default_api:get_identity"
+              ]
+            }
+          ],
+          "assumptions": [
+            {
+              "statement": "The broader password spray campaign referenced in the alert description targeted additional corporate accounts beyond rbennett@contoso.com.",
+              "why_unverified": "The query scope was focused on the specific user and IP address provided in the alert evidence rather than retrieving all tenant-wide sign-in failure logs."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Full tenant-wide sign-in logs for the password spray window",
+              "why_it_matters": "Would confirm the full scope of targeted accounts and additional attacking IPs involved in the password spray campaign.",
+              "how_to_obtain": "Run a broader KQL query across SigninLogs filtering by the specific timeframe and failure patterns."
+            },
+            {
+              "what": "Details of the inbox manipulation rule created on the compromised account",
+              "why_it_matters": "Determines whether the attacker established persistence or data exfiltration mechanisms via email forwarding/rules.",
+              "how_to_obtain": "Inspect Exchange Online audit logs or Microsoft Defender for Cloud Apps alerts for the specific rule details."
+            }
+          ],
+          "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+          "escalate": true
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "User rbennett@contoso.com experienced a successful logon from IP address 192.0.2.44 located in Lagos, Nigeria, using BAV2ROPC client app.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "Subsequent to the logon from Nigeria, a browser session authenticated successfully for rbennett@contoso.com from IP 192.0.2.44.",
+            "evidence_ids": [
+              "default_api:search_events"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:search_events",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "IP address 192.0.2.44 is associated with an EXAMPLE-RESIDENTIAL-PROXY ASN and has been flagged with community votes leaning malicious.",
+            "evidence_ids": [
+              "default_api:lookup_ioc"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:lookup_ioc",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 3,
+            "statement": "A related alert for a suspicious inbox manipulation rule was triggered for user rbennett@contoso.com.",
+            "evidence_ids": [
+              "default_api:get_related_alerts"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:get_related_alerts",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 4,
+            "statement": "The identity rbennett@contoso.com belongs to Treasury Operations with a high priority and works in London, UK, making a login from Nigeria anomalous.",
+            "evidence_ids": [
+              "default_api:get_identity"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "default_api:get_identity",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 5,
+        "grounded_count": 0,
+        "ungrounded_count": 5,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_75070",
+      "proposal": {
+        "verdict": "true_positive",
+        "summary": "Azure AD Identity Protection detected a password spray attack involving multiple source IP addresses, including successful authentication to user rbennett@contoso.com's account from 192.0.2.44 in Lagos, Nigeria. The user's normal location is London, UK, and the sign-in used legacy protocols (BAV2ROPC) followed by a suspicious browser login and a subsequent inbox manipulation rule alert, confirming account compromise.",
+        "recommended_action": "Immediately disable user rbennett@contoso.com, revoke existing sessions, force a credential reset, and investigate the associated inbox manipulation rule and concurrent suspicious sign-ins originating from Nigeria.",
+        "escalate": true
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

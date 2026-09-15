@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-15T11:30:28Z",
+ "recommended_action": "Immediately revoke sessions for user rbennett@contoso.com, force a password reset, and investigate potential follow-on actions from the compromised account stemming from the successful authentication from IP 192.0.2.44.",
+ "status": "proposed",
+ "summary": "Azure AD Identity Protection detected a password spray attack involving numerous source IPs targeting multiple user accounts. Sign-in logs confirm that user rbennett@contoso.com experienced a successful authentication from IP 192.0.2.44 following failed sign-in attempts from other distributed IPs, validating the credential compromise.",
+ "verdict": "true_positive"
+}

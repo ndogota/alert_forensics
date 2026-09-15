@@ -1,0 +1,39 @@
+{
+ "data": {
+  "attributes": {
+   "categories": {},
+   "creation_date": 1788608520,
+   "last_analysis_date": 1789290000,
+   "last_analysis_results": {
+    "Abusix": {
+     "category": "harmless",
+     "engine_name": "Abusix",
+     "method": "blacklist",
+     "result": "clean"
+    }
+   },
+   "last_analysis_stats": {
+    "harmless": 63,
+    "malicious": 1,
+    "suspicious": 0,
+    "timeout": 0,
+    "undetected": 30
+   },
+   "last_update_date": 1788608520,
+   "popularity_ranks": {},
+   "registrar": "Example Registrar, Inc.",
+   "reputation": 0,
+   "tags": [],
+   "total_votes": {
+    "harmless": 0,
+    "malicious": 0
+   },
+   "whois": "Domain Name: contoso-invoices.example\nRegistrar: Example Registrar, Inc.\nRegistrant Email: REDACTED FOR PRIVACY\n"
+  },
+  "id": "contoso-invoices.example",
+  "links": {
+   "self": "https://www.virustotal.com/api/v3/domains/contoso-invoices.example"
+  },
+  "type": "domain"
+ }
+}

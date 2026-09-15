@@ -368,6 +368,92 @@
         ],
         "messages": []
       }
+    },
+    {
+      "scenario": "rmm_block",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^pnovak(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789310010.20110",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "pnovak|pnovak@contoso.com|CONTOSO\\pnovak",
+            "prefix": "",
+            "nick": "",
+            "first": "",
+            "last": "",
+            "suffix": "",
+            "email": "pnovak@contoso.com",
+            "phone": "",
+            "phone2": "",
+            "managedBy": "tf-head@contoso.com",
+            "priority": "high",
+            "bunit": "Trade Finance",
+            "category": "employee|finance",
+            "watchlist": "false",
+            "startDate": "2019-06-03",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB"
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "cloud_upload",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^dlarsen(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789310011.20111",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "dlarsen|dlarsen@contoso.com|CONTOSO\\dlarsen",
+            "prefix": "",
+            "nick": "",
+            "first": "",
+            "last": "",
+            "suffix": "",
+            "email": "dlarsen@contoso.com",
+            "phone": "",
+            "phone2": "",
+            "managedBy": "mkt-lead@contoso.com",
+            "priority": "medium",
+            "bunit": "Marketing",
+            "category": "employee|leaver",
+            "watchlist": "true",
+            "startDate": "2021-03-01",
+            "endDate": "2026-09-30",
+            "work_city": "London",
+            "work_country": "GB"
+          }
+        ],
+        "messages": []
+      }
     }
   ]
 }

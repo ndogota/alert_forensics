@@ -1,0 +1,5 @@
+{
+ "detail": "no fixture stub for search_runbook matches arguments {\"query\": \"purple\", \"top_k\": 3}",
+ "error": "no_fixture",
+ "tool": "search_runbook"
+}

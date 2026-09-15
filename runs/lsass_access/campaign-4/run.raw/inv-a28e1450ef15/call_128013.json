@@ -1,0 +1,27 @@
+{
+ "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+ "value": [
+  {
+   "category": "CredentialAccess",
+   "classification": "informationalExpectedActivity",
+   "createdDateTime": "2026-08-24T02:58:00Z",
+   "detectionSource": "microsoftDefenderForEndpoint",
+   "determination": "securityTesting",
+   "evidence": [
+    {
+     "@odata.type": "#microsoft.graph.security.deviceEvidence",
+     "deviceDnsName": "ws-eng-0148.contoso.com",
+     "mdeDeviceId": "9c7e2a1f4b8d6c5a3e0f1d9b8a7c6e5d4f3a2b10"
+    }
+   ],
+   "id": "da637549830000000000_-1188736480",
+   "incidentId": "62",
+   "mitreTechniques": [
+    "T1003.001"
+   ],
+   "severity": "high",
+   "status": "resolved",
+   "title": "LSASS credential memory access blocked"
+  }
+ ]
+}

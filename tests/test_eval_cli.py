@@ -251,11 +251,13 @@ def test_the_scripted_suite_hits_a_stub_on_every_call_of_every_shipped_scenario(
     summary = Summary.model_validate_json((results / "summary.json").read_text())
     assert sorted(c.scenario for c in summary.cells) == [
         "atypical_travel",
+        "cloud_upload",
         "encoded_powershell",
         "forwarding_rule",
         "kerberoasting",
         "lsass_access",
         "password_spray",
+        "rmm_block",
     ]
     for cell in summary.cells:
         assert cell.completed.numerator == 1, cell.scenario

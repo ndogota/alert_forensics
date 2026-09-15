@@ -1,0 +1,60 @@
+{
+  "id": "da637551398811223344_-1188736806",
+  "title": "Mass upload to personal cloud storage by a user on the leaver watchlist",
+  "description": "dlarsen, a user on the leaver watchlist, uploaded 6.2 GB in 2340 files to PhotoDrive, an unsanctioned personal cloud storage service, from ws-mkt-0117 between 09:12 and 11:38 UTC. The policy fires on more than 1 GB to a personal cloud storage category in 24 hours by a watchlisted user.",
+  "severity": "high",
+  "status": "new",
+  "category": "Exfiltration",
+  "createdDateTime": "2026-09-14T12:05:44.1Z",
+  "lastUpdateDateTime": "2026-09-14T12:06:10Z",
+  "detectionSource": "microsoftDefenderForCloudApps",
+  "serviceSource": "microsoftDefenderForCloudApps",
+  "providerAlertId": "f19c3a7e",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "83",
+  "mitreTechniques": [
+    "T1567.002"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T12:05:44.1Z",
+      "verdict": "suspicious",
+      "roles": [
+        "source"
+      ],
+      "userAccount": {
+        "accountName": "dlarsen",
+        "userPrincipalName": "dlarsen@contoso.com",
+        "domainName": "CONTOSO",
+        "azureAdUserId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.deviceEvidence",
+      "createdDateTime": "2026-09-14T12:05:44.1Z",
+      "verdict": "unknown",
+      "roles": [
+        "contextual"
+      ],
+      "deviceDnsName": "ws-mkt-0117.contoso.com",
+      "mdeDeviceId": "3d9a1c7e5b2f4086c8e0a2d4f6b8c1e3a5d7f9b2",
+      "osPlatform": "Windows11",
+      "healthStatus": "active",
+      "riskScore": "low",
+      "rbacGroupName": "Marketing workstations"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.cloudApplicationEvidence",
+      "createdDateTime": "2026-09-14T12:05:44.1Z",
+      "verdict": "suspicious",
+      "roles": [
+        "destination"
+      ],
+      "appId": 31504,
+      "displayName": "PhotoDrive",
+      "instanceName": "PhotoDrive",
+      "saasAppId": 31504
+    }
+  ]
+}

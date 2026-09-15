@@ -28,9 +28,15 @@ def first_stub_response(name: str):
 
 
 def first_stub_arguments(name: str):
+    """The first stub's match as a request: an exact value as it is, an operator
+    matcher as a placeholder of the field's type."""
     data = json.loads((FIXTURE_TOOLS_DIR / f"{name}.json").read_text())
     match = next(s["match"] for s in data["stubs"] if "response" in s)
-    return {k: (v if not isinstance(v, dict) else "x") for k, v in match.items()}
+    fields = DEFINITIONS[name].request_model.model_fields
+    return {
+        k: (v if not isinstance(v, dict) else (1 if fields[k].annotation is int else "x"))
+        for k, v in match.items()
+    }
 
 
 def test_the_ten_tools_are_registered_once_each():
