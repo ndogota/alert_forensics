@@ -263,3 +263,110 @@ def test_the_scripted_suite_hits_a_stub_on_every_call_of_every_shipped_scenario(
         assert cell.completed.numerator == 1, cell.scenario
         assert cell.calls.no_fixture.numerator == 0, (cell.scenario, cell.calls)
         assert cell.calls.error == 0 and cell.calls.denied == 0, (cell.scenario, cell.calls)
+
+
+# --- A campaign is one fixture revision ---------------------------------------------
+
+from alert_forensics.fixtures import DEFAULT_FIXTURES_DIR  # noqa: E402
+from alert_forensics.tools import fixture_digest  # noqa: E402
+
+
+def fixtures_copy(tmp_path, name, reindent=None):
+    """A copy of the packaged fixtures; ``reindent`` rewrites one file with other
+    whitespace, the same stubs in other bytes, which is another revision to the digest."""
+    d = tmp_path / name
+    shutil.copytree(DEFAULT_FIXTURES_DIR, d)
+    if reindent:
+        f = d / reindent
+        f.write_text(json.dumps(json.loads(f.read_text()), indent=3))
+    return d
+
+
+def eval_argv(scenarios, results, fixtures=None):
+    argv = ["eval", "--scripted", "--runs", "1", "--scenarios", str(scenarios)]
+    argv += ["--results", str(results)]
+    if fixtures is not None:
+        argv += ["--fixtures", str(fixtures)]
+    return argv
+
+
+def test_fixture_digest_is_the_fixture_files_and_nothing_else(tmp_path):
+    packaged = fixture_digest(DEFAULT_FIXTURES_DIR)
+    assert packaged == fixture_digest(DEFAULT_FIXTURES_DIR) and len(packaged) == 64
+    same = fixtures_copy(tmp_path, "same")
+    assert fixture_digest(same) == packaged, "the path is not part of the revision"
+    (same / "notes.txt").write_text("not a fixture")
+    assert fixture_digest(same) == packaged, "only the files the loader reads count"
+    assert fixture_digest(fixtures_copy(tmp_path, "stub", "get_identity.json")) != packaged
+    assert fixture_digest(fixtures_copy(tmp_path, "manifest", "scenarios.json")) != packaged
+
+
+def test_eval_writes_the_campaign_and_stamps_every_run_with_the_digest(scenarios, tmp_path, capsys):
+    results = tmp_path / "results"
+    assert main(eval_argv(scenarios, results)) == 0
+    digest = fixture_digest(DEFAULT_FIXTURES_DIR)
+    campaign = json.loads((results / "campaign.json").read_text())
+    assert campaign["fixture_digest"] == digest
+    assert campaign["fixtures"] == str(DEFAULT_FIXTURES_DIR) and "started_at" in campaign
+    run_dir = results / "scripted-demo" / "analyst" / "atypical_travel" / "0"
+    measurement = RunMeasurement.model_validate_json((run_dir / "eval.json").read_text())
+    assert measurement.fixture_digest == digest
+    summary = Summary.model_validate_json((results / "summary.json").read_text())
+    assert summary.fixture_digest == digest
+    assert f"fixtures {digest}" in capsys.readouterr().out
+
+
+def test_eval_refuses_a_directory_of_another_fixture_revision_and_accumulates_within_one(
+    scenarios, tmp_path, capsys
+):
+    results = tmp_path / "results"
+    first = fixtures_copy(tmp_path, "fx-first")
+    second = fixtures_copy(tmp_path, "fx-second", "search_runbook.json")
+    assert main(eval_argv(scenarios, results, first)) == 0
+    cell = results / "scripted-demo" / "analyst" / "atypical_travel"
+    capsys.readouterr()
+    assert main(eval_argv(scenarios, results, second)) == 2
+    err = capsys.readouterr().err
+    assert fixture_digest(first) in err and fixture_digest(second) in err
+    assert "--results" in err
+    assert sorted(p.name for p in cell.iterdir()) == ["0"], "no run is made on a refusal"
+    # The same revision accumulates, as before.
+    assert main(eval_argv(scenarios, results, first)) == 0
+    assert sorted(p.name for p in cell.iterdir()) == ["0", "1"]
+
+
+def test_a_directory_of_runs_from_before_versioning_is_refused_for_runs_and_reported_as_such(
+    scenarios, tmp_path, capsys
+):
+    results = tmp_path / "results"
+    assert main(eval_argv(scenarios, results)) == 0
+    (results / "campaign.json").unlink()
+    measurement = results / "scripted-demo" / "analyst" / "atypical_travel" / "0" / "eval.json"
+    meta = json.loads(measurement.read_text())
+    del meta["fixture_digest"]
+    measurement.write_text(json.dumps(meta))
+    capsys.readouterr()
+    assert main(eval_argv(scenarios, results)) == 2
+    err = capsys.readouterr().err
+    assert "campaign.json" in err and "--results" in err
+    assert not (results / "scripted-demo" / "analyst" / "atypical_travel" / "1").exists()
+    assert main(["eval-report", str(results), "--scenarios", str(scenarios)]) == 0
+    out = capsys.readouterr().out
+    assert "before fixtures were versioned" in out and "not on record" in out
+    summary = Summary.model_validate_json((results / "summary.json").read_text())
+    assert summary.fixture_digest is None
+
+
+def test_eval_report_refuses_runs_of_two_fixture_revisions(scenarios, tmp_path, capsys):
+    results = tmp_path / "results"
+    assert main(eval_argv(scenarios, results)) == 0
+    cell = results / "scripted-demo" / "analyst" / "atypical_travel"
+    shutil.copytree(cell / "0", cell / "1")
+    meta = json.loads((cell / "1" / "eval.json").read_text())
+    meta["index"] = 1
+    meta["fixture_digest"] = "f" * 64
+    (cell / "1" / "eval.json").write_text(json.dumps(meta))
+    capsys.readouterr()
+    assert main(["eval-report", str(results), "--scenarios", str(scenarios)]) == 2
+    err = capsys.readouterr().err
+    assert fixture_digest(DEFAULT_FIXTURES_DIR) in err and "f" * 64 in err

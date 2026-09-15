@@ -19,6 +19,7 @@ from alert_forensics.tools.fixtures import (
     FixtureStub,
     ToolFixture,
     fixture_adapters,
+    fixture_digest,
 )
 from alert_forensics.tools.ordering import OrderDenial, check_order
 from alert_forensics.tools.redaction import redact, redact_text
@@ -77,6 +78,7 @@ __all__ = [
     "check_order",
     "check_scope",
     "fixture_adapters",
+    "fixture_digest",
     "redact",
     "redact_text",
 ]

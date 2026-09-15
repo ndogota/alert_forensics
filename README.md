@@ -134,7 +134,11 @@ narrows to one) and writes one directory per run under `results/<model>/<role>/<
 `run.json`, the same artifact `triage` writes, so `show` and `replay` read it; `run.raw/`;
 `eval.json`, the measured wall clock; and `score.json`, the run scored against the
 scenario's ground truth. A second invocation adds runs to a cell rather than overwriting
-it. It then writes `results/summary.json` and prints the report: per cell, the completed
+it, within one fixture revision: the directory carries `campaign.json`, the digest of the
+fixtures every run under it was handed, and an invocation under other fixtures, or into a
+directory of runs from before that rule, is refused before any run, so a fixture fix
+means a new `--results` directory rather than a pooled cell. It then writes
+`results/summary.json` and prints the report, opening with the fixture revision: per cell, the completed
 and failed proportions split by outcome and error kind, verdict accuracy, evidence
 recall, missing-context recall, escalation precision and recall, the ungrounded claim
 rate over completed runs, wall clock, tokens and cost, each proportion with its Wilson

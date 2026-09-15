@@ -39,6 +39,7 @@ has ``shared`` in view and nothing else.
 """
 
 import copy
+import hashlib
 import json
 import re
 from collections.abc import Iterable, Sequence
@@ -108,6 +109,23 @@ class ToolFixture(ContractModel):
 
     tool: NonEmptyStr
     stubs: list[FixtureStub] = Field(default_factory=list)
+
+
+def fixture_digest(directory: Path) -> str:
+    """The fixture revision: SHA-256 over the files the loader reads, every ``*.json``
+    at the top level of ``directory`` in sorted name order, each contributed as its
+    name and its bytes with their lengths in front, so that no two directories collide
+    by concatenation. The path is not part of it, and neither is anything the loader
+    does not read: a copy of the directory is the same revision, a stub changed in any
+    byte is another one."""
+    digest = hashlib.sha256()
+    for path in sorted(directory.glob("*.json")):
+        name = path.name.encode("utf-8")
+        data = path.read_bytes()
+        for part in (name, data):
+            digest.update(len(part).to_bytes(8, "big"))
+            digest.update(part)
+    return digest.hexdigest()
 
 
 class FixtureSet:

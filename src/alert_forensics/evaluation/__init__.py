@@ -10,14 +10,17 @@ from alert_forensics.evaluation.fixture_check import (
     stale_labels,
 )
 from alert_forensics.evaluation.harness import (
+    CAMPAIGN_FILE,
     MEASUREMENT_FILE,
     RAW_DIR,
     RUN_FILE,
     SCORE_FILE,
     SUMMARY_FILE,
+    Campaign,
     HarnessError,
     collect,
     model_slug,
+    open_campaign,
     report,
     run_suite,
 )
@@ -57,6 +60,7 @@ from alert_forensics.evaluation.truth import (
 )
 
 __all__ = [
+    "CAMPAIGN_FILE",
     "EVIDENCE_TOOLS",
     "MEASUREMENT_FILE",
     "PRICES",
@@ -66,6 +70,7 @@ __all__ = [
     "SUMMARY_FILE",
     "Z_95",
     "CallOutcomes",
+    "Campaign",
     "CellCalls",
     "CellSummary",
     "Collision",
@@ -94,6 +99,7 @@ __all__ = [
     "load_scenario",
     "load_scenarios",
     "model_slug",
+    "open_campaign",
     "probe",
     "recorded_requests",
     "render_summary",

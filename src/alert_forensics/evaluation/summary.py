@@ -26,6 +26,9 @@ class RunMeasurement(ContractModel):
     index: StrictNonNegativeInt
     started_at: AwareDatetime
     wall_clock_s: float = Field(ge=0)
+    fixture_digest: str | None = None
+    """The fixture revision the run was handed, see ``fixture_digest``; None on a run
+    made before campaigns were versioned, which cannot say."""
 
 
 class ScoredRun(ContractModel):
@@ -134,6 +137,9 @@ class CellSummary(ContractModel):
 
 class Summary(ContractModel):
     generated_at: AwareDatetime
+    fixture_digest: str | None = None
+    """The one fixture revision every run was handed; None when any run predates the
+    versioning of campaigns and cannot say. Two revisions never summarise together."""
     cells: list[CellSummary]
 
 
@@ -143,12 +149,22 @@ def summarise(
     prices: Mapping[str, Price] = PRICES,
     now: Callable[[], datetime] | None = None,
 ) -> Summary:
+    """One summary over runs of one fixture revision. Runs naming two revisions are
+    refused here as well as at the directory, so a summary cannot be built over a
+    pool; a run without a digest leaves the summary without one."""
+    digests = {r.measurement.fixture_digest for r in runs}
+    if len(digests - {None}) > 1:
+        raise ValueError(
+            "runs of two fixture revisions cannot be summarised together: "
+            + ", ".join(sorted(d for d in digests if d is not None))
+        )
     cells: dict[tuple[str, str, str], list[ScoredRun]] = {}
     for run in runs:
         m = run.measurement
         cells.setdefault((m.model, m.role, m.scenario), []).append(run)
     return Summary(
         generated_at=(now or (lambda: datetime.now(UTC)))(),
+        fixture_digest=None if None in digests else next(iter(digests), None),
         cells=[_cell(key, group, prices) for key, group in sorted(cells.items())],
     )
 
@@ -260,6 +276,13 @@ def render_summary(summary: Summary) -> str:
         f"{'' if len(summary.cells) == 1 else 's'}, generated "
         f"{summary.generated_at.astimezone().strftime('%Y-%m-%d %H:%M %Z')}."
     ]
+    if summary.fixture_digest is None:
+        lines.append(
+            "Campaign from before fixtures were versioned: the fixtures its runs were "
+            "handed are not on record."
+        )
+    else:
+        lines.append(f"Campaign under fixtures {summary.fixture_digest}.")
     for cell in summary.cells:
         lines.append("")
         lines.append(

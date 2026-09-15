@@ -401,19 +401,23 @@ def _eval(args: argparse.Namespace) -> int:
     fixtures_dir: Path = args.fixtures
     scripted: bool = args.scripted
     results_dir: Path = args.results
-    run_suite(
-        scenarios=scenarios,
-        model_factory=model_factory,
-        model_id=model_id,
-        role=role,
-        adapters=lambda alert: default_adapters(fixtures_dir, scripted=scripted, alert=alert),
-        results_dir=results_dir,
-        runs=args.runs,
-        max_corrections=args.max_corrections,
-        recursion_limit=args.recursion_limit,
-        model_limits=limits,
-        on_run=None if args.quiet else _run_progress,
-    )
+    try:
+        run_suite(
+            scenarios=scenarios,
+            model_factory=model_factory,
+            model_id=model_id,
+            role=role,
+            adapters=lambda alert: default_adapters(fixtures_dir, scripted=scripted, alert=alert),
+            fixtures_dir=fixtures_dir,
+            results_dir=results_dir,
+            runs=args.runs,
+            max_corrections=args.max_corrections,
+            recursion_limit=args.recursion_limit,
+            model_limits=limits,
+            on_run=None if args.quiet else _run_progress,
+        )
+    except HarnessError as exc:
+        raise CliError(str(exc)) from exc
     # --scenario narrows what is run, never what is summarised: the summary reads the
     # whole directory and needs a truth for every scenario it finds there.
     return _print_report(results_dir, _load_scenarios(args.scenarios, None))
