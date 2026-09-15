@@ -1,0 +1,824 @@
+{
+  "investigation_id": "inv-16b67b1d28af",
+  "outcome": "completed",
+  "model": "openai:gpt-5-nano",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 1
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "atypical_travel",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-16b67b1d28af",
+    "alert": {
+      "id": "da637551227677560813_-961444813",
+      "title": "Atypical travel",
+      "description": "Sign-in from Paris then Amsterdam within 40 minutes.",
+      "severity": "medium",
+      "status": "new",
+      "category": "InitialAccess",
+      "createdDateTime": "2026-09-14T09:58:11.500000Z",
+      "lastUpdateDateTime": "2026-09-14T09:59:00Z",
+      "detectionSource": "azureAdIdentityProtection",
+      "serviceSource": "azureAdIdentityProtection",
+      "providerAlertId": "6f1b3d2e",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "41",
+      "mitreTechniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T09:58:11.500000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "jdoe",
+            "domainName": "contoso",
+            "userPrincipalName": "jdoe@contoso.com",
+            "azureAdUserId": "0f6a0c9e-4d3b-4d1a-9f0b-6b8f1a2c3d4e",
+            "displayName": "Jane Doe"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.ipEvidence",
+          "createdDateTime": "2026-09-14T09:58:11.500000Z",
+          "ipAddress": "203.0.113.7",
+          "countryLetterCode": "NL"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T17:18:18.593429Z",
+    "records": [
+      {
+        "tool_call_id": "call_Q4A2231mGvGWnAXLjbxACeFY",
+        "step": 0,
+        "tool_name": "get_identity",
+        "source_system": "splunk",
+        "caller": "analyst",
+        "required_scope": "identity:read",
+        "arguments": {
+          "identity": "jdoe@contoso.com"
+        },
+        "started_at": "2026-09-15T17:18:40.447869Z",
+        "duration_us": 332,
+        "outcome": "ok",
+        "redacted_response": {
+          "found": true,
+          "identities": [
+            "jdoe",
+            "jdoe@contoso.com",
+            "CONTOSO\\jdoe"
+          ],
+          "email": "jdoe@contoso.com",
+          "priority": "medium",
+          "business_unit": "Equities Trading",
+          "categories": [
+            "employee",
+            "trader"
+          ],
+          "watchlist": false,
+          "managed_by": "mmanager@contoso.com",
+          "start_date": "2019-03-04",
+          "end_date": null,
+          "work_city": "Paris",
+          "work_country": "FR"
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_Q4A2231mGvGWnAXLjbxACeFY.json",
+        "raw_response_sha256": "179cb2381c299f233b3ad40e493ddcc4cb36ba1e56d4908ed1c7b6a3a1f00b99"
+      },
+      {
+        "tool_call_id": "call_4qF6XNWTh4nZUvY2kd6ySygZ",
+        "step": 0,
+        "tool_name": "lookup_ioc",
+        "source_system": "virustotal",
+        "caller": "analyst",
+        "required_scope": "ioc:lookup",
+        "arguments": {
+          "indicator": "203.0.113.7"
+        },
+        "started_at": "2026-09-15T17:18:40.450157Z",
+        "duration_us": 262,
+        "outcome": "ok",
+        "redacted_response": {
+          "indicator": "203.0.113.7",
+          "indicator_type": "ip_address",
+          "known": true,
+          "engines": {
+            "malicious": 0,
+            "suspicious": 0,
+            "harmless": 60,
+            "undetected": 34,
+            "verdicts": 94,
+            "not_analysed": 0
+          },
+          "detection_ratio": "0/94",
+          "reputation": {
+            "score": 0,
+            "reading": "no community signal: zero means nobody voted, not clean"
+          },
+          "last_analysis_at": "2026-09-13T11:46:40Z",
+          "tags": [],
+          "context": {
+            "country": "NL",
+            "as_owner": "EXAMPLE-SASE-NET",
+            "asn": 64496,
+            "network": "203.0.113.0/24"
+          },
+          "note": "Engine counters are how many engines returned each verdict in the last analysis. Reputation is the signed sum of community votes; zero means unvoted."
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_4qF6XNWTh4nZUvY2kd6ySygZ.json",
+        "raw_response_sha256": "3e65370edbf4d3c99eb66bf08ff217179df7e1efba3c6deb9595e3a87b95a149"
+      },
+      {
+        "tool_call_id": "call_eZ0sSWmaa6oPasMVGA34T7rc",
+        "step": 0,
+        "tool_name": "get_related_alerts",
+        "source_system": "graph_security",
+        "caller": "analyst",
+        "required_scope": "alerts:read",
+        "arguments": {
+          "user_principal_name": "jdoe@contoso.com",
+          "device_name": null,
+          "incident_id": "41",
+          "hours": 72
+        },
+        "started_at": "2026-09-15T17:18:40.451550Z",
+        "duration_us": 189,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 1,
+          "alerts": [
+            {
+              "id": "da637551227677560813_-961444814",
+              "title": "Unfamiliar sign-in properties",
+              "severity": "low",
+              "status": "resolved",
+              "category": "InitialAccess",
+              "classification": "falsePositive",
+              "determination": "other",
+              "created_date_time": "2026-09-01T07:12:00Z",
+              "detection_source": "azureAdIdentityProtection",
+              "incident_id": "38",
+              "mitre_techniques": [
+                "T1078.004"
+              ]
+            }
+          ],
+          "truncated": false
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_eZ0sSWmaa6oPasMVGA34T7rc.json",
+        "raw_response_sha256": "31cd5f50f674c6ef1831d61498315de0e1d5dfb3868baed4db8e8630eeecb8f8"
+      },
+      {
+        "tool_call_id": "call_3WvUdip3pr4YwMavidDn9abb",
+        "step": 0,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1078"
+        },
+        "started_at": "2026-09-15T17:18:40.452671Z",
+        "duration_us": 296881,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1078",
+          "name": "Valid Accounts",
+          "url": "https://attack.mitre.org/techniques/T1078",
+          "tactics": [
+            "stealth",
+            "persistence",
+            "privilege-escalation",
+            "initial-access"
+          ],
+          "is_subtechnique": false,
+          "platforms": [
+            "Containers",
+            "ESXi",
+            "IaaS",
+            "Identity Provider",
+            "Linux",
+            "macOS",
+            "Network Devices",
+            "Office Suite",
+            "SaaS",
+            "Windows"
+          ],
+          "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Compromised credentials may be used to bypass access controls placed on various resources on systems within the network and may even be used for persistent access to remote systems and externally available services, such as VPNs, Outlook Web Access, network devices, and remote desktop. Compromised credentials may also grant an adversary increased privilege to specific systems or access to restricted areas of the network. Adversaries may choose not to use malware or tools in conjunction with the legitimate access those credentials provide to make it harder to detect their presence.\n\nIn some cases, adversaries may abuse inactive accounts: for example, those belonging to individuals who are no longer part of an organization. Using these accounts may allow the adversary to evade detection, as the original account user will not be present to identify any anomalous activity taking place on their account.\n\nThe overlap of permissions for local, domain, and cloud accounts across a network of systems is of concern because the adversary may be able to pivot across accounts and systems to reach a high level of access (i.e., domain or enterprise administrator) to bypass access controls set within the enterprise.",
+          "version": "3.0",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_3WvUdip3pr4YwMavidDn9abb.json",
+        "raw_response_sha256": "55ecd82295704c886e74113c7cfb93edf40b8c807b62918f9139d5706ca1735f"
+      },
+      {
+        "tool_call_id": "call_sXzQaFmtXGMSvpGCRZCzMCLT",
+        "step": 0,
+        "tool_name": "get_attack_technique",
+        "source_system": "attack",
+        "caller": "analyst",
+        "required_scope": "attack:read",
+        "arguments": {
+          "technique_id": "T1078.004"
+        },
+        "started_at": "2026-09-15T17:18:40.751288Z",
+        "duration_us": 452,
+        "outcome": "ok",
+        "redacted_response": {
+          "technique_id": "T1078.004",
+          "name": "Cloud Accounts",
+          "url": "https://attack.mitre.org/techniques/T1078/004",
+          "tactics": [
+            "stealth",
+            "persistence",
+            "privilege-escalation",
+            "initial-access"
+          ],
+          "is_subtechnique": true,
+          "platforms": [
+            "IaaS",
+            "Identity Provider",
+            "Office Suite",
+            "SaaS"
+          ],
+          "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created and configured by an organization for use by users, remote support, services, or for administration of resources within a cloud service provider or SaaS application. Cloud Accounts can exist solely in the cloud; alternatively, they may be hybrid-joined between on-premises systems and the cloud through syncing or federation with other identity sources such as Windows Active Directory.\n\nService or user accounts may be targeted by adversaries through [Brute Force](https://attack.mitre.org/techniques/T1110), [Phishing](https://attack.mitre.org/techniques/T1566), or various other means to gain access to the environment. Federated or synced accounts may be a pathway for the adversary to affect both on-premises systems and cloud environments - for example, by leveraging shared credentials to log onto [Remote Services](https://attack.mitre.org/techniques/T1021). High privileged cloud accounts, whether federated, synced, or cloud-only, may also allow pivoting to on-premises environments by leveraging SaaS-based [Software Deployment Tools](https://attack.mitre.org/techniques/T1072) to run commands on hybrid-joined devices.\n\nAn adversary may create long lasting [Additional Cloud Credentials](https://attack.mitre.org/techniques/T1098/001) on a compromised cloud account to maintain persistence in the environment. Such credentials may also be used to bypass security controls such as multi-factor authentication. \n\nCloud accounts may also be able to assume [Temporary Elevated Cloud Access](https://attack.mitre.org/techniques/T1548/005) or other privileges through various means within the environment. Misconfigurations in role assignments or role assumption policies may allow an adversary to use these mechanisms to leverage permissions outside the intended scope of the account. Such over privileged accounts may be used to harvest sensitive data from online storage accounts and databases through [Cloud API](https://attack.mitre.org/techniques/T1059/009) or other methods. For example, in Azure environments, adversaries may target Azure Managed Identities, which allow associated Azure resources to request access tokens. By compromising a resource with an attached Managed Identity, such as an Azure VM, adversaries may be able to [Steal Application Access Token](https://attack.mitre.org/techniques/T1528)s to move laterally across the cloud environment.",
+          "version": "2.0",
+          "revoked": false,
+          "deprecated": false,
+          "superseded_by": null
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_sXzQaFmtXGMSvpGCRZCzMCLT.json",
+        "raw_response_sha256": "f3f719dcd0d2b50d2cced24b21e73e64342f387f50e03baf80ada94794c7d7f6"
+      },
+      {
+        "tool_call_id": "call_RX6kYAcKEE5iPdusLIawvLWo",
+        "step": 1,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "verdict": "inconclusive",
+          "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+          "escalate": true,
+          "summary": "The alert shows an atypical travel pattern for user jdoe@contoso.com (Paris then NL within ~40 minutes) with evidence labeling the account as compromised and a suspicious sign-in. An IP observed (203.0.113.7) resolves to NL and appears in a test/ documentation address. Prior related alert incident 38 was classified false positive for T1078.004, so the current signal is inconclusive. Further correlation with sign-in logs, MFA status, and device context is required to determine if this is a real credential compromise or a benign travel-related activity."
+        },
+        "started_at": "2026-09-15T17:19:18.265013Z",
+        "duration_us": 412,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "inconclusive",
+          "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+          "escalate": true,
+          "proposed_at": "2026-09-15T17:19:18Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-16b67b1d28af/call_RX6kYAcKEE5iPdusLIawvLWo.json",
+        "raw_response_sha256": "cf3f0cc52c7c15df33c83daf827cbcc3d349728223ca142a6f8f484c0ec72f02"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "openai:gpt-5-nano",
+        "input_tokens": 2223,
+        "output_tokens": 2837,
+        "total_tokens": 5060,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 2688
+        }
+      },
+      {
+        "step": 1,
+        "model": "openai:gpt-5-nano",
+        "input_tokens": 4048,
+        "output_tokens": 4489,
+        "total_tokens": 8537,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 1024,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 4224
+        }
+      },
+      {
+        "step": 2,
+        "model": "openai:gpt-5-nano",
+        "input_tokens": 4505,
+        "output_tokens": 4026,
+        "total_tokens": 8531,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 3840,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 3136
+        }
+      },
+      {
+        "step": 3,
+        "model": "openai:gpt-5-nano",
+        "input_tokens": 1465,
+        "output_tokens": 3994,
+        "total_tokens": 5459,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 3520
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "inconclusive",
+      "confidence": 0.58,
+      "mitre_techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "observed_facts": [
+        {
+          "statement": "IP evidence shows 203.0.113.7 geolocated to NL (Netherlands) associated with the sign-in activity.",
+          "evidence": [
+            "call_4qF6XNWTh4nZUvY2kd6ySygZ"
+          ]
+        },
+        {
+          "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+          "evidence": [
+            "call_eZ0sSWmaa6oPasMVGA34T7rc"
+          ]
+        },
+        {
+          "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+          "evidence": [
+            "call_3WvUdip3pr4YwMavidDn9abb"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "The two-location travel pattern could be legitimate if the user employed VPN/proxy or if the travel time implies concurrent sessions on different devices.",
+          "why_unverified": "No device context, VPN usage, or MFA events yet to corroborate the travel scenario."
+        },
+        {
+          "statement": "Suspicious sign-in evidence for user jdoe@contoso.com (contoso domain) with Azure AD Identity Protection: account jdoe, userPrincipalName jdoe@contoso.com; sign-in appears suspicious and the account is labeled compromised.",
+          "why_unverified": "No present_calls provide Azure AD Identity Protection evidence or a label of 'compromised' for the sign-in; only identity fields (e.g., user) are available in present_calls."
+        },
+        {
+          "statement": "Prior related alert context indicates a historical false positive for Cloud Accounts (T1078.004) in incident 38.",
+          "why_unverified": "Historical false positive for Cloud/Accounts (T1078.004) in incident 38 is not verifiable from the given present_calls; no related alert data for incident 38 is available here."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Device context and session details for both sign-ins (which device/session originated each sign-in).",
+          "why_it_matters": "Distinguishes between credential compromise vs legitimate multi-location access during travel.",
+          "how_to_obtain": "Pull device events and sign-in session details from Defender/Azure AD, cross-reference with VPN logs and endpoint telemetry."
+        },
+        {
+          "what": "MFA events and conditional access responses around the sign-ins.",
+          "why_it_matters": "Missing MFA signals could indicate credential compromise or, if MFA challenged/failed, elevate risk.",
+          "how_to_obtain": "Review Azure AD sign-in logs for MFA status, conditional access outcomes, and API activity."
+        }
+      ],
+      "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+      "escalate": true
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "IP evidence shows 203.0.113.7 geolocated to NL (Netherlands) associated with the sign-in activity.",
+        "evidence_ids": [
+          "call_4qF6XNWTh4nZUvY2kd6ySygZ"
+        ],
+        "resolved_ids": [
+          "call_4qF6XNWTh4nZUvY2kd6ySygZ"
+        ],
+        "source_systems": [
+          "virustotal"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+        "evidence_ids": [
+          "call_eZ0sSWmaa6oPasMVGA34T7rc"
+        ],
+        "resolved_ids": [
+          "call_eZ0sSWmaa6oPasMVGA34T7rc"
+        ],
+        "source_systems": [
+          "graph_security"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 2,
+        "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+        "evidence_ids": [
+          "call_3WvUdip3pr4YwMavidDn9abb"
+        ],
+        "resolved_ids": [
+          "call_3WvUdip3pr4YwMavidDn9abb"
+        ],
+        "source_systems": [
+          "attack"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 3,
+    "grounded_count": 3,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "Suspicious sign-in evidence for user jdoe@contoso.com (contoso domain) with Azure AD Identity Protection: account jdoe, userPrincipalName jdoe@contoso.com; sign-in appears suspicious and the account is labeled compromised.",
+            "evidence_id": "Evidence source: azureAdIdentityProtection; userEvidence for accountName 'jdoe', domainName 'contoso', userPrincipalName 'jdoe@contoso.com'; verdict 'suspicious'; roles include 'compromised'.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "IP evidence shows 203.0.113.7 geolocated to NL (Netherlands) associated with the sign-in activity.",
+            "evidence_id": "Evidence source: ipEvidence; ipAddress '203.0.113.7'; countryLetterCode 'NL'.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+            "evidence_id": "Description from alert: 'Sign-in from Paris then Amsterdam within 40 minutes'; detectionSource 'azureAdIdentityProtection'; incidentId '41'.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+            "evidence_id": "MITRE technique tags present: T1078, T1078.004.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 3,
+            "statement": "Prior related alert context indicates a historical false positive for Cloud Accounts (T1078.004) in incident 38.",
+            "evidence_id": "Related alert in SIEM: id 'da637551227677560813_-961444814' titled 'Unfamiliar sign-in properties'; classification 'falsePositive'; technique 'T1078.004'; incident 38; status 'resolved'.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 4,
+            "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+            "evidence_id": "get_attack_technique output for T1078: name 'Valid Accounts'.",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 4,
+            "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+            "evidence_id": "get_attack_technique output for T1078/004: name 'Cloud Accounts'.",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "call_Q4A2231mGvGWnAXLjbxACeFY",
+            "tool_name": "get_identity",
+            "arguments": {
+              "identity": "jdoe@contoso.com"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_4qF6XNWTh4nZUvY2kd6ySygZ",
+            "tool_name": "lookup_ioc",
+            "arguments": {
+              "indicator": "203.0.113.7"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_eZ0sSWmaa6oPasMVGA34T7rc",
+            "tool_name": "get_related_alerts",
+            "arguments": {
+              "user_principal_name": "jdoe@contoso.com",
+              "device_name": null,
+              "incident_id": "41",
+              "hours": 72
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_3WvUdip3pr4YwMavidDn9abb",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1078"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "call_sXzQaFmtXGMSvpGCRZCzMCLT",
+            "tool_name": "get_attack_technique",
+            "arguments": {
+              "technique_id": "T1078.004"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "No present_calls provide Azure AD Identity Protection evidence or a label of 'compromised' for the sign-in; only identity fields (e.g., user) are available in present_calls."
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "call_4qF6XNWTh4nZUvY2kd6ySygZ"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "call_eZ0sSWmaa6oPasMVGA34T7rc"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "call_3WvUdip3pr4YwMavidDn9abb",
+              "call_sXzQaFmtXGMSvpGCRZCzMCLT"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 3,
+            "action": "withdraw",
+            "evidence": [],
+            "why_unverified": "Historical false positive for Cloud/Accounts (T1078.004) in incident 38 is not verifiable from the given present_calls; no related alert data for incident 38 is available here."
+          },
+          {
+            "index": 4,
+            "action": "recite",
+            "evidence": [
+              "call_3WvUdip3pr4YwMavidDn9abb"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 4,
+            "action": "recite",
+            "evidence": [
+              "call_sXzQaFmtXGMSvpGCRZCzMCLT"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "inconclusive",
+          "confidence": 0.58,
+          "mitre_techniques": [
+            "T1078",
+            "T1078.004"
+          ],
+          "observed_facts": [
+            {
+              "statement": "Suspicious sign-in evidence for user jdoe@contoso.com (contoso domain) with Azure AD Identity Protection: account jdoe, userPrincipalName jdoe@contoso.com; sign-in appears suspicious and the account is labeled compromised.",
+              "evidence": [
+                "Evidence source: azureAdIdentityProtection; userEvidence for accountName 'jdoe', domainName 'contoso', userPrincipalName 'jdoe@contoso.com'; verdict 'suspicious'; roles include 'compromised'."
+              ]
+            },
+            {
+              "statement": "IP evidence shows 203.0.113.7 geolocated to NL (Netherlands) associated with the sign-in activity.",
+              "evidence": [
+                "Evidence source: ipEvidence; ipAddress '203.0.113.7'; countryLetterCode 'NL'."
+              ]
+            },
+            {
+              "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+              "evidence": [
+                "Description from alert: 'Sign-in from Paris then Amsterdam within 40 minutes'; detectionSource 'azureAdIdentityProtection'; incidentId '41'.",
+                "MITRE technique tags present: T1078, T1078.004."
+              ]
+            },
+            {
+              "statement": "Prior related alert context indicates a historical false positive for Cloud Accounts (T1078.004) in incident 38.",
+              "evidence": [
+                "Related alert in SIEM: id 'da637551227677560813_-961444814' titled 'Unfamiliar sign-in properties'; classification 'falsePositive'; technique 'T1078.004'; incident 38; status 'resolved'."
+              ]
+            },
+            {
+              "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+              "evidence": [
+                "get_attack_technique output for T1078: name 'Valid Accounts'.",
+                "get_attack_technique output for T1078/004: name 'Cloud Accounts'."
+              ]
+            }
+          ],
+          "assumptions": [
+            {
+              "statement": "The two-location travel pattern could be legitimate if the user employed VPN/proxy or if the travel time implies concurrent sessions on different devices.",
+              "why_unverified": "No device context, VPN usage, or MFA events yet to corroborate the travel scenario."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Device context and session details for both sign-ins (which device/session originated each sign-in).",
+              "why_it_matters": "Distinguishes between credential compromise vs legitimate multi-location access during travel.",
+              "how_to_obtain": "Pull device events and sign-in session details from Defender/Azure AD, cross-reference with VPN logs and endpoint telemetry."
+            },
+            {
+              "what": "MFA events and conditional access responses around the sign-ins.",
+              "why_it_matters": "Missing MFA signals could indicate credential compromise or, if MFA challenged/failed, elevate risk.",
+              "how_to_obtain": "Review Azure AD sign-in logs for MFA status, conditional access outcomes, and API activity."
+            }
+          ],
+          "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+          "escalate": true
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "Suspicious sign-in evidence for user jdoe@contoso.com (contoso domain) with Azure AD Identity Protection: account jdoe, userPrincipalName jdoe@contoso.com; sign-in appears suspicious and the account is labeled compromised.",
+            "evidence_ids": [
+              "Evidence source: azureAdIdentityProtection; userEvidence for accountName 'jdoe', domainName 'contoso', userPrincipalName 'jdoe@contoso.com'; verdict 'suspicious'; roles include 'compromised'."
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "Evidence source: azureAdIdentityProtection; userEvidence for accountName 'jdoe', domainName 'contoso', userPrincipalName 'jdoe@contoso.com'; verdict 'suspicious'; roles include 'compromised'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "IP evidence shows 203.0.113.7 geolocated to NL (Netherlands) associated with the sign-in activity.",
+            "evidence_ids": [
+              "Evidence source: ipEvidence; ipAddress '203.0.113.7'; countryLetterCode 'NL'."
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "Evidence source: ipEvidence; ipAddress '203.0.113.7'; countryLetterCode 'NL'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "Two-location sign-in pattern: from Paris (France) and NL within ~40 minutes, flagged under Initial Access (atypical travel).",
+            "evidence_ids": [
+              "Description from alert: 'Sign-in from Paris then Amsterdam within 40 minutes'; detectionSource 'azureAdIdentityProtection'; incidentId '41'.",
+              "MITRE technique tags present: T1078, T1078.004."
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "Description from alert: 'Sign-in from Paris then Amsterdam within 40 minutes'; detectionSource 'azureAdIdentityProtection'; incidentId '41'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              },
+              {
+                "evidence_id": "MITRE technique tags present: T1078, T1078.004.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 3,
+            "statement": "Prior related alert context indicates a historical false positive for Cloud Accounts (T1078.004) in incident 38.",
+            "evidence_ids": [
+              "Related alert in SIEM: id 'da637551227677560813_-961444814' titled 'Unfamiliar sign-in properties'; classification 'falsePositive'; technique 'T1078.004'; incident 38; status 'resolved'."
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "Related alert in SIEM: id 'da637551227677560813_-961444814' titled 'Unfamiliar sign-in properties'; classification 'falsePositive'; technique 'T1078.004'; incident 38; status 'resolved'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 4,
+            "statement": "Cloud/Valid Accounts mapping confirmed by ATT&CK technique data retrieved: 'Valid Accounts' (T1078) and 'Cloud Accounts' (T1078.004).",
+            "evidence_ids": [
+              "get_attack_technique output for T1078: name 'Valid Accounts'.",
+              "get_attack_technique output for T1078/004: name 'Cloud Accounts'."
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "get_attack_technique output for T1078: name 'Valid Accounts'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              },
+              {
+                "evidence_id": "get_attack_technique output for T1078/004: name 'Cloud Accounts'.",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 5,
+        "grounded_count": 0,
+        "ungrounded_count": 5,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "call_RX6kYAcKEE5iPdusLIawvLWo",
+      "proposal": {
+        "verdict": "inconclusive",
+        "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+        "escalate": true,
+        "summary": "The alert shows an atypical travel pattern for user jdoe@contoso.com (Paris then NL within ~40 minutes) with evidence labeling the account as compromised and a suspicious sign-in. An IP observed (203.0.113.7) resolves to NL and appears in a test/ documentation address. Prior related alert incident 38 was classified false positive for T1078.004, so the current signal is inconclusive. Further correlation with sign-in logs, MFA status, and device context is required to determine if this is a real credential compromise or a benign travel-related activity."
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

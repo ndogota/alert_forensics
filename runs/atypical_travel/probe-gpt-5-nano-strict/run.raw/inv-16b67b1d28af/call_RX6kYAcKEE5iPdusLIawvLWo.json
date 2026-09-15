@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-15T17:19:18Z",
+ "recommended_action": "Correlate with additional Azure AD sign-in logs and device data to determine if the two-location sign-in is legitimate (e.g., VPN/proxy usage, travel); verify MFA events and any suspicious API activity. Review incident 38's false-positive classification for context. If corroborating evidence of compromise appears (e.g., anomalous sign-in patterns, token abuse), elevate to true_positive and perform containment (reset credentials, enforce MFA, audit). If not, consider marking as benign_true_positive/false_positive after review.",
+ "status": "proposed",
+ "summary": "The alert shows an atypical travel pattern for user jdoe@contoso.com (Paris then NL within ~40 minutes) with evidence labeling the account as compromised and a suspicious sign-in. An IP observed (203.0.113.7) resolves to NL and appears in a test/ documentation address. Prior related alert incident 38 was classified false positive for T1078.004, so the current signal is inconclusive. Further correlation with sign-in logs, MFA status, and device context is required to determine if this is a real credential compromise or a benign travel-related activity.",
+ "verdict": "inconclusive"
+}

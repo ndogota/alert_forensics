@@ -1,0 +1,39 @@
+{
+ "fields": [
+  {
+   "name": "identity"
+  },
+  {
+   "name": "email"
+  },
+  {
+   "name": "priority"
+  }
+ ],
+ "preview": false,
+ "results": [
+  {
+   "bunit": "Equities Trading",
+   "category": "employee|trader",
+   "email": "jdoe@contoso.com",
+   "endDate": "",
+   "first": "Jane",
+   "identity": "jdoe|jdoe@contoso.com|CONTOSO\\jdoe",
+   "last": "Doe",
+   "managedBy": "mmanager@contoso.com",
+   "nick": "",
+   "phone": "+33 6 12 34 56 78",
+   "phone2": "",
+   "prefix": "",
+   "priority": "medium",
+   "startDate": "2019-03-04",
+   "suffix": "",
+   "watchlist": "false",
+   "work_city": "Paris",
+   "work_country": "FR",
+   "work_lat": "48.8566",
+   "work_long": "2.3522"
+  }
+ ],
+ "sid": "1789300001.12346"
+}

@@ -96,10 +96,14 @@ def test_the_committed_recordings_are_the_ones_the_spec_decided():
     """One demonstration run per scenario that has a completed real run, the first such
     run by rule, plus every run the spec cites: the first recording under the defaults,
     the two no-fact runs of scenario 5, the two spray runs that pivoted on the address,
-    and scenario 7's run that called no tool."""
+    and scenario 7's run that called no tool, and the three gate runs of the priced
+    tiers on scenario 1, cited for the asset question and the strict binding."""
     assert {recording_id(p) for p in RECORDINGS} == {
         "atypical_travel/defaults-2026-09-14",
         "atypical_travel/campaign-0",
+        "atypical_travel/probe-gpt-5-nano",
+        "atypical_travel/probe-gpt-5-nano-strict",
+        "atypical_travel/probe-sonnet-5",
         "cloud_upload/campaign-0",
         "encoded_powershell/campaign-3",
         "forwarding_rule/campaign-3",

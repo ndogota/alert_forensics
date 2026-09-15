@@ -17,9 +17,13 @@ A recording named `campaign-<k>` is the run directory `<k>` of 2026-09-15 under
 `results/google_genai-gemini-3.5-flash-lite/analyst/<scenario>/`, artifact and raw
 store copied unchanged; the results directory itself is not committed. For scenarios 7
 and 8 that run directory is the gate run of "One real run before a cell is paid for",
-the only real run each has had.
+the only real run each has had. A recording named `probe-<name>` is run directory `0`
+of the gate directory `gates/probe-<name>/` of 2026-09-15, under the same model, role
+and scenario path, copied the same way; `gates/` is not committed either.
 
-All twelve are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role.
+Twelve are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role. The
+three named `probe-` are the gate runs of the priced tiers on scenario 1, under
+`analyst`, made on 2026-09-15 between 17:04 and 17:20 UTC.
 
 - `runs/atypical_travel/defaults-2026-09-14/`: the first recording, 2026-09-14, made
   before the `no_fixture` rule, the whole-word tokens and the label binding. Completed,
@@ -29,6 +33,23 @@ All twelve are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` 
 - `runs/atypical_travel/campaign-0/`: the demonstration run, 2026-09-15. Completed,
   verdict right, evidence recall 1 of 3: one fact for both sign-ins, naming neither
   city.
+- `runs/atypical_travel/probe-gpt-5-nano/`: `openai:gpt-5-nano`, the first OpenAI gate
+  run, 17:05 UTC, cited for the strict binding and for the asset question.
+  `failed_error` of kind `StructuredOutputValidationError`: the output schema was bound
+  without the strict flag, the model returned a `summary` key the schema forbids on its
+  second turn, and no pass was left. Seven tool calls, six `ok`; asked `get_asset` for
+  `203.0.113.7` and was refused, a gap closed since.
+- `runs/atypical_travel/probe-gpt-5-nano-strict/`: `openai:gpt-5-nano`, the strict
+  probe, 17:18 UTC, cited for the strict binding. Bound with `strict=True` by a script
+  that replaced the strategy for that run, so the artifact records no flag; the API
+  accepted the schema. Completed, verdict `inconclusive` against `false_positive`,
+  evidence recall 0 of 3, missing context 2 of 2, escalated. Six tool calls, all `ok`,
+  none to the hunting API or the runbook.
+- `runs/atypical_travel/probe-sonnet-5/`: `anthropic:claude-sonnet-5`, the Anthropic
+  gate run, 17:04 UTC, cited for the asset question. Completed, verdict right, evidence
+  recall 3 of 3, missing context 1 of 2. Seven tool calls, six `ok`; asked `get_asset`
+  for `203.0.113.7` in its second turn, after the runbook had named the range, and was
+  refused, a gap closed since.
 - `runs/cloud_upload/campaign-0/`: the demonstration run, and the gate run, 12:26 UTC.
   Completed, verdict `benign_true_positive` against `false_positive`, evidence recall
   0 of 5, missing context 0 of 2. Three tool calls: one hunting query for dlarsen's

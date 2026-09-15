@@ -1,0 +1,841 @@
+{
+  "investigation_id": "inv-7dc046dc538e",
+  "outcome": "completed",
+  "model": "anthropic:claude-sonnet-5",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 1
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "atypical_travel",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-7dc046dc538e",
+    "alert": {
+      "id": "da637551227677560813_-961444813",
+      "title": "Atypical travel",
+      "description": "Sign-in from Paris then Amsterdam within 40 minutes.",
+      "severity": "medium",
+      "status": "new",
+      "category": "InitialAccess",
+      "createdDateTime": "2026-09-14T09:58:11.500000Z",
+      "lastUpdateDateTime": "2026-09-14T09:59:00Z",
+      "detectionSource": "azureAdIdentityProtection",
+      "serviceSource": "azureAdIdentityProtection",
+      "providerAlertId": "6f1b3d2e",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "41",
+      "mitreTechniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T09:58:11.500000Z",
+          "verdict": "suspicious",
+          "roles": [
+            "compromised"
+          ],
+          "userAccount": {
+            "accountName": "jdoe",
+            "domainName": "contoso",
+            "userPrincipalName": "jdoe@contoso.com",
+            "azureAdUserId": "0f6a0c9e-4d3b-4d1a-9f0b-6b8f1a2c3d4e",
+            "displayName": "Jane Doe"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.ipEvidence",
+          "createdDateTime": "2026-09-14T09:58:11.500000Z",
+          "ipAddress": "203.0.113.7",
+          "countryLetterCode": "NL"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T17:04:39.988145Z",
+    "records": [
+      {
+        "tool_call_id": "toolu_01BJ3jFfM6rp7trMrRZBMKZy",
+        "step": 0,
+        "tool_name": "search_events",
+        "source_system": "defender",
+        "caller": "analyst",
+        "required_scope": "hunting:read",
+        "arguments": {
+          "query": "SigninLogs | where UserPrincipalName =~ \"jdoe@contoso.com\" | where TimeGenerated between (datetime(2026-09-14T08:00:00Z) .. datetime(2026-09-14T11:00:00Z)) | project TimeGenerated, UserPrincipalName, IPAddress, Location, City, ResultType, AppDisplayName, ClientAppUsed, DeviceDetail | order by TimeGenerated asc",
+          "timespan": "P2D"
+        },
+        "started_at": "2026-09-15T17:04:53.145647Z",
+        "duration_us": 328,
+        "outcome": "ok",
+        "redacted_response": {
+          "columns": [
+            "Timestamp",
+            "AccountUpn",
+            "IPAddress",
+            "Location",
+            "ErrorCode"
+          ],
+          "row_count": 2,
+          "rows": [
+            {
+              "Timestamp": "2026-09-14T09:12:04.000Z",
+              "AccountUpn": "jdoe@contoso.com",
+              "IPAddress": "203.0.113.7",
+              "Location": "Paris, FR",
+              "ErrorCode": 0
+            },
+            {
+              "Timestamp": "2026-09-14T09:51:40.000Z",
+              "AccountUpn": "jdoe@contoso.com",
+              "IPAddress": "203.0.113.7",
+              "Location": "Amsterdam, NL",
+              "ErrorCode": 0
+            }
+          ],
+          "truncated": false,
+          "dropped_columns": 0
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_01BJ3jFfM6rp7trMrRZBMKZy.json",
+        "raw_response_sha256": "c22d6e817cbb6088ef7e462da838c0e0e10827635cbbdf5b666005bea3dc2f5f"
+      },
+      {
+        "tool_call_id": "toolu_01VCZvNdhzDVjmGTr9xKvEwY",
+        "step": 0,
+        "tool_name": "get_identity",
+        "source_system": "splunk",
+        "caller": "analyst",
+        "required_scope": "identity:read",
+        "arguments": {
+          "identity": "jdoe@contoso.com"
+        },
+        "started_at": "2026-09-15T17:04:53.147507Z",
+        "duration_us": 190,
+        "outcome": "ok",
+        "redacted_response": {
+          "found": true,
+          "identities": [
+            "jdoe",
+            "jdoe@contoso.com",
+            "CONTOSO\\jdoe"
+          ],
+          "email": "jdoe@contoso.com",
+          "priority": "medium",
+          "business_unit": "Equities Trading",
+          "categories": [
+            "employee",
+            "trader"
+          ],
+          "watchlist": false,
+          "managed_by": "mmanager@contoso.com",
+          "start_date": "2019-03-04",
+          "end_date": null,
+          "work_city": "Paris",
+          "work_country": "FR"
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_01VCZvNdhzDVjmGTr9xKvEwY.json",
+        "raw_response_sha256": "179cb2381c299f233b3ad40e493ddcc4cb36ba1e56d4908ed1c7b6a3a1f00b99"
+      },
+      {
+        "tool_call_id": "toolu_01PGyfEnhhbNxKo9Qh1jdc5e",
+        "step": 0,
+        "tool_name": "get_related_alerts",
+        "source_system": "graph_security",
+        "caller": "analyst",
+        "required_scope": "alerts:read",
+        "arguments": {
+          "user_principal_name": "jdoe@contoso.com",
+          "incident_id": "41",
+          "hours": 168
+        },
+        "started_at": "2026-09-15T17:04:53.148678Z",
+        "duration_us": 149,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 1,
+          "alerts": [
+            {
+              "id": "da637551227677560813_-961444814",
+              "title": "Unfamiliar sign-in properties",
+              "severity": "low",
+              "status": "resolved",
+              "category": "InitialAccess",
+              "classification": "falsePositive",
+              "determination": "other",
+              "created_date_time": "2026-09-01T07:12:00Z",
+              "detection_source": "azureAdIdentityProtection",
+              "incident_id": "38",
+              "mitre_techniques": [
+                "T1078.004"
+              ]
+            }
+          ],
+          "truncated": false
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_01PGyfEnhhbNxKo9Qh1jdc5e.json",
+        "raw_response_sha256": "31cd5f50f674c6ef1831d61498315de0e1d5dfb3868baed4db8e8630eeecb8f8"
+      },
+      {
+        "tool_call_id": "toolu_0118qJkDqFKwe37yHzaYek2R",
+        "step": 0,
+        "tool_name": "lookup_ioc",
+        "source_system": "virustotal",
+        "caller": "analyst",
+        "required_scope": "ioc:lookup",
+        "arguments": {
+          "indicator": "203.0.113.7"
+        },
+        "started_at": "2026-09-15T17:04:53.149853Z",
+        "duration_us": 177,
+        "outcome": "ok",
+        "redacted_response": {
+          "indicator": "203.0.113.7",
+          "indicator_type": "ip_address",
+          "known": true,
+          "engines": {
+            "malicious": 0,
+            "suspicious": 0,
+            "harmless": 60,
+            "undetected": 34,
+            "verdicts": 94,
+            "not_analysed": 0
+          },
+          "detection_ratio": "0/94",
+          "reputation": {
+            "score": 0,
+            "reading": "no community signal: zero means nobody voted, not clean"
+          },
+          "last_analysis_at": "2026-09-13T11:46:40Z",
+          "tags": [],
+          "context": {
+            "country": "NL",
+            "as_owner": "EXAMPLE-SASE-NET",
+            "asn": 64496,
+            "network": "203.0.113.0/24"
+          },
+          "note": "Engine counters are how many engines returned each verdict in the last analysis. Reputation is the signed sum of community votes; zero means unvoted."
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_0118qJkDqFKwe37yHzaYek2R.json",
+        "raw_response_sha256": "3e65370edbf4d3c99eb66bf08ff217179df7e1efba3c6deb9595e3a87b95a149"
+      },
+      {
+        "tool_call_id": "toolu_01SNk4CLMtoV4Co3PAn7jcho",
+        "step": 1,
+        "tool_name": "search_runbook",
+        "source_system": "runbook",
+        "caller": "analyst",
+        "required_scope": "runbook:read",
+        "arguments": {
+          "query": "atypical travel alert same IP different city SASE geolocation false positive"
+        },
+        "started_at": "2026-09-15T17:05:08.659170Z",
+        "duration_us": 728,
+        "outcome": "ok",
+        "redacted_response": {
+          "count": 2,
+          "hits": [
+            {
+              "id": "RB-0114",
+              "title": "Atypical travel: known egress points",
+              "score": 0.91,
+              "source": "runbooks/identity/atypical-travel.md",
+              "excerpt": "The group SASE gateways egress from 203.0.113.0/24 (Amsterdam) and 198.51.100.0/24 (Paris). A sign-in pair inside these ranges within one hour is a gateway hand-over, not travel."
+            },
+            {
+              "id": "RB-0021",
+              "title": "Identity Protection triage checklist",
+              "score": 0.62,
+              "source": "runbooks/identity/checklist.md",
+              "excerpt": "Confirm MFA outcome, device compliance, and whether the source IP is a corporate egress before escalating."
+            }
+          ]
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_01SNk4CLMtoV4Co3PAn7jcho.json",
+        "raw_response_sha256": "6dcb959774005f5fd5bb1c4d7afc49636de6d7d3082f959abacbbb9b0891f159"
+      },
+      {
+        "tool_call_id": "toolu_01VUUadBWyP46evjq4R6Tcit",
+        "step": 1,
+        "tool_name": "get_asset",
+        "source_system": "splunk",
+        "caller": "analyst",
+        "required_scope": "asset:read",
+        "arguments": {
+          "asset": "203.0.113.7"
+        },
+        "started_at": "2026-09-15T17:05:08.663001Z",
+        "duration_us": 123,
+        "outcome": "error",
+        "redacted_response": {
+          "error": "no_fixture",
+          "tool": "get_asset",
+          "detail": "no fixture stub for get_asset matches arguments {\"asset\": \"203.0.113.7\"}"
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_01VUUadBWyP46evjq4R6Tcit.json",
+        "raw_response_sha256": "7bf2dc472b58225eb89aa19b845732b276520f49ecc071b87d236a946f5288a2"
+      },
+      {
+        "tool_call_id": "toolu_0172Tymo593FGqud9JNmURJv",
+        "step": 2,
+        "tool_name": "propose_alert_disposition",
+        "source_system": "human",
+        "caller": "analyst",
+        "required_scope": "alerts:write",
+        "arguments": {
+          "verdict": "false_positive",
+          "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges). No user action needed; optionally tune the Identity Protection atypical-travel detection to exclude sign-ins sourced from 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+          "escalate": false,
+          "summary": "Both sign-ins attributed to \"Paris\" (09:12 UTC) and \"Amsterdam\" (09:51 UTC) for jdoe@contoso.com originated from the identical IP address 203.0.113.7, which sits inside the corporate SASE gateway egress range documented in runbook RB-0114 (203.0.113.0/24 = Amsterdam gateway, 198.51.100.0/24 = Paris gateway); the runbook states that a sign-in pair inside these ranges within an hour is a gateway hand-over, not physical travel. Both sign-ins succeeded (ErrorCode 0) with no error, the IP has no malicious VirusTotal signal (0/94, AS owner EXAMPLE-SASE-NET consistent with a SASE provider), and a similar prior alert for this user (Unfamiliar sign-in properties, incident 38) was already closed as a false positive. jdoe is a legitimate employee (Paris-based trader, employed since 2019, not on watchlist), so there is no indication of account compromise; the geolocation discrepancy is an artifact of the SASE gateway's IP-to-city mapping rather than actual atypical travel."
+        },
+        "started_at": "2026-09-15T17:05:22.769471Z",
+        "duration_us": 405,
+        "outcome": "ok",
+        "redacted_response": {
+          "status": "proposed",
+          "verdict": "false_positive",
+          "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges). No user action needed; optionally tune the Identity Protection atypical-travel detection to exclude sign-ins sourced from 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+          "escalate": false,
+          "proposed_at": "2026-09-15T17:05:22Z",
+          "note": "Recorded for analyst review. Nothing was written to the alert, the incident or any case system; the analyst decides."
+        },
+        "raw_response_ref": "inv-7dc046dc538e/toolu_0172Tymo593FGqud9JNmURJv.json",
+        "raw_response_sha256": "6cf644c601a0d6e8157ac5ca9e4bfeccad63c275653b663bb73297daba12531a"
+      }
+    ],
+    "usage": [
+      {
+        "step": 0,
+        "model": "anthropic:claude-sonnet-5",
+        "input_tokens": 4892,
+        "output_tokens": 485,
+        "total_tokens": 5377,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 40
+        }
+      },
+      {
+        "step": 1,
+        "model": "anthropic:claude-sonnet-5",
+        "input_tokens": 6714,
+        "output_tokens": 391,
+        "total_tokens": 7105,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 268
+        }
+      },
+      {
+        "step": 2,
+        "model": "anthropic:claude-sonnet-5",
+        "input_tokens": 7480,
+        "output_tokens": 1220,
+        "total_tokens": 8700,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 582
+        }
+      },
+      {
+        "step": 3,
+        "model": "anthropic:claude-sonnet-5",
+        "input_tokens": 8927,
+        "output_tokens": 1195,
+        "total_tokens": 10122,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 4,
+        "model": "anthropic:claude-sonnet-5",
+        "input_tokens": 2295,
+        "output_tokens": 481,
+        "total_tokens": 2776,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 233
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "false_positive",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "observed_facts": [
+        {
+          "statement": "Both flagged sign-ins for jdoe@contoso.com within the 40-minute window originated from the exact same IP address, 203.0.113.7, with the sign-in engine geolocating the first as Paris, FR and the second as Amsterdam, NL; both succeeded (ErrorCode 0).",
+          "evidence": [
+            "toolu_01BJ3jFfM6rp7trMrRZBMKZy"
+          ]
+        },
+        {
+          "statement": "The IP 203.0.113.7 falls inside the 203.0.113.0/24 range that the SOC runbook documents as a corporate SASE gateway egress point (Amsterdam), paired with 198.51.100.0/24 (Paris); the runbook states such pairs within an hour are gateway hand-overs, not travel.",
+          "evidence": [
+            "toolu_01SNk4CLMtoV4Co3PAn7jcho"
+          ]
+        },
+        {
+          "statement": "VirusTotal shows no malicious or suspicious engine detections for 203.0.113.7 (0/94) and attributes it to AS owner EXAMPLE-SASE-NET, consistent with a corporate SASE/network provider rather than an anonymizing or malicious host.",
+          "evidence": [
+            "toolu_0118qJkDqFKwe37yHzaYek2R"
+          ]
+        },
+        {
+          "statement": "jdoe is a legitimate, long-tenured employee (Equities Trading, employed since 2019-03-04) based in Paris, FR, not flagged on any watchlist.",
+          "evidence": [
+            "toolu_01VCZvNdhzDVjmGTr9xKvEwY"
+          ]
+        },
+        {
+          "statement": "A prior similar Identity Protection alert for the same account (\"Unfamiliar sign-in properties\", incident 38) was already investigated and classified as a false positive.",
+          "evidence": [
+            "toolu_01PGyfEnhhbNxKo9Qh1jdc5e"
+          ]
+        }
+      ],
+      "assumptions": [
+        {
+          "statement": "The SASE gateway's IP-to-geolocation mapping (Paris vs Amsterdam city labels for the same /24 range) is the actual cause of the discrepancy in this instance, not a coincidental use of a shared NAT IP by two different physical users.",
+          "why_unverified": "No direct device/session token correlation or MFA satisfaction log was available to independently confirm it was the same physical session traversing the gateway rather than two distinct sessions sharing an IP."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Sign-in risk detail (MFA satisfaction, device compliance/join state, session/token correlation) for the two sign-in events.",
+          "why_it_matters": "Would give definitive confirmation that a single authenticated device/session was routed through the SASE gateway's Paris and Amsterdam edges, fully ruling out any possibility of concurrent use from two different endpoints sharing the NAT IP.",
+          "how_to_obtain": "Query AADSignInEventsBeta/SigninLogs for CorrelationId, DeviceDetail (deviceId, trustType, compliance) and AuthenticationRequirement/MFA result for both events, or check Conditional Access sign-in details in Entra ID portal."
+        }
+      ],
+      "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges); no user action needed. Recommend tuning the Identity Protection atypical-travel detection to exclude sign-ins sourced from the documented 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+      "escalate": false
+    },
+    "facts": [
+      {
+        "index": 0,
+        "statement": "Both flagged sign-ins for jdoe@contoso.com within the 40-minute window originated from the exact same IP address, 203.0.113.7, with the sign-in engine geolocating the first as Paris, FR and the second as Amsterdam, NL; both succeeded (ErrorCode 0).",
+        "evidence_ids": [
+          "toolu_01BJ3jFfM6rp7trMrRZBMKZy"
+        ],
+        "resolved_ids": [
+          "toolu_01BJ3jFfM6rp7trMrRZBMKZy"
+        ],
+        "source_systems": [
+          "defender"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "statement": "The IP 203.0.113.7 falls inside the 203.0.113.0/24 range that the SOC runbook documents as a corporate SASE gateway egress point (Amsterdam), paired with 198.51.100.0/24 (Paris); the runbook states such pairs within an hour are gateway hand-overs, not travel.",
+        "evidence_ids": [
+          "toolu_01SNk4CLMtoV4Co3PAn7jcho"
+        ],
+        "resolved_ids": [
+          "toolu_01SNk4CLMtoV4Co3PAn7jcho"
+        ],
+        "source_systems": [
+          "runbook"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 2,
+        "statement": "VirusTotal shows no malicious or suspicious engine detections for 203.0.113.7 (0/94) and attributes it to AS owner EXAMPLE-SASE-NET, consistent with a corporate SASE/network provider rather than an anonymizing or malicious host.",
+        "evidence_ids": [
+          "toolu_0118qJkDqFKwe37yHzaYek2R"
+        ],
+        "resolved_ids": [
+          "toolu_0118qJkDqFKwe37yHzaYek2R"
+        ],
+        "source_systems": [
+          "virustotal"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 3,
+        "statement": "jdoe is a legitimate, long-tenured employee (Equities Trading, employed since 2019-03-04) based in Paris, FR, not flagged on any watchlist.",
+        "evidence_ids": [
+          "toolu_01VCZvNdhzDVjmGTr9xKvEwY"
+        ],
+        "resolved_ids": [
+          "toolu_01VCZvNdhzDVjmGTr9xKvEwY"
+        ],
+        "source_systems": [
+          "splunk"
+        ],
+        "problems": [],
+        "grounded": true
+      },
+      {
+        "index": 4,
+        "statement": "A prior similar Identity Protection alert for the same account (\"Unfamiliar sign-in properties\", incident 38) was already investigated and classified as a false positive.",
+        "evidence_ids": [
+          "toolu_01PGyfEnhhbNxKo9Qh1jdc5e"
+        ],
+        "resolved_ids": [
+          "toolu_01PGyfEnhhbNxKo9Qh1jdc5e"
+        ],
+        "source_systems": [
+          "graph_security"
+        ],
+        "problems": [],
+        "grounded": true
+      }
+    ],
+    "total_facts": 5,
+    "grounded_count": 5,
+    "ungrounded_count": 0,
+    "no_facts": false,
+    "ungrounded_claim_rate": 0.0,
+    "is_grounded": true
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [
+          {
+            "index": 0,
+            "statement": "Both flagged sign-ins for jdoe@contoso.com within the 40-minute window originated from the exact same IP address, 203.0.113.7, with the sign-in engine geolocating the first as Paris, FR and the second as Amsterdam, NL; both succeeded (ErrorCode 0).",
+            "evidence_id": "search_events:SigninLogs jdoe@contoso.com 2026-09-14",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 1,
+            "statement": "The IP 203.0.113.7 falls inside the 203.0.113.0/24 range that the SOC runbook documents as a corporate SASE gateway egress point (Amsterdam), paired with 198.51.100.0/24 (Paris); the runbook states such pairs within an hour are gateway hand-overs, not travel.",
+            "evidence_id": "search_runbook:atypical travel alert same IP different city SASE geolocation false positive",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 2,
+            "statement": "VirusTotal shows no malicious or suspicious engine detections for 203.0.113.7 (0/94) and attributes it to AS owner EXAMPLE-SASE-NET, consistent with a corporate SASE/network provider rather than an anonymizing or malicious host.",
+            "evidence_id": "lookup_ioc:203.0.113.7",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 3,
+            "statement": "jdoe is a legitimate, long-tenured employee (Equities Trading, employed since 2019-03-04) based in Paris, FR, not flagged on any watchlist.",
+            "evidence_id": "get_identity:jdoe@contoso.com",
+            "problem": "unknown_id"
+          },
+          {
+            "index": 4,
+            "statement": "A prior similar Identity Protection alert for the same account (\"Unfamiliar sign-in properties\", incident 38) was already investigated and classified as a false positive.",
+            "evidence_id": "get_related_alerts:jdoe@contoso.com incident=41",
+            "problem": "unknown_id"
+          }
+        ],
+        "present_calls": [
+          {
+            "tool_call_id": "toolu_01BJ3jFfM6rp7trMrRZBMKZy",
+            "tool_name": "search_events",
+            "arguments": {
+              "query": "SigninLogs | where UserPrincipalName =~ \"jdoe@contoso.com\" | where TimeGenerated between (datetime(2026-09-14T08:00:00Z) .. datetime(2026-09-14T11:00:00Z)) | project TimeGenerated, UserPrincipalName, IPAddress, Location, City, ResultType, AppDisplayName, ClientAppUsed, DeviceDetail | order by TimeGenerated asc",
+              "timespan": "P2D"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "toolu_01VCZvNdhzDVjmGTr9xKvEwY",
+            "tool_name": "get_identity",
+            "arguments": {
+              "identity": "jdoe@contoso.com"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "toolu_01PGyfEnhhbNxKo9Qh1jdc5e",
+            "tool_name": "get_related_alerts",
+            "arguments": {
+              "user_principal_name": "jdoe@contoso.com",
+              "incident_id": "41",
+              "hours": 168
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "toolu_0118qJkDqFKwe37yHzaYek2R",
+            "tool_name": "lookup_ioc",
+            "arguments": {
+              "indicator": "203.0.113.7"
+            },
+            "outcome": "ok"
+          },
+          {
+            "tool_call_id": "toolu_01SNk4CLMtoV4Co3PAn7jcho",
+            "tool_name": "search_runbook",
+            "arguments": {
+              "query": "atypical travel alert same IP different city SASE geolocation false positive"
+            },
+            "outcome": "ok"
+          }
+        ]
+      },
+      "repairs": {
+        "repairs": [
+          {
+            "index": 0,
+            "action": "recite",
+            "evidence": [
+              "toolu_01BJ3jFfM6rp7trMrRZBMKZy"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 1,
+            "action": "recite",
+            "evidence": [
+              "toolu_01SNk4CLMtoV4Co3PAn7jcho"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 2,
+            "action": "recite",
+            "evidence": [
+              "toolu_0118qJkDqFKwe37yHzaYek2R"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 3,
+            "action": "recite",
+            "evidence": [
+              "toolu_01VCZvNdhzDVjmGTr9xKvEwY"
+            ],
+            "why_unverified": null
+          },
+          {
+            "index": 4,
+            "action": "recite",
+            "evidence": [
+              "toolu_01PGyfEnhhbNxKo9Qh1jdc5e"
+            ],
+            "why_unverified": null
+          }
+        ]
+      },
+      "report_before": {
+        "result": {
+          "verdict": "false_positive",
+          "confidence": 0.9,
+          "mitre_techniques": [
+            "T1078",
+            "T1078.004"
+          ],
+          "observed_facts": [
+            {
+              "statement": "Both flagged sign-ins for jdoe@contoso.com within the 40-minute window originated from the exact same IP address, 203.0.113.7, with the sign-in engine geolocating the first as Paris, FR and the second as Amsterdam, NL; both succeeded (ErrorCode 0).",
+              "evidence": [
+                "search_events:SigninLogs jdoe@contoso.com 2026-09-14"
+              ]
+            },
+            {
+              "statement": "The IP 203.0.113.7 falls inside the 203.0.113.0/24 range that the SOC runbook documents as a corporate SASE gateway egress point (Amsterdam), paired with 198.51.100.0/24 (Paris); the runbook states such pairs within an hour are gateway hand-overs, not travel.",
+              "evidence": [
+                "search_runbook:atypical travel alert same IP different city SASE geolocation false positive"
+              ]
+            },
+            {
+              "statement": "VirusTotal shows no malicious or suspicious engine detections for 203.0.113.7 (0/94) and attributes it to AS owner EXAMPLE-SASE-NET, consistent with a corporate SASE/network provider rather than an anonymizing or malicious host.",
+              "evidence": [
+                "lookup_ioc:203.0.113.7"
+              ]
+            },
+            {
+              "statement": "jdoe is a legitimate, long-tenured employee (Equities Trading, employed since 2019-03-04) based in Paris, FR, not flagged on any watchlist.",
+              "evidence": [
+                "get_identity:jdoe@contoso.com"
+              ]
+            },
+            {
+              "statement": "A prior similar Identity Protection alert for the same account (\"Unfamiliar sign-in properties\", incident 38) was already investigated and classified as a false positive.",
+              "evidence": [
+                "get_related_alerts:jdoe@contoso.com incident=41"
+              ]
+            }
+          ],
+          "assumptions": [
+            {
+              "statement": "The SASE gateway's IP-to-geolocation mapping (Paris vs Amsterdam city labels for the same /24 range) is the actual cause of the discrepancy in this instance, not a coincidental use of a shared NAT IP by two different physical users.",
+              "why_unverified": "No direct device/session token correlation or MFA satisfaction log was available to independently confirm it was the same physical session traversing the gateway rather than two distinct sessions sharing an IP."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Sign-in risk detail (MFA satisfaction, device compliance/join state, session/token correlation) for the two sign-in events.",
+              "why_it_matters": "Would give definitive confirmation that a single authenticated device/session was routed through the SASE gateway's Paris and Amsterdam edges, fully ruling out any possibility of concurrent use from two different endpoints sharing the NAT IP.",
+              "how_to_obtain": "Query AADSignInEventsBeta/SigninLogs for CorrelationId, DeviceDetail (deviceId, trustType, compliance) and AuthenticationRequirement/MFA result for both events, or check Conditional Access sign-in details in Entra ID portal."
+            }
+          ],
+          "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges); no user action needed. Recommend tuning the Identity Protection atypical-travel detection to exclude sign-ins sourced from the documented 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+          "escalate": false
+        },
+        "facts": [
+          {
+            "index": 0,
+            "statement": "Both flagged sign-ins for jdoe@contoso.com within the 40-minute window originated from the exact same IP address, 203.0.113.7, with the sign-in engine geolocating the first as Paris, FR and the second as Amsterdam, NL; both succeeded (ErrorCode 0).",
+            "evidence_ids": [
+              "search_events:SigninLogs jdoe@contoso.com 2026-09-14"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "search_events:SigninLogs jdoe@contoso.com 2026-09-14",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 1,
+            "statement": "The IP 203.0.113.7 falls inside the 203.0.113.0/24 range that the SOC runbook documents as a corporate SASE gateway egress point (Amsterdam), paired with 198.51.100.0/24 (Paris); the runbook states such pairs within an hour are gateway hand-overs, not travel.",
+            "evidence_ids": [
+              "search_runbook:atypical travel alert same IP different city SASE geolocation false positive"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "search_runbook:atypical travel alert same IP different city SASE geolocation false positive",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 2,
+            "statement": "VirusTotal shows no malicious or suspicious engine detections for 203.0.113.7 (0/94) and attributes it to AS owner EXAMPLE-SASE-NET, consistent with a corporate SASE/network provider rather than an anonymizing or malicious host.",
+            "evidence_ids": [
+              "lookup_ioc:203.0.113.7"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "lookup_ioc:203.0.113.7",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 3,
+            "statement": "jdoe is a legitimate, long-tenured employee (Equities Trading, employed since 2019-03-04) based in Paris, FR, not flagged on any watchlist.",
+            "evidence_ids": [
+              "get_identity:jdoe@contoso.com"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "get_identity:jdoe@contoso.com",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          },
+          {
+            "index": 4,
+            "statement": "A prior similar Identity Protection alert for the same account (\"Unfamiliar sign-in properties\", incident 38) was already investigated and classified as a false positive.",
+            "evidence_ids": [
+              "get_related_alerts:jdoe@contoso.com incident=41"
+            ],
+            "resolved_ids": [],
+            "source_systems": [],
+            "problems": [
+              {
+                "evidence_id": "get_related_alerts:jdoe@contoso.com incident=41",
+                "kind": "unknown_id",
+                "detail": "no tool call with this id exists in the trace"
+              }
+            ],
+            "grounded": false
+          }
+        ],
+        "total_facts": 5,
+        "grounded_count": 0,
+        "ungrounded_count": 5,
+        "no_facts": false,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "tool_call_id": "toolu_0172Tymo593FGqud9JNmURJv",
+      "proposal": {
+        "verdict": "false_positive",
+        "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges). No user action needed; optionally tune the Identity Protection atypical-travel detection to exclude sign-ins sourced from 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+        "escalate": false,
+        "summary": "Both sign-ins attributed to \"Paris\" (09:12 UTC) and \"Amsterdam\" (09:51 UTC) for jdoe@contoso.com originated from the identical IP address 203.0.113.7, which sits inside the corporate SASE gateway egress range documented in runbook RB-0114 (203.0.113.0/24 = Amsterdam gateway, 198.51.100.0/24 = Paris gateway); the runbook states that a sign-in pair inside these ranges within an hour is a gateway hand-over, not physical travel. Both sign-ins succeeded (ErrorCode 0) with no error, the IP has no malicious VirusTotal signal (0/94, AS owner EXAMPLE-SASE-NET consistent with a SASE provider), and a similar prior alert for this user (Unfamiliar sign-in properties, incident 38) was already closed as a false positive. jdoe is a legitimate employee (Paris-based trader, employed since 2019, not on watchlist), so there is no indication of account compromise; the geolocation discrepancy is an artifact of the SASE gateway's IP-to-city mapping rather than actual atypical travel."
+      },
+      "decision": "accepted",
+      "reason": null
+    }
+  ],
+  "error": null,
+  "raw_store": "run.raw"
+}

@@ -1,0 +1,8 @@
+{
+ "escalate": true,
+ "proposed_at": "2026-09-15T17:06:50Z",
+ "recommended_action": "Temporarily block or disable the user account jdoe@contoso.com; enforce MFA and reset password; review recent sign-ins and devices; investigate for credential theft and potential lateral movement; correlate with other cloud apps and service logs; escalate to Incident Response if confirmation of compromise is needed.",
+ "status": "proposed",
+ "summary": "Azure AD Identity Protection flagged an atypical travel pattern for user jdoe@contoso.com (Paris, FR sign-in followed by Amsterdam, NL within 40 minutes). The incident includes evidence of a compromised role at sign-in, and correlates to cloud account access with MITRE techniques T1078 (Valid Accounts) and T1078.004 (Cloud Accounts). An external IP 203.0.113.7 located in NL was observed; VirusTotal analysis shows low malicious indicators for the IP. A related alert of unfamiliar sign-in properties (incident 38) was previously classified as false positive. Given the combination of unusual travel, compromised role, and cloud account usage, this should be treated as a true positive and escalated for IR engagement.",
+ "verdict": "true_positive"
+}

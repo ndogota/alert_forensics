@@ -1,0 +1,8 @@
+{
+ "escalate": false,
+ "proposed_at": "2026-09-15T17:05:22Z",
+ "recommended_action": "Close the alert as false positive referencing RB-0114 (known SASE egress ranges). No user action needed; optionally tune the Identity Protection atypical-travel detection to exclude sign-ins sourced from 203.0.113.0/24 and 198.51.100.0/24 SASE gateway ranges to reduce recurring noise for this and other users behind the same gateway.",
+ "status": "proposed",
+ "summary": "Both sign-ins attributed to \"Paris\" (09:12 UTC) and \"Amsterdam\" (09:51 UTC) for jdoe@contoso.com originated from the identical IP address 203.0.113.7, which sits inside the corporate SASE gateway egress range documented in runbook RB-0114 (203.0.113.0/24 = Amsterdam gateway, 198.51.100.0/24 = Paris gateway); the runbook states that a sign-in pair inside these ranges within an hour is a gateway hand-over, not physical travel. Both sign-ins succeeded (ErrorCode 0) with no error, the IP has no malicious VirusTotal signal (0/94, AS owner EXAMPLE-SASE-NET consistent with a SASE provider), and a similar prior alert for this user (Unfamiliar sign-in properties, incident 38) was already closed as a false positive. jdoe is a legitimate employee (Paris-based trader, employed since 2019, not on watchlist), so there is no indication of account compromise; the geolocation discrepancy is an artifact of the SASE gateway's IP-to-city mapping rather than actual atypical travel.",
+ "verdict": "false_positive"
+}

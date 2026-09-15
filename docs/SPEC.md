@@ -535,7 +535,7 @@ Decisions the pipeline rests on:
   every committed recording to every stub that does not serve that recording's
   scenario, as the request was sent, through the same matcher the adapter uses; a
   stub that would answer is a collision, named with the recording it came from. The
-  corpus was one run when this was written and is twelve recordings across eight
+  corpus was one run when this was written and is fifteen recordings across eight
   scenarios as of 2026-09-15, one of them holding no request at all; it grows with
   every recording, which is the point: a
   scenario is checked against the questions real models asked about every other one,
@@ -986,12 +986,16 @@ alert-forensics eval-report results/
   one, see above. The first recording, made before the
   `no_fixture` rule, the whole-word tokens and the label binding, stays as
   `runs/atypical_travel/defaults-2026-09-14/`: it is the run that found the default
-  defect, and scenario 1's section cites it. Twelve recordings across eight scenarios
+  defect, and scenario 1's section cites it. Fifteen recordings across eight scenarios
   are committed as of 2026-09-15, each listed in `runs/README.md` with its model, its
   date, the run index it was copied from and what it shows; the ones with `campaign-`
   in the name are copies of run directories of the results directory of 2026-09-15,
   artifact and raw store unchanged, and for scenarios 7 and 8 that run directory is
-  the gate run, the only real run each has had. `eval` and `eval-report` are described
+  the gate run, the only real run each has had. The ones with `probe-` in the name are
+  run directory 0 of the gate directory of the same name under `gates/`, the gate runs
+  of the priced tiers on scenario 1 of 2026-09-15, copied the same way; each is cited,
+  by scenario 1's section for the asset question and by "Model independence" for the
+  strict binding. `eval` and `eval-report` are described
   under "Evaluation"; the viewer over the same artifacts is the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.

@@ -1,0 +1,28 @@
+{
+ "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+ "value": [
+  {
+   "category": "InitialAccess",
+   "classification": "falsePositive",
+   "createdDateTime": "2026-09-01T07:12:00Z",
+   "detectionSource": "azureAdIdentityProtection",
+   "determination": "other",
+   "evidence": [
+    {
+     "@odata.type": "#microsoft.graph.security.userEvidence",
+     "userAccount": {
+      "userPrincipalName": "jdoe@contoso.com"
+     }
+    }
+   ],
+   "id": "da637551227677560813_-961444814",
+   "incidentId": "38",
+   "mitreTechniques": [
+    "T1078.004"
+   ],
+   "severity": "low",
+   "status": "resolved",
+   "title": "Unfamiliar sign-in properties"
+  }
+ ]
+}

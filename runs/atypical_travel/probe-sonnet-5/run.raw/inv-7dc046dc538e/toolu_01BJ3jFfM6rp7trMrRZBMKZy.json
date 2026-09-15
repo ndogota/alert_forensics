@@ -1,0 +1,40 @@
+{
+ "results": [
+  {
+   "AccountUpn": "jdoe@contoso.com",
+   "ErrorCode": 0,
+   "IPAddress": "203.0.113.7",
+   "Location": "Paris, FR",
+   "Timestamp": "2026-09-14T09:12:04.000Z"
+  },
+  {
+   "AccountUpn": "jdoe@contoso.com",
+   "ErrorCode": 0,
+   "IPAddress": "203.0.113.7",
+   "Location": "Amsterdam, NL",
+   "Timestamp": "2026-09-14T09:51:40.000Z"
+  }
+ ],
+ "schema": [
+  {
+   "name": "Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "AccountUpn",
+   "type": "String"
+  },
+  {
+   "name": "IPAddress",
+   "type": "String"
+  },
+  {
+   "name": "Location",
+   "type": "String"
+  },
+  {
+   "name": "ErrorCode",
+   "type": "Int32"
+  }
+ ]
+}

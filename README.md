@@ -135,7 +135,7 @@ through an in-memory transport, see [tests/recorded/README.md](tests/recorded/RE
 
 ## Using it, and the recordings
 
-Twelve real model runs are committed under `runs/<scenario>/<recording>/`, across all
+Fifteen real model runs are committed under `runs/<scenario>/<recording>/`, across all
 eight scenarios, each replayable with no API key:
 
 ```
@@ -216,5 +216,5 @@ The test suite never opens a socket and never needs a key.
 - The numbers above come from `campaigns/02`, a results directory on the author's disk
   that is not committed, as no results directory is; they were recomputed from its 48
   run artifacts with the project's own scorer on 2026-09-15. A reader of this
-  repository can verify the method, the test suite and the twelve recordings, and not
+  repository can verify the method, the test suite and the fifteen recordings, and not
   the campaign.
