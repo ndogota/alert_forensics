@@ -20,6 +20,7 @@ from alert_forensics.contracts.alert import (
     UserEvidence,
 )
 from alert_forensics.contracts.run import (
+    PROVIDER_REFUSALS,
     AdapterKind,
     DispositionDecision,
     HumanDecision,
@@ -47,6 +48,7 @@ from alert_forensics.contracts.triage import (
 )
 
 __all__ = [
+    "PROVIDER_REFUSALS",
     "AdapterKind",
     "Alert",
     "AlertEvidence",

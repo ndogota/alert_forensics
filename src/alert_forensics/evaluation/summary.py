@@ -8,8 +8,7 @@ from datetime import UTC, datetime
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from alert_forensics.agent.run import PROVIDER_REFUSALS
-from alert_forensics.contracts import ModelUsageRecord, RunOutcome
+from alert_forensics.contracts import PROVIDER_REFUSALS, ModelUsageRecord, RunOutcome
 from alert_forensics.contracts._base import ContractModel, NonEmptyStr, StrictNonNegativeInt
 from alert_forensics.evaluation.prices import PRICES, Price, cost_usd, unpriced_models
 from alert_forensics.evaluation.scoring import RunScore

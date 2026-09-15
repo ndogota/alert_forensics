@@ -20,6 +20,7 @@ from alert_forensics.agent.graph import GATED_TOOL, TriageGraph, build_triage_gr
 from alert_forensics.agent.prompts import alert_message
 from alert_forensics.agent.strategy import output_binding
 from alert_forensics.artifact import CorrectionRecord, RunArtifact
+from alert_forensics.contracts import PROVIDER_REFUSALS as PROVIDER_REFUSALS
 from alert_forensics.contracts import (
     Alert,
     Assumption,
@@ -90,10 +91,6 @@ class AnalystDecision(ContractModel):
 
 DecideFn = Callable[[dict[str, JsonValue]], AnalystDecision]
 """Given the proposal's arguments as the model wrote them, the analyst's decision."""
-
-PROVIDER_REFUSALS: frozenset[str] = frozenset({"rate_limit", "overloaded"})
-"""Error kinds that mean the provider would not serve the call: its capacity, not the
-run's fault. The two kinds that are not an exception's class name."""
 
 _RATE_LIMIT_STATUS = {429}
 _OVERLOADED_STATUS = {503, 529}

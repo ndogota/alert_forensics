@@ -18,20 +18,63 @@ def recording_id(path: Path) -> str:
     return f"{path.parent.parent.name}/{path.parent.name}"
 
 
-@pytest.mark.parametrize("path", RECORDINGS, ids=[recording_id(p) for p in RECORDINGS])
-def test_a_recording_is_a_real_run_and_replays(path, capsys):
+def check_recording(path: Path) -> RunArtifact:
+    """The contract under "Using it": a real model run the provider served, with at
+    least one model turn, whose raw store verifies. Served is the artifact's own
+    ``refused``, the one definition the scorer reads, so a run refused after work is
+    refused here too."""
     artifact = RunArtifact.model_validate_json(path.read_text())
     assert not artifact.model.startswith(SCRIPTED_MODEL_ID.split(":")[0] + ":"), (
         "a recording of the scripted client is a fake demo; record a real model run"
     )
-    # A run the provider refused before any turn holds nothing to replay. A served run
-    # holds the turn that answered, whether or not the model called a tool with it.
-    assert artifact.trace.usage, "a recording is a served run: at least one model turn"
+    assert not artifact.refused, (
+        f"the provider refused this run ({artifact.error and artifact.error.kind}); a "
+        "refused run is the quota's, before any turn or after work, and is not a recording"
+    )
+    assert artifact.trace.usage, "a recording holds at least one model turn"
     store = DirectoryRawStore(path.parent / artifact.raw_store)
     for record in artifact.trace.records:
         store.get(record.raw_response_ref, expected_sha256=record.raw_response_sha256)
+    return artifact
+
+
+@pytest.mark.parametrize("path", RECORDINGS, ids=[recording_id(p) for p in RECORDINGS])
+def test_a_recording_is_a_real_run_and_replays(path, capsys):
+    artifact = check_recording(path)
     assert main(["replay", str(path)]) == 0
     assert artifact.model in capsys.readouterr().out
+
+
+def test_a_run_refused_after_work_is_not_a_recording(trace, tmp_path):
+    """The case: run 2 of scenario 1's first cell, failed_error of kind rate_limit after
+    two model turns and two tool calls, which a check reading trace.usage admitted. Built
+    here in the same shape, since the results directory is not committed."""
+    artifact = RunArtifact.model_validate(
+        {
+            "investigation_id": trace.investigation_id,
+            "outcome": "failed_error",
+            "model": "google_genai:gemini-3.5-flash-lite",
+            "model_limits": {"timeout_s": 60, "max_retries": 1},
+            "output_binding": {
+                "strategy": "tool",
+                "profile_declared": True,
+                "structured_output": False,
+            },
+            "role": "analyst",
+            "adapters": {"search_events": "fixture"},
+            "trace": trace.model_copy(update={"records": trace.records[:2]}),
+            "report": None,
+            "passes": 0,
+            "error": {"kind": "rate_limit", "message": "429 RESOURCE_EXHAUSTED"},
+            "raw_store": "run.raw",
+        }
+    )
+    assert len(artifact.trace.usage) == 2 and len(artifact.trace.records) == 2
+    path = tmp_path / "atypical_travel" / "refused-case" / "run.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(artifact.model_dump_json(indent=2))
+    with pytest.raises(AssertionError, match="refused"):
+        check_recording(path)
 
 
 def test_no_recording_yet_is_stated_not_hidden():

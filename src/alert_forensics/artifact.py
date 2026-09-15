@@ -71,6 +71,14 @@ class RunArtifact(ContractModel):
         """The last correction pass, or None."""
         return self.corrections[-1] if self.corrections else None
 
+    @property
+    def refused(self) -> bool:
+        """The provider would not serve the run: the error kind is ``rate_limit`` or
+        ``overloaded``, whatever the outcome. The one definition the scorer, the summary,
+        ``triage``'s exit code and the recording contract read; a refused run is the
+        quota's number, not the model's."""
+        return self.error is not None and self.error.refusal
+
     @model_validator(mode="after")
     def _outcome_matches_report(self) -> "RunArtifact":
         if self.outcome is RunOutcome.completed:

@@ -45,12 +45,24 @@ class OutputBinding(ContractModel):
     or the value is not a boolean."""
 
 
+PROVIDER_REFUSALS: frozenset[str] = frozenset({"rate_limit", "overloaded"})
+"""Error kinds that mean the provider would not serve the call: its capacity, not the
+run's fault. The two kinds that are not an exception's class name. The one definition
+of a refusal: the artifact's ``refused``, the scorer, the summary and the exit code
+all read it here."""
+
+
 class RunError(ContractModel):
     kind: NonEmptyStr
     """The exception's class name, or ``budget`` for the recursion limit, or
     ``no_result`` when the model ended without a structured result, or ``rate_limit``
     or ``overloaded`` when the provider refused to serve the call."""
     message: str
+
+    @property
+    def refusal(self) -> bool:
+        """Whether this error is the provider refusing to serve, by kind."""
+        return self.kind in PROVIDER_REFUSALS
 
 
 class DispositionDecision(StrEnum):

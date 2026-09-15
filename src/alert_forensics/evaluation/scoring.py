@@ -10,9 +10,9 @@ from collections import Counter
 
 from pydantic import Field, model_validator
 
-from alert_forensics.agent.run import PROVIDER_REFUSALS
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import (
+    PROVIDER_REFUSALS,
     InvestigationTrace,
     MissingContext,
     RunOutcome,
@@ -207,7 +207,7 @@ def score_run(artifact: RunArtifact, truth: GroundTruth) -> RunScore:
         total_facts=report.total_facts if report is not None else 0,
         ungrounded_facts=report.ungrounded_count if report is not None else 0,
         error_kind=artifact.error.kind if artifact.error is not None else None,
-        refused=artifact.error is not None and artifact.error.kind in PROVIDER_REFUSALS,
+        refused=artifact.refused,
         model_turns=len(artifact.trace.usage),
         calls=count_calls(artifact.trace),
     )

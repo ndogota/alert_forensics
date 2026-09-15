@@ -153,3 +153,33 @@ def test_the_output_binding_is_required_and_round_trips(trace, grounded_result):
         RunArtifact.model_validate(fields)
     with pytest.raises(ValidationError):
         OutputBinding(strategy="magic", profile_declared=True, structured_output=True)
+
+
+@pytest.mark.parametrize(
+    ("kind", "refused"),
+    [("rate_limit", True), ("overloaded", True), ("budget", False), ("ValueError", False)],
+)
+def test_refused_is_exactly_a_provider_error_kind_whatever_the_outcome(
+    trace, grounded_result, kind, refused
+):
+    """The one definition the scorer, the summary and the exit code read: rate_limit or
+    overloaded, on failed_error and on a failed_ungrounded whose correction pass the
+    provider refused, and nothing else."""
+    failed = make_artifact(
+        trace, outcome=RunOutcome.failed_error, error=RunError(kind=kind, message="x")
+    )
+    assert failed.refused is refused
+    assert make_artifact(trace, validate_grounding(grounded_result, trace)).refused is False
+
+
+def test_a_refused_correction_pass_makes_the_run_refused(trace, grounded_result):
+    invented = ObservedFact(statement="An invented reading.", evidence=["tc-nope"])
+    report = validate_grounding(with_facts(grounded_result, [invented]), trace)
+    artifact = make_artifact(
+        trace,
+        report,
+        outcome=RunOutcome.failed_ungrounded,
+        error=RunError(kind="rate_limit", message="429"),
+    )
+    assert artifact.refused is True
+    assert make_artifact(trace, report, outcome=RunOutcome.failed_ungrounded).refused is False

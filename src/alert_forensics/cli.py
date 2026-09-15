@@ -13,7 +13,6 @@ from typing import Any
 from pydantic import JsonValue, ValidationError
 
 from alert_forensics.agent import (
-    PROVIDER_REFUSALS,
     AnalystDecision,
     ScriptedChatModel,
     demo_script,
@@ -235,7 +234,7 @@ def _triage(args: argparse.Namespace) -> int:
         print(f"error: {artifact.error.kind}: {artifact.error.message}")
     if artifact.outcome is RunOutcome.completed:
         return EXIT_OK
-    if artifact.error is not None and artifact.error.kind in PROVIDER_REFUSALS:
+    if artifact.error is not None and artifact.error.refusal:
         print(
             f"alert-forensics: {_refusal(model_id, limits, artifact.error.kind)}", file=sys.stderr
         )
