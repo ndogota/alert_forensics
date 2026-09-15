@@ -34,6 +34,9 @@ class ScoredRun(ContractModel):
     measurement: RunMeasurement
     score: RunScore
     usage: list[ModelUsageRecord]
+    confidence: float | None = None
+    """The result's confidence, for inspection, the way the score carries
+    ``verdict_observed``; absent exactly when the run produced no result."""
 
 
 class Spread(ContractModel):

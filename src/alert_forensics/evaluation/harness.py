@@ -94,6 +94,18 @@ def open_campaign(results_dir: Path, fixtures_dir: Path) -> Campaign:
     return campaign
 
 
+def read_campaign(results_dir: Path) -> Campaign | None:
+    """The ``campaign.json`` at the directory's root, or None when there is none: a
+    directory from before campaigns were versioned, or one not yet run into."""
+    path = results_dir / CAMPAIGN_FILE
+    if not path.exists():
+        return None
+    try:
+        return Campaign.model_validate_json(path.read_text("utf-8"))
+    except (OSError, ValidationError) as exc:
+        raise HarnessError(f"{path} cannot be read as a campaign: {exc}") from exc
+
+
 def model_slug(model_id: str) -> str:
     """The model string as a directory name: every character a path cannot carry
     becomes a hyphen."""
@@ -189,14 +201,9 @@ def collect(results_dir: Path, scenarios: Sequence[Scenario]) -> list[ScoredRun]
     truths = {s.name: s.truth for s in scenarios}
     runs: list[ScoredRun] = []
     digests: set[str] = set()
-    campaign_path = results_dir / CAMPAIGN_FILE
-    if campaign_path.exists():
-        try:
-            digests.add(
-                Campaign.model_validate_json(campaign_path.read_text("utf-8")).fixture_digest
-            )
-        except (OSError, ValidationError) as exc:
-            raise HarnessError(f"{campaign_path} cannot be read as a campaign: {exc}") from exc
+    campaign = read_campaign(results_dir)
+    if campaign is not None:
+        digests.add(campaign.fixture_digest)
     for measurement_path in sorted(results_dir.rglob(MEASUREMENT_FILE)):
         run_dir = measurement_path.parent
         try:
@@ -217,7 +224,14 @@ def collect(results_dir: Path, scenarios: Sequence[Scenario]) -> list[ScoredRun]
         except ValueError as exc:
             raise HarnessError(f"the run under {run_dir} cannot be scored: {exc}") from exc
         (run_dir / SCORE_FILE).write_text(score.model_dump_json(indent=2), encoding="utf-8")
-        runs.append(ScoredRun(measurement=measurement, score=score, usage=artifact.trace.usage))
+        runs.append(
+            ScoredRun(
+                measurement=measurement,
+                score=score,
+                usage=artifact.trace.usage,
+                confidence=artifact.result.confidence if artifact.result is not None else None,
+            )
+        )
         if measurement.fixture_digest is not None:
             digests.add(measurement.fixture_digest)
     if len(digests) > 1:

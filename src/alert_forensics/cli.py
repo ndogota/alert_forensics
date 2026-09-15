@@ -1,5 +1,5 @@
-"""The console script: ``alert-forensics triage``, ``show``, ``replay``, ``eval`` and
-``eval-report``."""
+"""The console script: ``alert-forensics triage``, ``show``, ``replay``, ``eval``,
+``eval-report`` and ``matrix``."""
 
 import argparse
 import json
@@ -25,7 +25,10 @@ from alert_forensics.evaluation import (
     HarnessError,
     RunMeasurement,
     RunScore,
+    build_matrix,
+    collect,
     load_scenarios,
+    read_campaign,
     render_summary,
     report,
     run_suite,
@@ -52,6 +55,7 @@ DEFAULT_TIMEOUT_S, DEFAULT_MAX_RETRIES = 60.0, 1
 DEFAULT_RUNS = 3
 DEFAULT_RESULTS_DIR = Path("results")
 DEFAULT_SCENARIOS_DIR = Path("examples")
+DEFAULT_MATRIX_FILE = Path("reports/model-matrix.json")
 
 
 class CliError(Exception):
@@ -105,6 +109,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _eval(args)
         if args.command == "eval-report":
             return _eval_report(args)
+        if args.command == "matrix":
+            return _matrix(args)
         return _show(args)
     except CliError as exc:
         print(f"alert-forensics: {exc}", file=sys.stderr)
@@ -156,6 +162,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     eval_report.add_argument("results", type=Path, metavar="DIR")
     eval_report.add_argument("--scenarios", type=Path, default=DEFAULT_SCENARIOS_DIR, metavar="DIR")
+
+    matrix = commands.add_parser(
+        "matrix",
+        help="re-score a campaign as eval-report does and write its committed view, one "
+        "JSON of cells and per-model rollups",
+    )
+    matrix.add_argument("results", type=Path, metavar="DIR")
+    matrix.add_argument("-o", "--output", type=Path, default=DEFAULT_MATRIX_FILE, metavar="FILE")
+    matrix.add_argument("--scenarios", type=Path, default=DEFAULT_SCENARIOS_DIR, metavar="DIR")
     return parser
 
 
@@ -424,6 +439,31 @@ def _eval(args: argparse.Namespace) -> int:
 
 def _eval_report(args: argparse.Namespace) -> int:
     return _print_report(args.results, _load_scenarios(args.scenarios, None))
+
+
+def _matrix(args: argparse.Namespace) -> int:
+    """The committed view of a campaign, see "reports/ is the committed, derived view of
+    a campaign" in the spec. The directory is re-scored exactly as ``eval-report``
+    re-scores it, and refused on the same grounds, plus a second role."""
+    results_dir: Path = args.results
+    output: Path = args.output
+    scenarios = _load_scenarios(args.scenarios, None)
+    try:
+        runs = collect(results_dir, scenarios)
+        if not runs:
+            raise HarnessError(f"no run under {results_dir}")
+        matrix = build_matrix(runs, scenarios, campaign=read_campaign(results_dir))
+    except (HarnessError, ValueError) as exc:
+        raise CliError(str(exc)) from exc
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(matrix.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    meta = matrix.metadata
+    print(
+        f"{len(matrix.cells)} cells over {len(meta.models)} models and "
+        f"{len(meta.scenario_ids)} scenarios, role {meta.role}, fixtures "
+        f"{meta.fixture_digest or 'not on record'}, written to {output}"
+    )
+    return EXIT_OK
 
 
 def _print_report(results_dir: Path, scenarios: Any) -> int:
