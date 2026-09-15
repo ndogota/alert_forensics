@@ -195,7 +195,7 @@ RunArtifact
   since the rule under "Model independence"; null under the tool strategy, which has no
   such flag, and the contract refuses a value there. A recording written before the
   field existed carries none and reads null under `provider` too, and null means the
-  flag was not recorded, not that it was not asked: fourteen of the fifteen recordings
+  flag was not recorded, not that it was not asked: seventeen of the eighteen recordings
   were bound without it, since nothing passed the flag before the rule, and the strict
   probe was bound with it by the probe script; the artifact says neither, and the
   contract does not guess. Since every provider-bound run after the rule records true,
@@ -545,8 +545,8 @@ Decisions the pipeline rests on:
   every committed recording to every stub that does not serve that recording's
   scenario, as the request was sent, through the same matcher the adapter uses; a
   stub that would answer is a collision, named with the recording it came from. The
-  corpus was one run when this was written and is fifteen recordings across eight
-  scenarios as of 2026-09-15, one of them holding no request at all; it grows with
+  corpus was one run when this was written and is eighteen recordings across eight
+  scenarios as of 2026-09-15, four of them holding no request at all; it grows with
   every recording, which is the point: a
   scenario is checked against the questions real models asked about every other one,
   and a stub that widens later is checked against every question already on file. A
@@ -1041,16 +1041,28 @@ alert-forensics matrix campaigns/03 -o reports/model-matrix.json
   one, see above. The first recording, made before the
   `no_fixture` rule, the whole-word tokens and the label binding, stays as
   `runs/atypical_travel/defaults-2026-09-14/`: it is the run that found the default
-  defect, and scenario 1's section cites it. Fifteen recordings across eight scenarios
+  defect, and scenario 1's section cites it. Eighteen recordings across eight scenarios
   are committed as of 2026-09-15, each listed in `runs/README.md` with its model, its
-  date, the run index it was copied from and what it shows; the ones with `campaign-`
-  in the name are copies of run directories of the results directory of 2026-09-15,
-  artifact and raw store unchanged, and for scenarios 7 and 8 that run directory is
-  the gate run, the only real run each has had. The ones with `probe-` in the name are
-  run directory 0 of the gate directory of the same name under `gates/`, the gate runs
-  of the priced tiers on scenario 1 of 2026-09-15, copied the same way; each is cited,
-  by scenario 1's section for the asset question and by "Model independence" for the
-  strict binding. `eval` and `eval-report` are described
+  date, the run index it was copied from and what it shows.
+- **A recording is named for the directory it was copied from, and the name says
+  which campaign.** `campaign-<k>` is run directory `<k>` of the first campaign, the
+  results directory of 2026-09-15, copied artifact and raw store unchanged; for
+  scenarios 7 and 8 that run directory is the gate run, the only real run each had in
+  that campaign. The first campaign predates the numbering under `campaigns/` and
+  carries no number, and its recordings keep the bare form because this document and
+  the README cite them by it. `campaign-<nn>-<k>` is run directory `<k>` of the
+  campaign `campaigns/<nn>/`, under the same model, role and scenario path, copied the
+  same way, so `campaign-02-3` is run 3 of the second campaign and reads as nothing
+  else: a bare `campaign-3` beside `campaign-0` would say the first campaign, which is
+  where `runs/rmm_block/campaign-0/` is from, and a run of a later campaign under that
+  form would be attributed to the wrong fixtures. The first recordings under this form
+  are the three of scenario 7's second-campaign cell, which its section cites. The
+  campaign's `eval.json` and `score.json` stay behind: a recording is the run, and its
+  score is re-derived by the scorer from the artifact and the current truth. `probe-<name>`
+  is run directory 0 of the gate directory of the same name under `gates/`, the gate
+  runs of the priced tiers on scenario 1 of 2026-09-15, copied the same way; each is
+  cited, by scenario 1's section for the asset question and by "Model independence"
+  for the strict binding. `eval` and `eval-report` are described
   under "Evaluation"; the viewer over the same artifacts is the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
@@ -1504,7 +1516,9 @@ could never be read clean. Decided:
   asset stub, decided in its section on 2026-09-15, moved the digest to
   `1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4`. `campaigns/02`
   stays whole under `a1861664…` at its 24 served runs, and its numbers stand in the
-  README as they are, measured under the fixtures it was handed. The four gate
+  README as they are, measured under the fixtures it was handed. Three of its runs,
+  scenario 7's, are committed as recordings under the naming decided in "Using it",
+  and scenario 7's section says why. The four gate
   directories of 2026-09-15 under `gates/`, the Haiku, Sonnet and two nano probes of
   scenario 1, carry the old digest too and are closed with it; the harness refuses a
   run into any of them, which is the rule working as written. The comparison matrix,
@@ -2411,6 +2425,36 @@ technique the investigation resolves, already in the packaged excerpt, so
   has met a model's question yet, and no cell is paid for until a real run has asked
   at least one. The recording is committed because this section cites it, under the
   contract in "Using it" for a served run that holds no tool call.
+- **The second campaign asked nothing either, three times, and the three are
+  committed.** Runs 3, 4 and 5 of this scenario's cell in `campaigns/02`, made on
+  2026-09-15 at 14:20 and 14:21 UTC by the same model under `analyst` on fixture digest
+  `a1861664…`, the fixtures of commit 34bc77c, are kept under
+  `runs/rmm_block/campaign-02-3/`, `campaign-02-4/` and `campaign-02-5/`, artifact
+  unchanged, with no raw store to carry; runs 0 to 2 of the cell were refused by the
+  free tier before any turn and are not recordings. Each is a served run of two model
+  turns, zero tool calls, zero observed facts and no error, `failed_ungrounded` by the
+  silence rule, verdict `benign_true_positive` at confidence 0.85, 1.0 and 0.9. The
+  run at 1.0 wrote no assumption and no missing-context entry, the only one of the
+  seven runs this model has made on the scenario that named nothing it did not know;
+  the other six each wrote one assumption, that the user ran the tool for legitimate
+  support, and one missing-context entry, the ticket that would confirm it. Cited for
+  two things. First, the README's account of the trap names the confidence of every
+  run this model has made on the scenario, seven across three campaigns, and until
+  these three were committed the second campaign's three had no source a reader could
+  open: the campaign directory is not committed and the matrix file is the third
+  campaign's view. Every number in that account now sits in a committed recording or
+  in `reports/model-matrix.json`, and the README's last exception is gone. Second,
+  what the three show beside the gate run and the third campaign's cell: the fixture
+  revision is immaterial to a run that reads no fixture. The gate run was handed the
+  fixtures of 6e4ff06, these three the fixtures of 34bc77c and the third campaign's
+  three the fixtures of f2f1afd; none asked a tool, so no stub reached any of them,
+  and all seven closed the same trap the same way, on the alert alone. Scenario 1's
+  asset stub, which moved the digest between the second and the third campaign, could
+  not have changed a run of this scenario that never asked for it. They predate the
+  current fixtures, and `runs/README.md` says so, the way it does for
+  `defaults-2026-09-14`. None is a demonstration run, since the scenario still has no
+  completed real run; they are committed under the other clause of the rule in "Using
+  it", as runs this document cites.
 
 ### Scenario 8, the reverse trap: 6.2 GB to personal cloud storage by a leaver
 
