@@ -205,6 +205,25 @@
           }
         ]
       }
+    },
+    {
+      "scenario": "atypical_travel",
+      "match": {
+        "asset": "203.0.113.7"
+      },
+      "response": {
+        "sid": "1789300004.12349",
+        "preview": false,
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": []
+      }
     }
   ]
 }

@@ -1474,6 +1474,17 @@ could never be read clean. Decided:
   those cells is the runbook's and their recall says so; in the other five cells the
   reading does not hold, since the telemetry was cited or, on scenario 7, nothing was.
   The table itself belongs in the README.
+- **The second campaign is closed, and the matrix runs in the third.** Scenario 1's
+  asset stub, decided in its section on 2026-09-15, moved the digest to
+  `1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4`. `campaigns/02`
+  stays whole under `a1861664…` at its 24 served runs, and its numbers stand in the
+  README as they are, measured under the fixtures it was handed. The four gate
+  directories of 2026-09-15 under `gates/`, the Haiku, Sonnet and two nano probes of
+  scenario 1, carry the old digest too and are closed with it; the harness refuses a
+  run into any of them, which is the rule working as written. The comparison matrix,
+  not yet run, goes into `campaigns/03` under the new digest, one fixture revision
+  from its first command to its last, and every cell of it is measured against the
+  same stubs.
 
 ### Statistics
 
@@ -1731,6 +1742,32 @@ no escalation.
   `Paris` and `Amsterdam`. That is the "both" case scenario 1's findings were split
   for, and the miss is the model's: the finding's word is the city, and the fact did
   not say it. Missing context stayed 0 of 2 on every run.
+- **The asset question, found on the gate runs of the priced tiers.** Both gate runs of
+  2026-09-15 on this scenario, `anthropic:claude-sonnet-5` at 17:04 UTC and
+  `openai:gpt-5-nano` at 17:05 UTC, kept as `runs/atypical_travel/probe-sonnet-5/` and
+  `runs/atypical_travel/probe-gpt-5-nano/`, asked `get_asset` for `203.0.113.7` and
+  were refused `no_fixture`, the one refused request in each trace. The Sonnet run asked
+  in its second turn, after the runbook had named the range; the nano run asked in its
+  first, beside the identity and the indicator. It is an analyst's question, is this
+  address one of ours, and step 3 of "One real run before a cell is paid for" says it
+  is decided and not left as a count. The asset framework holds the devices the bank
+  manages, an endpoint, a server, a scanner, by host name and address, and every asset
+  stub in the fixture answers for such a device. A cloud SASE provider's egress address
+  is not a managed device and has no row there; the source that says what the address
+  is remains the runbook, and the gateway finding stays carried by the runbook alone,
+  as decided above. Decided: a declared empty reading, the shape scenario 2 gives the
+  runbook asked for the bare address. A stub labelled `atypical_travel`, keyed on the
+  exact address, answers with no results, which the projection reads as `found: false`,
+  so the model learns the inventory does not hold the address and the trace says the
+  world, not the harness, has nothing; a `no_fixture` there says the harness ran out.
+  Not the alternative, a row describing the gateway: it would make the asset framework
+  a second source for a finding whose truth lists the runbook alone, and a truth widened
+  after the runs were read is fitted to them. Both requests are replayed from the two
+  recordings in a test, and another address is still a gap. This changes a fixture
+  file, so the digest moves, from
+  `a1861664bc5a11db2c484b92c836c382de183157f8793b27ba8e8ad41788c84e` to
+  `1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4`; what that closes
+  is under "A campaign is one fixture revision".
 
 ### Scenario 2, password spray
 

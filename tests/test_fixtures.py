@@ -1397,7 +1397,7 @@ def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
         stub.scenario for fixture in fixture_set.tools.values() for stub in fixture.stubs
     )
     assert counts == {
-        "atypical_travel": 6,
+        "atypical_travel": 7,
         "password_spray": 14,
         "forwarding_rule": 14,
         "encoded_powershell": 11,
@@ -1424,3 +1424,19 @@ def test_scenario_8_answers_the_one_question_its_real_run_asked(fixture_set):
     assert "dlarsen" in arguments["query"] and "CloudAppEvents" in arguments["query"]
     assert record.outcome is ToolOutcome.ok
     assert record.redacted_response["row_count"] >= 1
+
+
+def test_scenario_1_answers_the_asset_question_the_probes_asked(fixture_set):
+    """Both gate runs of the priced tiers asked get_asset for 203.0.113.7 and were refused.
+    The inventory holds no such device and now says so: a declared empty reading, found
+    false, replayed from both recordings. Another address is still a gap, and another
+    scenario's device is withheld by the binding."""
+    travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel-replay")
+    for recording in ("probe-sonnet-5", "probe-gpt-5-nano"):
+        replayed = replay(travel, f"runs/atypical_travel/{recording}/run.json", {"get_asset"})
+        assert [arguments for arguments, _ in replayed] == [{"asset": "203.0.113.7"}], recording
+        ((_, record),) = replayed
+        assert record.outcome is ToolOutcome.ok, recording
+        assert record.redacted_response["found"] is False, recording
+    assert gap(travel, "get_asset", asset="198.51.100.7")
+    assert gap(travel, "get_asset", asset="ws-eng-0148")
