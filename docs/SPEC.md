@@ -1486,6 +1486,23 @@ could never be read clean. Decided:
   not yet run, goes into `campaigns/03` under the new digest, one fixture revision
   from its first command to its last, and every cell of it is measured against the
   same stubs.
+- **The third campaign exists, and it is the matrix.** `campaigns/03`, ignored by git
+  as `campaigns/02` is, run on 2026-09-15 from 17:36 UTC under `analyst`, three runs
+  per cell on every scenario, on fixture digest
+  `1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4`, the fixtures of
+  commit f2f1afd, unchanged from the campaign's first command to its last, by the four
+  models the price table names: `openai:gpt-5-nano`, `anthropic:claude-haiku-4-5`,
+  `anthropic:claude-sonnet-5` and `google_genai:gemini-3.5-flash-lite`. The three
+  billed models ran in one invocation each over every scenario, and the provider
+  refused none of their runs. Gemini ran on the free tier in two passes, by the method
+  the second campaign settled: one pass over every scenario at `--runs 3`, which the
+  per-minute quota cut off after its second served run, then one catch-up pass ten
+  minutes later with `--scenario` on the cells short of three served runs, one
+  invocation per cell asking for that cell's shortfall and no more, the invocations a
+  minute apart; after it every cell held three served runs and no further pass was
+  made. `--runs` was never raised to compensate for a refusal, and `--timeout`,
+  `--max-retries` and `--max-corrections` stayed at their defaults. Every `eval.json`
+  under it carries the one digest. Its numbers are the README's, not this document's.
 
 ### Statistics
 
