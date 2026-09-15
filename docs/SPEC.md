@@ -954,6 +954,7 @@ alert-forensics replay run.json
 alert-forensics eval --scripted
 alert-forensics eval --model anthropic:claude-sonnet-5 --runs 3
 alert-forensics eval-report results/
+alert-forensics matrix campaigns/03 -o reports/model-matrix.json
 ```
 
 - `triage` reads a real Microsoft Graph `security.alert` v2 export, runs the
@@ -1110,6 +1111,30 @@ key at runtime:
   tiers, opposite verdicts.
 
 That last view is the argument in one screen. The matrix page carries the rest.
+
+**The matrix page lives under `web/` at the repository root**, so the Python project
+keeps its own root, and it is the same shape as pod_forensics's dashboard: a Next
+static export, `output: "export"`, no server, no key and no fetch at runtime. It reads
+two things at build time and nothing else: `reports/model-matrix.json`, the committed
+view decided under "A campaign is one fixture revision", and every
+`runs/<scenario>/<recording>/run.json`, the committed recordings. Vercel's root
+directory is `web`, and the build reaches the two directories above it, which
+`web/README.md` says. The rule the page is held to: no number on it that is not in the
+matrix file or in a committed recording. The headline's confidences and call counts are
+the cells' `per_run` rows; the transcripts are the recordings' traces, each tool call in
+order and, on a completed run, each observed fact with the tool its citation resolves
+to. The structure and the visual language are ported from pod_forensics so the two
+projects read as siblings; the metrics are not, since this project has no judge and
+scores verdicts and evidence rather than symptoms and causes. What the page says, in
+order: one line on what the project is; scenario 7 side by side, the same alert and the
+same fixtures under two models with opposite verdicts; the matrix, models as columns
+and scenarios as rows, verdict accuracy beside evidence recall in every cell with the
+Wilson interval drawn as a bar, every cell opening to the full breakdown; the one
+sentence that verdict accuracy does not track evidence, read from the rollups; the
+recordings, expandable; and the limits last, eight synthetic scenarios, four models,
+three served runs per cell and a campaign that is not committed, so a reader verifies
+the method, the suite and the recordings. The page does not claim the agent performs
+well, because the numbers do not say so and the page says only what they say.
 
 ## Evaluation
 
@@ -1503,6 +1528,62 @@ could never be read clean. Decided:
   made. `--runs` was never raised to compensate for a refusal, and `--timeout`,
   `--max-retries` and `--max-corrections` stayed at their defaults. Every `eval.json`
   under it carries the one digest. Its numbers are the README's, not this document's.
+- **`reports/` is the committed, derived view of a campaign.** A results directory is
+  not committed, so a campaign's numbers reach a reader only through a file that is,
+  and a page built from a clone cannot read `campaigns/03`. `reports/model-matrix.json`
+  is one JSON derived from a campaign's run directories and the current ground truth
+  by `alert-forensics matrix DIR -o reports/model-matrix.json`. The command re-scores
+  every run as `eval-report` does, through the same `collect` and `summarise`, and
+  projects the summary; it runs no model and needs no key. The file is committed while
+  the campaign is not because it is small, derived and regenerable: the campaign is the
+  measurement and the file is a view of it. Whoever holds the campaign directory
+  regenerates the file with that one command, and `reports/README.md` says so; whoever
+  does not verifies the method, the test suite and the recordings under `runs/`, not
+  the campaign. Decided, field by field:
+  - `metadata`: `models`, in the summary's order; `runs_per_cell`, the served count
+    every cell holds, and null when cells differ, since refused runs are the quota's
+    and a Gemini cell of the third campaign holds six runs of which three were served;
+    `scenario_ids`, in the summary's order, and under `scenarios` each scenario's alert
+    title, truth verdict, expected escalation and its counts of required findings and
+    expected missing-context entries, read from the truth files so the page names no
+    truth it did not read; `role`; `fixture_digest`; `campaign_started_at`, from the
+    directory's `campaign.json`; `generated_at`; and `judge_model: null` beside
+    `judge_note`, one sentence saying the scorers are deterministic and no model judges
+    any run. The null is there on purpose: a reader arriving from pod_forensics will
+    look for the field, and its absence would read as an omission where its null reads
+    as a decision.
+  - `cells`: one per (model, scenario), a projection of the `CellSummary` the summary
+    already holds: runs, served, refused with the split before and after a model turn,
+    completed, failed, failed_ungrounded, failed_error with the error kinds, verdict
+    accuracy, evidence recall, missing-context recall, escalation precision and recall,
+    the tool calls with `no_fixture` as a count, cost and wall clock. Every proportion
+    is the `Proportion` the summary uses, numerator, denominator, estimate, low and
+    high, so its bounds are the stats module's and a validator refuses any other.
+  - Each cell also carries `per_run`, one row per run in index order: the index, the
+    outcome, whether the provider refused it and the error kind, the verdict and the
+    confidence the result carried whatever the outcome, the escalation, the tool calls
+    and how many ended `ok`, the `no_fixture` count, the findings reached, the context
+    named and the wall clock. The reason is the rule the page is held to, that a number
+    on it is either in this file or in a committed recording: the headline names what
+    each run of scenario 7 did, its confidence and its call count, and the cell numbers
+    alone cannot carry a per-run confidence. `ScoredRun` gains `confidence`, read from
+    the artifact by `collect` for inspection, the way the score carries
+    `verdict_observed`, and absent exactly when the run produced no result.
+  - `by_model`: one rollup per model over its served runs, the same measures, pooled
+    from its cells by summing numerators and denominators, so a rollup proportion is a
+    `Proportion` over the model's served runs or its (finding, run) pairs, with the
+    same interval rule and the same caveat on pooled pairs. Cost is the total over all
+    its runs, refused included, and the mean over its served runs; the wall clock mean
+    is weighted by served runs, with the min and max over its cells. A model unpriced
+    in any cell has no rollup cost, and the note says which.
+  - One role per matrix. A directory holding cells under two roles is refused, naming
+    them: a column headed by a model would otherwise pool `analyst` and `tier1`, whose
+    denials differ by design. The role is on the metadata.
+  - The tests hold the file to the summary: over one directory, every cell of the
+    matrix agrees with `eval-report`'s summary count for count, and a proportion's
+    bounds are the stats module's `wilson`. The committed file is held to the
+    contract and to the price table by a test that loads it, so a matrix that names
+    an unpriced model or a judge fails the suite.
 
 ### Statistics
 
@@ -1642,6 +1723,7 @@ Both per investigation, and neither on the contracts.
 alert-forensics eval --scripted [--runs N] [--results DIR] [--scenario NAME]
 alert-forensics eval --model provider:name [--role ROLE] [--runs N] [--results DIR] ...
 alert-forensics eval-report DIR
+alert-forensics matrix DIR -o reports/model-matrix.json
 ```
 
 - `eval` runs every scenario under `examples/` (`--scenario` narrows it) N times each
@@ -1682,6 +1764,11 @@ alert-forensics eval-report DIR
   `rate_limit` or `overloaded`, counted apart from the run's own failures and out of
   every accuracy denominator, see "A provider refusal is the quota's number"; the
   harness goes on to the next run rather than stopping, and the summary shows the kind.
+- `matrix DIR -o FILE` re-scores the directory exactly as `eval-report` does and writes
+  the committed view decided under "A campaign is one fixture revision", `reports/` is
+  the committed, derived view of a campaign. It refuses what `eval-report` refuses, a
+  directory of two fixture revisions or of a scenario with no truth, and a directory of
+  two roles besides. Its exit codes are `eval-report`'s.
 
 ### Scenario 1, the first ground truth
 
