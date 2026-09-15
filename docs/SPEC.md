@@ -73,7 +73,9 @@ it. The only guaranteed identity link in a trace is
   honest. The rule refused both. Both runs are `failed_ungrounded`, not laundered into
   `inconclusive`, and had the rule read the other way one of them would have been a
   correct verdict with no evidence behind it, counted in the summary. The rule is
-  unchanged.
+  unchanged. Seen a third time the same day on scenario 7, from a run that made no tool
+  call at all and asserted `benign_true_positive` on the alert alone; scenario 7's
+  section has it.
 - The metric `ungrounded_claim_rate` is enforced to zero rather than hoped for.
 
 A claim that cannot be attached to a tool call is not a fact. It belongs in
@@ -1533,7 +1535,11 @@ that names them offline resolves them.
 - The scripted cell over this scenario is a plumbing check and its numbers are the
   floor the harness measures: every call the script makes hits a stub, so the tool
   calls block shows no `no_fixture`, and the evidence recall is zero because the script
-  states no fact in the findings' words. No real model has run it yet.
+  states no fact in the findings' words. Six real runs on 2026-09-15, in the first
+  campaign and before the address stubs above: three refused by the provider, one of
+  them after four tool calls, and three completed with the verdict right at evidence
+  recall 1 of 4 each and one or two `no_fixture` calls apiece; two are kept under
+  `runs/password_spray/campaign-3/` and `campaign-5/`.
 
 ### Scenario 3, forwarding rule
 
@@ -1610,7 +1616,10 @@ packaged excerpt; no follow-on technique is expected of the investigation.
   obtained, the phishing message or the click, which no fixture carries.
 - The scripted cell is a plumbing check: every call the script makes hits a stub, so the
   tool calls block shows no `no_fixture`, and the evidence recall is zero because the
-  script states no fact in the findings' words. No real model has run it yet.
+  script states no fact in the findings' words. Six real runs on 2026-09-15 in the first
+  campaign: three refused by the provider before any turn, three completed with the
+  verdict right at evidence recall 1, 2 and 1 of 5 and no `no_fixture` call; the
+  demonstration run is kept under `runs/forwarding_rule/campaign-3/`.
 
 ### Scenario 4, encoded PowerShell
 
@@ -1685,8 +1694,11 @@ cut verbatim from the same cached bundle on the same day and recorded in
   carries in clear, since `AdditionalFields` is dropped and the process tree carries
   the encoded form; and the agent's own record of the run, the job that tied this
   execution to the ticket, which no tool reaches.
-- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
-  model has run it yet.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. Six real
+  runs on 2026-09-15 in the first campaign: three refused by the provider before any
+  turn, three completed with the verdict right at evidence recall 2, 1 and 0 of 4, two
+  tool calls each and no `no_fixture` call; the demonstration run is kept under
+  `runs/encoded_powershell/campaign-3/`.
 
 ### Scenario 5, LSASS access blocked
 
@@ -1766,8 +1778,9 @@ verdict definition carries an action.
 - The techniques the alert declares are `T1003.001` alone, already in the packaged
   excerpt, so the excerpt gains nothing and `tests/recorded/README.md` is unchanged. No
   follow-on technique is expected of the investigation.
-- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
-  model has run it yet.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. The six
+  real runs of 2026-09-15 are read in the runbook gap above, and three of them are kept
+  under `runs/lsass_access/`.
 
 ### Scenario 6, apparent Kerberoasting
 
@@ -1837,8 +1850,11 @@ prescribes the exclusion is an observed fact about the runbook, not the verdict.
 - The techniques the alert declares are `T1558.003` alone, already in the packaged excerpt,
   so the excerpt gains nothing and `tests/recorded/README.md` is unchanged. No follow-on
   technique is expected of the investigation.
-- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
-  model has run it yet.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. Seven real
+  runs on 2026-09-15 in the first campaign: three refused by the provider before any
+  turn, four completed with the verdict right at evidence recall 2, 2, 1 and 1 of 3,
+  three tool calls each and no `no_fixture` call; the demonstration run is kept under
+  `runs/kerberoasting/campaign-0/`.
 
 ### Scenario 7, the trap: an RMM tool blocked by the EDR
 
@@ -1933,9 +1949,29 @@ technique the investigation resolves, already in the packaged excerpt, so
 - Expected missing context, two: the mail that delivered `invoice.hta`, the message trace
   or the click, which no fixture carries; and whether the first agent established a session
   to the relay before the block, the network telemetry, which no fixture carries.
-- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
-  model has run it yet; under "One real run before a cell is paid for", none is paid for
-  until one has.
+- The scripted cell is a plumbing check on the same terms as scenario 3's.
+- **The one real run, and what it asked: nothing.** Step 2 of "One real run before a
+  cell is paid for" was made on 2026-09-15 at 12:25 UTC by
+  `google_genai:gemini-3.5-flash-lite` under `analyst`, on the fixtures of commit
+  6e4ff06, as run directory 0 of the results directory, and it is kept under
+  `runs/rmm_block/campaign-0/`. It closed in 2.35 seconds with zero tool calls. The
+  model read the alert, asked nothing of any tool, and answered `benign_true_positive`
+  at confidence 0.8 with no observed fact, one assumption, that pnovak ran the setup
+  tool for legitimate support purposes, one missing-context entry, the helpdesk ticket
+  that would confirm it, and no escalation; it never proposed. That is the tier-one
+  reflex this scenario is written for, in 2.35 seconds rather than ninety: a signed
+  binary and a clean reputation read as authorised use, with no evidence sought, on
+  the alert whose truth is initial access. The silence rule refused it: no observed
+  fact and a verdict that is not `inconclusive` is ungrounded. The correction pass had
+  no offending fact to repair and no citable call to offer, returned no repairs, and
+  the result was validated again as it stood, so the run is `failed_ungrounded`:
+  verdict wrong, evidence recall 0 of 4, missing context 0 of 2, the expected
+  escalation missed. What it did to the gate: a run that asks no question opens no gap
+  and closes none, so step 3 had nothing to read, and step 2 is not met by it. The
+  rule is that a scenario is not measured until a real model has asked it questions
+  once and the author has read them; this one asked none, so no stub of this scenario
+  has met a model's question yet, and no cell is paid for until a real run has asked
+  at least one. The recording is committed because this section cites it.
 
 ### Scenario 8, the reverse trap: 6.2 GB to personal cloud storage by a leaver
 
@@ -2005,8 +2041,34 @@ techniques the alert declares are `T1567.002` alone, already in the packaged exc
   and the other one percent, which the reading gives only as a percentage and which is
   where a document would hide; and the HR record or the user's own account of the
   upload, the confirmation that the photographs are personal, which no tool reaches.
-- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
-  model has run it yet, and none is paid for until one real run has been read.
+- The scripted cell is a plumbing check on the same terms as scenario 3's.
+- **The one real run, and what it asked: one question, answered.** Step 2 was made on
+  2026-09-15 at 12:26 UTC by `google_genai:gemini-3.5-flash-lite` under `analyst`, on
+  the fixtures of commit 6e4ff06, as run directory 0 of the results directory, one
+  minute after scenario 7's, and it is kept under `runs/cloud_upload/campaign-0/` as
+  the scenario's demonstration run, the first completed real run on the scenario by
+  rule. It completed in 6.50 seconds with three tool calls: a hunting query for
+  dlarsen's `CloudAppEvents`, which the hunting fixture answered with the file rows;
+  the ATT&CK lookup of T1567.002, live; and the proposal, accepted. It never queried
+  the SIEM, the identity or the runbook, so the 94 percent, the absent labels, the
+  leaver status and the HR routing were never in front of it. Its first pass cited
+  `default_api:search_events` and `default_api:get_attack_technique`, the tool names
+  under the client's own prefix rather than the call ids; the validator refused all
+  three citations as `unknown_id`, the repair instruction offered the two citable
+  calls, and the second pass re-cited each fact onto the right one, which is the loop
+  doing the one thing it is for. Verdict `benign_true_positive` at confidence 0.95
+  against `false_positive`: "a personal photo backup by a watchlisted user", the alert
+  read at the level of the signal, which is the reading the table under "Scenarios"
+  moved this label away from, now seen on a real model. Evidence recall 0 of 5: two
+  facts cite the hunting rows and name the user, PhotoDrive and the JPEG and HEIC
+  types, and neither says the byte count, 6.2 GB or the file count, so the volume
+  finding missed on its volume token; the other four findings rest on tools it never
+  called. Missing context 0 of 2: it named nothing. Escalation correct. What it did to
+  the gate: one question was asked and a stub answered it, there is no `no_fixture` to
+  decide, so step 3 read nothing and closed nothing, and every miss is the model's, for
+  not asking. Step 4 is the recording; the cell may be paid for, and the recall it
+  produces is read as a floor as before, with this run saying that the floor owes
+  nothing to the fixture.
 
 ## Cost discipline
 
