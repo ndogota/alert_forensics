@@ -3,23 +3,43 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"indicator": "203.0.113.7"},
+      "match": {
+        "indicator": "203.0.113.7"
+      },
       "response": {
         "data": {
           "id": "203.0.113.7",
           "type": "ip_address",
-          "links": {"self": "https://www.virustotal.com/api/v3/ip_addresses/203.0.113.7"},
+          "links": {
+            "self": "https://www.virustotal.com/api/v3/ip_addresses/203.0.113.7"
+          },
           "attributes": {
             "as_owner": "EXAMPLE-SASE-NET",
             "asn": 64496,
             "country": "NL",
             "network": "203.0.113.0/24",
             "last_analysis_date": 1789300000,
-            "last_analysis_stats": {"harmless": 60, "malicious": 0, "suspicious": 0, "undetected": 34, "timeout": 0},
-            "last_analysis_results": {"Abusix": {"category": "harmless", "result": "clean", "method": "blacklist", "engine_name": "Abusix"}},
+            "last_analysis_stats": {
+              "harmless": 60,
+              "malicious": 0,
+              "suspicious": 0,
+              "undetected": 34,
+              "timeout": 0
+            },
+            "last_analysis_results": {
+              "Abusix": {
+                "category": "harmless",
+                "result": "clean",
+                "method": "blacklist",
+                "engine_name": "Abusix"
+              }
+            },
             "reputation": 0,
             "tags": [],
-            "total_votes": {"harmless": 0, "malicious": 0},
+            "total_votes": {
+              "harmless": 0,
+              "malicious": 0
+            },
             "whois": "inetnum: 203.0.113.0 - 203.0.113.255\nphone: +31 20 000 0000\n"
           }
         }
@@ -27,13 +47,25 @@
     },
     {
       "scenario": "shared",
-      "match": {"indicator": "never-seen.example"},
-      "response": {"error": {"code": "NotFoundError", "message": "Domain \"never-seen.example\" not found"}}
+      "match": {
+        "indicator": "never-seen.example"
+      },
+      "response": {
+        "error": {
+          "code": "NotFoundError",
+          "message": "Domain \"never-seen.example\" not found"
+        }
+      }
     },
     {
       "scenario": "shared",
-      "match": {"indicator": "broken.example"},
-      "error": {"kind": "upstream_error", "detail": "VirusTotal returned HTTP 503"}
+      "match": {
+        "indicator": "broken.example"
+      },
+      "error": {
+        "kind": "upstream_error",
+        "detail": "VirusTotal returned HTTP 503"
+      }
     },
     {
       "scenario": "password_spray",
@@ -286,6 +318,18 @@
               "known-distributor"
             ]
           }
+        }
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "indicator": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912"
+      },
+      "response": {
+        "error": {
+          "code": "NotFoundError",
+          "message": "File \"c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912\" not found"
         }
       }
     }

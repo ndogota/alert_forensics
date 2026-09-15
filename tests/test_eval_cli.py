@@ -233,6 +233,8 @@ def test_the_scripted_suite_hits_a_stub_on_every_call_of_every_shipped_scenario(
         "atypical_travel",
         "encoded_powershell",
         "forwarding_rule",
+        "kerberoasting",
+        "lsass_access",
         "password_spray",
     ]
     for cell in summary.cells:

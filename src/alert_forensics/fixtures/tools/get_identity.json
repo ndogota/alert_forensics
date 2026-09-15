@@ -3,11 +3,25 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"identity": {"$regex": "(?i)^jdoe(@contoso\\.com)?$"}},
+      "match": {
+        "identity": {
+          "$regex": "(?i)^jdoe(@contoso\\.com)?$"
+        }
+      },
       "response": {
         "sid": "1789300001.12346",
         "preview": false,
-        "fields": [{"name": "identity"}, {"name": "email"}, {"name": "priority"}],
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "email"
+          },
+          {
+            "name": "priority"
+          }
+        ],
         "results": [
           {
             "identity": "jdoe|jdoe@contoso.com|CONTOSO\\jdoe",
@@ -267,6 +281,92 @@
             "work_long": "-0.1278"
           }
         ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^svc-purpleops(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789310002.20102",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "svc-purpleops|svc-purpleops@contoso.com|CONTOSO\\svc-purpleops",
+            "prefix": "",
+            "nick": "",
+            "first": "",
+            "last": "",
+            "suffix": "",
+            "email": "svc-purpleops@contoso.com",
+            "phone": "",
+            "phone2": "",
+            "managedBy": "soc-lead@contoso.com",
+            "priority": "medium",
+            "bunit": "Security Operations",
+            "category": "group|service|redteam",
+            "watchlist": "false",
+            "startDate": "2024-04-02",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB"
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "identity": {
+          "$regex": "(?i)^svc-vulnscan(@contoso\\.com)?$"
+        }
+      },
+      "response": {
+        "sid": "1789320002.30202",
+        "preview": false,
+        "fields": [
+          {
+            "name": "identity"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "identity": "svc-vulnscan|svc-vulnscan@contoso.com|CONTOSO\\svc-vulnscan",
+            "prefix": "",
+            "nick": "",
+            "first": "",
+            "last": "",
+            "suffix": "",
+            "email": "svc-vulnscan@contoso.com",
+            "phone": "",
+            "phone2": "",
+            "managedBy": "secops@contoso.com",
+            "priority": "medium",
+            "bunit": "Vulnerability Management",
+            "category": "group|service|scanner|credentialed",
+            "watchlist": "false",
+            "startDate": "2022-02-15",
+            "endDate": "",
+            "work_city": "London",
+            "work_country": "GB"
+          }
+        ],
+        "messages": []
       }
     }
   ]

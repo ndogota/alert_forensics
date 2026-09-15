@@ -3,7 +3,9 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"user_principal_name": "jdoe@contoso.com"},
+      "match": {
+        "user_principal_name": "jdoe@contoso.com"
+      },
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
         "value": [
@@ -18,9 +20,16 @@
             "createdDateTime": "2026-09-01T07:12:00Z",
             "detectionSource": "azureAdIdentityProtection",
             "incidentId": "38",
-            "mitreTechniques": ["T1078.004"],
+            "mitreTechniques": [
+              "T1078.004"
+            ],
             "evidence": [
-              {"@odata.type": "#microsoft.graph.security.userEvidence", "userAccount": {"userPrincipalName": "jdoe@contoso.com"}}
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "jdoe@contoso.com"
+                }
+              }
             ]
           }
         ]
@@ -328,6 +337,142 @@
                 "@odata.type": "#microsoft.graph.security.deviceEvidence",
                 "deviceDnsName": "srv-prd-app01.contoso.com",
                 "mdeDeviceId": "4f2a9c1e8b7d6a5c3e1f0d9b8a7c6e5d4f3a2b1c"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "user_principal_name": "svc-purpleops@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549830000000000_-1188736480",
+            "title": "LSASS credential memory access blocked",
+            "severity": "high",
+            "status": "resolved",
+            "category": "CredentialAccess",
+            "classification": "informationalExpectedActivity",
+            "determination": "securityTesting",
+            "createdDateTime": "2026-08-24T02:58:00Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "62",
+            "mitreTechniques": [
+              "T1003.001"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "ws-eng-0148.contoso.com",
+                "mdeDeviceId": "9c7e2a1f4b8d6c5a3e0f1d9b8a7c6e5d4f3a2b10"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "incident_id": "71"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549830000000000_-1188736480",
+            "title": "LSASS credential memory access blocked",
+            "severity": "high",
+            "status": "resolved",
+            "category": "CredentialAccess",
+            "classification": "informationalExpectedActivity",
+            "determination": "securityTesting",
+            "createdDateTime": "2026-08-24T02:58:00Z",
+            "detectionSource": "microsoftDefenderForEndpoint",
+            "incidentId": "62",
+            "mitreTechniques": [
+              "T1003.001"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.deviceEvidence",
+                "deviceDnsName": "ws-eng-0148.contoso.com",
+                "mdeDeviceId": "9c7e2a1f4b8d6c5a3e0f1d9b8a7c6e5d4f3a2b10"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "user_principal_name": "svc-vulnscan@contoso.com"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549720000000000_-1188736560",
+            "title": "Suspicious Kerberos service ticket requests, possible Kerberoasting",
+            "severity": "medium",
+            "status": "resolved",
+            "category": "CredentialAccess",
+            "classification": "falsePositive",
+            "determination": "other",
+            "createdDateTime": "2026-09-07T04:10:00Z",
+            "detectionSource": "microsoftDefenderForIdentity",
+            "incidentId": "69",
+            "mitreTechniques": [
+              "T1558.003"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "svc-vulnscan@contoso.com",
+                  "accountName": "svc-vulnscan"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "incident_id": "74"
+      },
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#security/alerts_v2",
+        "value": [
+          {
+            "id": "da637549720000000000_-1188736560",
+            "title": "Suspicious Kerberos service ticket requests, possible Kerberoasting",
+            "severity": "medium",
+            "status": "resolved",
+            "category": "CredentialAccess",
+            "classification": "falsePositive",
+            "determination": "other",
+            "createdDateTime": "2026-09-07T04:10:00Z",
+            "detectionSource": "microsoftDefenderForIdentity",
+            "incidentId": "69",
+            "mitreTechniques": [
+              "T1558.003"
+            ],
+            "evidence": [
+              {
+                "@odata.type": "#microsoft.graph.security.userEvidence",
+                "userAccount": {
+                  "userPrincipalName": "svc-vulnscan@contoso.com",
+                  "accountName": "svc-vulnscan"
+                }
               }
             ]
           }

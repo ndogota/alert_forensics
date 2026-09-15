@@ -1,0 +1,88 @@
+{
+  "id": "da637551355667788990_-1188736503",
+  "title": "LSASS credential memory access blocked",
+  "description": "A process opened lsass.exe with read access on ws-eng-0148 and was blocked by the attack surface reduction rule for LSASS credential theft. The accessing process was rt-cred.exe running as svc-purpleops.",
+  "severity": "high",
+  "status": "new",
+  "category": "CredentialAccess",
+  "createdDateTime": "2026-09-14T03:23:41.2Z",
+  "lastUpdateDateTime": "2026-09-14T03:24:05Z",
+  "detectionSource": "microsoftDefenderForEndpoint",
+  "serviceSource": "microsoftDefenderForEndpoint",
+  "providerAlertId": "c3e18b40",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "71",
+  "mitreTechniques": [
+    "T1003.001"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.deviceEvidence",
+      "createdDateTime": "2026-09-14T03:23:41.2Z",
+      "verdict": "unknown",
+      "roles": [
+        "contextual"
+      ],
+      "deviceDnsName": "ws-eng-0148.contoso.com",
+      "mdeDeviceId": "9c7e2a1f4b8d6c5a3e0f1d9b8a7c6e5d4f3a2b10",
+      "osPlatform": "Windows11",
+      "healthStatus": "active",
+      "riskScore": "high",
+      "rbacGroupName": "Engineering workstations"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T03:23:41.2Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "userAccount": {
+        "accountName": "svc-purpleops",
+        "userPrincipalName": "svc-purpleops@contoso.com",
+        "domainName": "CONTOSO",
+        "azureAdUserId": "b21f6c90-3a4d-4e77-9c1b-6d2e8f0a5c33"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.processEvidence",
+      "createdDateTime": "2026-09-14T03:23:41.2Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "processId": 8124,
+      "parentProcessId": 6620,
+      "processCommandLine": "rt-cred.exe --target lsass --mode minidump --out C:\\ProgramData\\PurpleOps\\out.bin",
+      "processCreationDateTime": "2026-09-14T03:23:40Z",
+      "parentProcessCreationDateTime": "2026-09-14T03:20:11Z",
+      "imageFile": {
+        "fileName": "rt-cred.exe",
+        "filePath": "C:\\ProgramData\\PurpleOps",
+        "fileSize": 284672,
+        "filePublisher": "",
+        "sha256": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912",
+        "signer": "",
+        "issuer": ""
+      },
+      "userAccount": {
+        "accountName": "svc-purpleops",
+        "domainName": "CONTOSO",
+        "userSid": "S-1-5-21-1004336348-1177238915-682003330-4471"
+      },
+      "detectionStatus": "prevented"
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.fileEvidence",
+      "createdDateTime": "2026-09-14T03:23:41.2Z",
+      "verdict": "unknown",
+      "roles": [],
+      "fileDetails": {
+        "fileName": "rt-cred.exe",
+        "filePath": "C:\\ProgramData\\PurpleOps",
+        "fileSize": 284672,
+        "sha1": "2b5d8a0c3e6f9b1d4a7c0e2f5b8d1a3c6e9f2b4d",
+        "sha256": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912",
+        "signer": "",
+        "issuer": ""
+      },
+      "detectionStatus": "prevented"
+    }
+  ]
+}

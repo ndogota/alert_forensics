@@ -359,15 +359,24 @@ def test_a_sign_in_query_about_another_account_is_a_no_fixture_error(runner):
     assert gap(runner, "search_siem", search="search index=auth | stats count by user")
 
 
-def test_a_runbook_query_on_another_subject_is_a_no_fixture_error(runner):
+def test_a_runbook_query_on_another_subject_is_a_no_fixture_error(fixture_set, runner):
     """Infrastructure words are every scenario's words; the entry is about one subject."""
+    # Subjects no scenario present holds: no stub answers them, under every label.
     for query in (
         "RMM tool blocked by EDR, is the relay our IT provider egress",
-        "kerberoasting 180 SPNs in 90 seconds credentialed vulnerability scanner",
         "corporate egress proxy gateway VPN",
         "DNS tunnelling over TXT records from a build agent",
     ):
         assert gap(runner, "search_runbook", query=query), query
+    # Kerberoasting is scenario 6's subject since it arrived, so the claim is that
+    # scenario 1's own stub does not answer it, under the atypical_travel binding, which
+    # is the weaker claim used where a later scenario legitimately holds the subject.
+    travel = bound_runner(fixture_set, {"atypical_travel"}, "inv-travel-rb")
+    assert gap(
+        travel,
+        "search_runbook",
+        query="kerberoasting 180 SPNs in 90 seconds credentialed vulnerability scanner",
+    )
 
 
 def test_the_recordings_own_requests_still_hit(runner):
@@ -518,15 +527,16 @@ def test_scenario_2_stubs_answer_the_requests_a_model_plausibly_makes(runner):
 def test_scenario_2_stubs_answer_nothing_about_another_account(fixture_set, runner):
     """The audit stubs are the account's; the aggregate is keyed on the failure and the
     aggregate, and a query that names a known account gets that account's rows. Inbox
-    rules as a subject are scenario 3's since it arrived, so the two assertions that
-    name them hold under scenario 2's own binding, which is the weaker claim."""
+    rules as a subject are scenario 3's since it arrived, and LSASS reads on an exercise
+    list are scenario 5's, so the assertions that name those subjects hold under scenario
+    2's own binding, which is the weaker claim."""
     assert gap(runner, "search_events", query="CloudAppEvents | where AccountUpn == 'jdoe'")
     spray = bound_runner(fixture_set, {"password_spray"}, "inv-spray-gaps")
     assert gap(spray, "search_events", query="CloudAppEvents | where ActionType has 'InboxRule'")
     assert gap(spray, "search_siem", search="index=o365 user=jdoe New-InboxRule")
     assert gap(runner, "search_siem", search="index=auth user=mmartin | stats count by src")
     assert gap(
-        runner, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
+        spray, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
     )
     assert gap(runner, "lookup_ioc", indicator="192.0.2.99")
     # jdoe's failures, aggregated, are still jdoe's rows: scenario 1's stub comes first.
@@ -556,6 +566,8 @@ def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
         "password_spray": "da637551302218456123_-1188736045",
         "forwarding_rule": "da637551318890123456_-1188736301",
         "encoded_powershell": "da637551341122334455_-1188736402",
+        "lsass_access": "da637551355667788990_-1188736503",
+        "kerberoasting": "da637551369900112233_-1188736604",
     }
     assert fixture_set.in_view(Alert.model_validate(ALERT_PAYLOAD)) == {"shared", "atypical_travel"}
     unknown = Alert.model_validate({**ALERT_PAYLOAD, "id": "nobody-knows-this-alert"})
@@ -567,6 +579,8 @@ def test_the_manifest_binds_a_run_by_the_alerts_id(fixture_set):
         "password_spray",
         "forwarding_rule",
         "encoded_powershell",
+        "lsass_access",
+        "kerberoasting",
     }
 
 
@@ -864,6 +878,168 @@ def test_scenario_4_stubs_answer_nothing_about_another_device(runner):
     assert gap(runner, "lookup_ioc", indicator="0" * 64)
 
 
+# --- scenario 5, LSASS access blocked ------------------------------------------------
+
+WS_ENG = "ws-eng-0148.contoso.com"
+PURPLEOPS = "svc-purpleops@contoso.com"
+RT_CRED_SHA256 = "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912"
+
+
+def test_scenario_5_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    asset = ok(runner, "get_asset", asset="ws-eng-0148")
+    assert asset["found"] is True and "workstation" in asset["categories"]
+    for spelling in ("svc-purpleops", PURPLEOPS, "SVC-PURPLEOPS"):
+        ident = ok(runner, "get_identity", identity=spelling)
+        assert ident["found"] is True and "redteam" in ident["categories"], spelling
+    # The LSASS block, whichever hunting table the model names, keyed on the device.
+    for query in (
+        f"DeviceEvents | where DeviceName == '{WS_ENG}' | where ActionType has 'Lsass'",
+        "DeviceProcessEvents | where DeviceName startswith 'ws-eng-0148' "
+        "| where FileName =~ 'lsass.exe'",
+    ):
+        view = ok(runner, "search_events", query=query)
+        assert view["row_count"] == 1, query
+        row = view["rows"][0]
+        assert row["InitiatingProcessFileName"] == "rt-cred.exe"
+        assert "--target lsass" in row["InitiatingProcessCommandLine"]
+        # AdditionalFields carries the desired access mask and is dropped.
+        assert "AdditionalFields" not in view["columns"] and view["dropped_columns"] == 1
+    assert "0x1010" not in json.dumps(view)
+    # The SIEM: the block outcome as a discrete field, and the exercise calendar.
+    view = ok(runner, "search_siem", search="index=mde host=ws-eng-0148 lsass")
+    assert [r["action"] for r in view["rows"]] == ["blocked"]
+    assert "lsass" in view["rows"][0]["process"] and "rt-cred.exe" in view["rows"][0]["process"]
+    view = ok(
+        runner, "search_siem", search="| inputlookup exercise_calendar where host=ws-eng-0148"
+    )
+    assert view["rows"][0]["object"] == "PT-2026-0914"
+    assert view["rows"][0]["object_category"] == "exercise"
+    # The runbook: the exercise, the account on the list, the window.
+    for query in (
+        "LSASS credential memory access blocked, is this the red team exercise",
+        "purple team exercise PT-2026-0914 authorised accounts",
+        "svc-purpleops LSASS read authorised",
+    ):
+        assert ok(runner, "search_runbook", query=query)["count"] >= 1, query
+    text = json.dumps(ok(runner, "search_runbook", query="lsass exercise"))
+    assert "PT-2026-0914" in text and "exercise list" in text and "svc-purpleops" in text
+    # The prior expected-activity alert and the tool hash, never seen.
+    related = ok(runner, "get_related_alerts", user_principal_name=PURPLEOPS)
+    assert related["count"] == 1 and related["alerts"][0]["determination"] == "securityTesting"
+    assert ok(runner, "get_related_alerts", incident_id="71")["count"] == 1
+    assert ok(runner, "lookup_ioc", indicator=RT_CRED_SHA256)["known"] is False
+
+
+def test_scenario_5_answers_nothing_about_another_device_or_account(fixture_set):
+    lsass = bound_runner(fixture_set, {"lsass_access"}, "inv-lsass-gap")
+    assert gap(lsass, "get_asset", asset="ws-eng-0200")
+    assert gap(
+        lsass,
+        "search_events",
+        query="DeviceEvents | where DeviceName == 'ws-eng-0200' | where ActionType has 'Lsass'",
+    )
+    assert gap(
+        lsass,
+        "search_events",
+        query="SigninLogs | where UserPrincipalName == 'mmartin@contoso.com'",
+    )
+    assert gap(lsass, "search_siem", search="index=mde host=ws-eng-0200 lsass")
+    assert gap(lsass, "search_runbook", query="kerberoasting 180 SPNs credentialed scanner")
+    assert gap(lsass, "get_related_alerts", user_principal_name="mmartin@contoso.com")
+
+
+# --- scenario 6, apparent Kerberoasting ----------------------------------------------
+
+SCAN_OPS = "scan-ops-01.contoso.com"
+VULNSCAN = "svc-vulnscan@contoso.com"
+
+
+def test_scenario_6_stubs_answer_the_requests_a_model_plausibly_makes(runner):
+    asset = ok(runner, "get_asset", asset="scan-ops-01")
+    assert asset["found"] is True and "scanner" in asset["categories"]
+    ident = ok(runner, "get_identity", identity="svc-vulnscan")
+    assert ident["found"] is True and "scanner" in ident["categories"]
+    assert ident["business_unit"] == "Vulnerability Management"
+    # The scale: the SIEM aggregate reads 180 distinct services; a stats query hits the
+    # aggregate stub before the detail stub in file order.
+    for search in (
+        'index=security EventCode=4769 user="svc-vulnscan" | stats dc(object) count',
+        "index=mdi svc-vulnscan kerberos service ticket | stats distinct_count(object)",
+    ):
+        view = ok(runner, "search_siem", search=search)
+        assert view["rows"][0]["dc(object)"] == "180", search
+        assert "Kerberos service ticket" in view["rows"][0]["action"]
+    detail = ok(
+        runner,
+        "search_siem",
+        search='index=security EventCode=4769 user="svc-vulnscan" | table object',
+    )
+    assert len(detail["rows"]) == 5 and detail["rows"][0]["object_category"] == "service"
+    # The hunting reading shows the requests but not the distinct SPN count: ServiceName
+    # is in AdditionalFields, which the projection drops. So finding 1 rests on the SIEM.
+    view = ok(
+        runner,
+        "search_events",
+        query="SecurityEvent | where EventID == 4769 "
+        "| where AccountUpn =~ 'svc-vulnscan@contoso.com'",
+    )
+    assert view["dropped_columns"] == 1 and "AdditionalFields" not in view["columns"]
+    assert all(r["ActionType"] == "Kerberos service ticket request" for r in view["rows"])
+    assert "ServiceName" not in json.dumps(view)
+    # The runbook requalifies it as a tuning exclusion.
+    text = json.dumps(
+        ok(runner, "search_runbook", query="kerberoasting service ticket svc-vulnscan")
+    )
+    assert "svc-vulnscan" in text and "exclusion" in text and "AES256" in text
+    related = ok(runner, "get_related_alerts", user_principal_name=VULNSCAN)
+    assert related["count"] == 1 and related["alerts"][0]["classification"] == "falsePositive"
+    assert ok(runner, "get_related_alerts", incident_id="74")["count"] == 1
+
+
+def test_scenario_6_keys_the_kerberos_stubs_on_the_scanner_but_a_regex_cannot_honour_a_filter(
+    fixture_set,
+):
+    """A Kerberos query naming only another account is a no_fixture error, the case this
+    matters for. But a regex is a substring test over the query text: a query that names
+    the scanner in an exclusion filter still matches on the token and returns the
+    scanner's rows. The limit is stated here, not implied away."""
+    kerb = bound_runner(fixture_set, {"kerberoasting"}, "inv-kerb")
+    # Names only another account: correctly no_fixture.
+    assert gap(
+        kerb,
+        "search_events",
+        query="SecurityEvent | where EventID == 4769 | where AccountUpn == 'alice@contoso.com'",
+    )
+    assert gap(
+        kerb, "search_siem", search='index=security EventCode=4769 user="alice" | stats dc(object)'
+    )
+    # Names the scanner in an exclusion filter: the regex matches on the token's presence
+    # and answers with the scanner's rows. Reachable; harmless only because the binding
+    # confines it to this scenario's run.
+    leak = ok(
+        kerb,
+        "search_siem",
+        search='index=security EventCode=4769 user!="svc-vulnscan" | stats dc(object)',
+    )
+    assert leak["rows"][0]["dc(object)"] == "180"
+
+
+def test_scenario_6_answers_nothing_about_another_subject(fixture_set):
+    kerb = bound_runner(fixture_set, {"kerberoasting"}, "inv-kerb-gap")
+    assert gap(kerb, "get_asset", asset="scan-ops-02")
+    assert gap(kerb, "get_identity", identity="mmartin")
+    assert gap(
+        kerb, "search_events", query="SigninLogs | where UserPrincipalName == 'mmartin@contoso.com'"
+    )
+    assert gap(
+        kerb, "search_siem", search="index=security EventCode=4769 user=mmartin | stats dc(object)"
+    )
+    assert gap(
+        kerb, "search_runbook", query="LSASS read blocked, is the account on the exercise list"
+    )
+    assert gap(kerb, "get_related_alerts", user_principal_name="mmartin@contoso.com")
+
+
 # --- what carries which label -----------------------------------------------------------
 
 
@@ -890,6 +1066,8 @@ def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
         "password_spray": 11,
         "forwarding_rule": 14,
         "encoded_powershell": 11,
+        "lsass_access": 11,
+        "kerberoasting": 10,
         "shared": 5,
         "test": 1,
     }

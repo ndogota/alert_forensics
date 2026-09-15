@@ -1,0 +1,111 @@
+{
+  "scenario": "kerberoasting",
+  "alert_id": "da637551369900112233_-1188736604",
+  "verdict": "false_positive",
+  "escalate": false,
+  "required_findings": [
+    {
+      "name": "service_tickets_requested_for_many_spns",
+      "tools": [
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "180"
+        ],
+        [
+          "SPN",
+          "service ticket",
+          "service tickets",
+          "Kerberos",
+          "4769"
+        ],
+        [
+          "svc-vulnscan",
+          "vulnscan"
+        ]
+      ]
+    },
+    {
+      "name": "the_account_is_the_credentialed_vulnerability_scanner",
+      "tools": [
+        "get_identity",
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "svc-vulnscan",
+          "vulnscan",
+          "scanner"
+        ],
+        [
+          "scanner",
+          "vulnerability"
+        ]
+      ]
+    },
+    {
+      "name": "the_runbook_requalifies_this_as_a_tuning_exclusion",
+      "tools": [
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "svc-vulnscan",
+          "scanner"
+        ],
+        [
+          "exclude",
+          "exclusion",
+          "tune",
+          "tuning",
+          "requalify",
+          "expected",
+          "known"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "whether_the_tickets_were_followed_by_service_authentication",
+      "tokens": [
+        [
+          "authenticate",
+          "authentication",
+          "used",
+          "logon",
+          "follow",
+          "followed",
+          "subsequent"
+        ],
+        [
+          "service",
+          "services",
+          "ticket",
+          "tickets"
+        ]
+      ]
+    },
+    {
+      "name": "the_scanners_own_scan_record",
+      "tokens": [
+        [
+          "scan",
+          "scanner",
+          "vulnscan",
+          "job"
+        ],
+        [
+          "record",
+          "records",
+          "log",
+          "logs",
+          "schedule",
+          "job",
+          "report"
+        ]
+      ]
+    }
+  ]
+}

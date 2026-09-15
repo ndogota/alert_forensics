@@ -3,16 +3,60 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"search": {"$all": [{"$contains": "index=auth"}, {"$regex": "(?i)jdoe"}]}},
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$contains": "index=auth"
+            },
+            {
+              "$regex": "(?i)jdoe"
+            }
+          ]
+        }
+      },
       "response": {
         "sid": "1789300000.12345",
         "preview": false,
         "init_offset": 0,
-        "messages": [{"type": "INFO", "text": "Your timerange was substituted based on your search string"}],
-        "fields": [{"name": "_time"}, {"name": "user"}, {"name": "src"}, {"name": "action"}, {"name": "count"}],
+        "messages": [
+          {
+            "type": "INFO",
+            "text": "Your timerange was substituted based on your search string"
+          }
+        ],
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "count"
+          }
+        ],
         "results": [
-          {"_time": "2026-09-14T09:12:04.000+00:00", "user": "jdoe", "src": "203.0.113.7", "action": "success", "count": "1"},
-          {"_time": "2026-09-14T09:51:40.000+00:00", "user": "jdoe", "src": "203.0.113.7", "action": "success", "count": "1"}
+          {
+            "_time": "2026-09-14T09:12:04.000+00:00",
+            "user": "jdoe",
+            "src": "203.0.113.7",
+            "action": "success",
+            "count": "1"
+          },
+          {
+            "_time": "2026-09-14T09:51:40.000+00:00",
+            "user": "jdoe",
+            "src": "203.0.113.7",
+            "action": "success",
+            "count": "1"
+          }
         ]
       }
     },
@@ -608,6 +652,374 @@
             "vendor_product": "Microsoft Windows"
           }
         ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\\\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)svc-purpleops"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789310003.20103",
+        "preview": false,
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T03:19:40.000+00:00",
+            "user": "svc-purpleops",
+            "src": "10.44.12.9",
+            "src_country": "GB",
+            "action": "success",
+            "app": "Windows Sign In",
+            "authentication_method": "certificate",
+            "signature": "",
+            "user_agent": "Windows-RemoteInteractive"
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)ws-eng-0148"
+            },
+            {
+              "$regex": "(?i)lsass|asr|credential|4656|4663|OpenProcess"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789310004.20104",
+        "preview": false,
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "host"
+          },
+          {
+            "name": "dest"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "process_name"
+          },
+          {
+            "name": "process"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "signature"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T03:23:41.000+00:00",
+            "host": "ws-eng-0148",
+            "dest": "ws-eng-0148.contoso.com",
+            "user": "svc-purpleops",
+            "process_name": "rt-cred.exe",
+            "process": "rt-cred.exe --target lsass --mode minidump --out C:\\ProgramData\\PurpleOps\\out.bin",
+            "action": "blocked",
+            "signature": "LSASS credential theft blocked by attack surface reduction",
+            "EventCode": "3",
+            "object": "lsass.exe",
+            "object_category": "process"
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)PT-2026|exercise|purple[_ -]?team|red[_ -]?team|ws-eng-0148"
+            },
+            {
+              "$regex": "(?i)exercise|change[_ -]?calendar|maintenance[_ -]?window|window|itsm|inputlookup|schedule"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789310005.20105",
+        "preview": false,
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "host"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "object"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "object_attrs"
+          },
+          {
+            "name": "status"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-13T18:00:00.000+00:00",
+            "host": "ws-eng-0148",
+            "dest": "ws-eng-0148.contoso.com",
+            "user": "svc-purpleops",
+            "object": "PT-2026-0914",
+            "object_category": "exercise",
+            "object_attrs": "type: purple team exercise, window_start: 2026-09-14T01:00:00Z, window_end: 2026-09-14T06:00:00Z, scope: credential access LSASS, authorised_accounts: svc-purpleops, authorised_hosts: ws-eng-0148",
+            "status": "approved",
+            "signature": "Purple team exercise PT-2026-0914 scheduled"
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)index=\\\"?(auth|azuread|aad|signin)"
+            },
+            {
+              "$regex": "(?i)svc-vulnscan"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789320003.30203",
+        "preview": false,
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T04:09:02.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "src_country": "GB",
+            "action": "success",
+            "app": "Windows Sign In",
+            "authentication_method": "kerberos",
+            "signature": "",
+            "user_agent": ""
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)4769|kerberos|service ?ticket|TGS|SPN"
+            },
+            {
+              "$regex": "(?i)svc-vulnscan"
+            },
+            {
+              "$regex": "(?i)stats|dc\\(|count|summarize|distinct"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789320004.30204",
+        "preview": false,
+        "fields": [
+          {
+            "name": "earliest(_time)"
+          },
+          {
+            "name": "latest(_time)"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "count"
+          },
+          {
+            "name": "dc(object)"
+          }
+        ],
+        "results": [
+          {
+            "earliest(_time)": "2026-09-14T04:11:10.000+00:00",
+            "latest(_time)": "2026-09-14T04:12:40.000+00:00",
+            "user": "svc-vulnscan",
+            "action": "Kerberos service ticket request",
+            "object_category": "service",
+            "count": "180",
+            "dc(object)": "180",
+            "values(TicketEncryptionType)": [
+              "AES256"
+            ]
+          }
+        ],
+        "messages": []
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "search": {
+          "$all": [
+            {
+              "$regex": "(?i)4769|kerberos|service ?ticket|TGS|SPN"
+            },
+            {
+              "$regex": "(?i)svc-vulnscan"
+            }
+          ]
+        }
+      },
+      "response": {
+        "sid": "1789320005.30205",
+        "preview": false,
+        "fields": [
+          {
+            "name": "_time"
+          },
+          {
+            "name": "user"
+          },
+          {
+            "name": "src"
+          },
+          {
+            "name": "action"
+          },
+          {
+            "name": "object"
+          },
+          {
+            "name": "object_category"
+          },
+          {
+            "name": "signature"
+          }
+        ],
+        "results": [
+          {
+            "_time": "2026-09-14T04:11:10.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "action": "Kerberos service ticket request",
+            "object": "MSSQLSvc/db01.contoso.com:1433",
+            "object_category": "service",
+            "object_attrs": "TicketEncryptionType: AES256, TicketOptions: 0x40810010",
+            "signature": "4769: A Kerberos service ticket was requested",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T04:11:11.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "action": "Kerberos service ticket request",
+            "object": "HTTP/intranet.contoso.com",
+            "object_category": "service",
+            "object_attrs": "TicketEncryptionType: AES256, TicketOptions: 0x40810010",
+            "signature": "4769: A Kerberos service ticket was requested",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T04:11:12.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "action": "Kerberos service ticket request",
+            "object": "MSSQLSvc/db02.contoso.com:1433",
+            "object_category": "service",
+            "object_attrs": "TicketEncryptionType: AES256, TicketOptions: 0x40810010",
+            "signature": "4769: A Kerberos service ticket was requested",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T04:11:13.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "action": "Kerberos service ticket request",
+            "object": "CIFS/fileserver01.contoso.com",
+            "object_category": "service",
+            "object_attrs": "TicketEncryptionType: AES256, TicketOptions: 0x40810010",
+            "signature": "4769: A Kerberos service ticket was requested",
+            "status": "success"
+          },
+          {
+            "_time": "2026-09-14T04:11:14.000+00:00",
+            "user": "svc-vulnscan",
+            "src": "10.20.44.10",
+            "action": "Kerberos service ticket request",
+            "object": "LDAP/dc01.contoso.com",
+            "object_category": "service",
+            "object_attrs": "TicketEncryptionType: AES256, TicketOptions: 0x40810010",
+            "signature": "4769: A Kerberos service ticket was requested",
+            "status": "success"
+          }
+        ],
+        "messages": []
       }
     }
   ]

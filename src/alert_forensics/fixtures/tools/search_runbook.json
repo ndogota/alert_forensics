@@ -3,7 +3,11 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"query": {"$regex": "(?i)atypical travel|impossible travel|sase|203\\.0\\.113|198\\.51\\.100"}},
+      "match": {
+        "query": {
+          "$regex": "(?i)atypical travel|impossible travel|sase|203\\.0\\.113|198\\.51\\.100"
+        }
+      },
       "response": {
         "hits": [
           {
@@ -97,6 +101,58 @@
             "score": 0.88,
             "source": "change-calendar/2026-09/CHG0042117.md",
             "excerpt": "CHG0042117, standard change, approved. srv-prd-app01: IIS application pool recycling drift correction (PaymentsApi), applied by configuration management. Maintenance window 2026-09-14 02:00 to 04:00 UTC. Owner platform-ops@contoso.com."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "query": {
+          "$regex": "(?i)lsass|mimikatz|credential[_ -]?theft|credential dumping|purple[_ -]?team|red[_ -]?team|exercise|PT-2026|svc-purpleops|ws-eng-0148|T1003"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0520",
+            "title": "LSASS credential access during authorised red team exercises",
+            "score": 0.93,
+            "source": "runbooks/endpoint/red-team-lsass.md",
+            "excerpt": "Credential-access techniques against lsass.exe on endpoints are in scope for the purple team exercise PT-2026-0914, whose authorised window is 2026-09-14 01:00 to 06:00 UTC. The operator account svc-purpleops and the source host ws-eng-0148 are on the exercise list. An LSASS read from svc-purpleops on a listed host inside the window is expected and authorised, not an incident; confirm the attack surface reduction block held and that the prevention worked, document the run against the exercise, and do not escalate. An LSASS read from any other account, from any other host, or outside the window is exactly what this rule exists to catch."
+          },
+          {
+            "id": "RB-0021",
+            "title": "Identity Protection triage checklist",
+            "score": 0.55,
+            "source": "runbooks/identity/checklist.md",
+            "excerpt": "Confirm the outcome, the account priority and whether the activity maps to a change or an authorised exercise before escalating."
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "query": {
+          "$regex": "(?i)kerberoast|service ?ticket|\\bSPN\\b|4769|T1558|svc-vulnscan|scan-ops-01|credentialed (vulnerability )?scan|vulnerability scan"
+        }
+      },
+      "response": {
+        "hits": [
+          {
+            "id": "RB-0615",
+            "title": "Kerberoasting alerts from the credentialed vulnerability scanner",
+            "score": 0.94,
+            "source": "runbooks/identity/kerberoasting-scanner.md",
+            "excerpt": "The credentialed vulnerability scanner svc-vulnscan requests Kerberos service tickets for service principal names across the estate during authenticated scan windows, which fires this rule as apparent Kerberoasting. This is expected and is not Kerberoasting: the scanner obtains the tickets to authenticate to the services it scans, the tickets are AES256 rather than the RC4 downgrade Kerberoasting relies on, and nothing is harvested for offline cracking. Requalify the alert as a false positive and add a tuning exclusion for svc-vulnscan on this rule rather than closing it by hand again; do not escalate. Genuine Kerberoasting shows RC4-downgraded tickets requested by an account that is not the scanner, and tickets that are never followed by authentication to the service."
+          },
+          {
+            "id": "RB-0207",
+            "title": "Password spray: playbook",
+            "score": 0.3,
+            "source": "runbooks/identity/password-spray.md",
+            "excerpt": "Unrelated: spray thresholds and response."
           }
         ]
       }

@@ -3,11 +3,22 @@
   "stubs": [
     {
       "scenario": "encoded_powershell",
-      "match": {"asset": {"$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$|^10\\.20\\.30\\.40$"}},
+      "match": {
+        "asset": {
+          "$regex": "(?i)^srv-prd-app01(\\.contoso\\.com)?$|^10\\.20\\.30\\.40$"
+        }
+      },
       "response": {
         "sid": "1789300003.12348",
         "preview": false,
-        "fields": [{"name": "nt_host"}, {"name": "priority"}],
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
         "results": [
           {
             "ip": "10.20.30.40",
@@ -23,6 +34,88 @@
             "bunit": "Infrastructure",
             "category": "server|production|pci",
             "pci_domain": "cardholder",
+            "is_expected": "true",
+            "should_timesync": "true",
+            "should_update": "true",
+            "requires_av": "true"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "asset": {
+          "$regex": "(?i)^ws-eng-0148(\\.contoso\\.com)?$|^10\\.20\\.30\\.55$"
+        }
+      },
+      "response": {
+        "sid": "1789310001.20101",
+        "preview": false,
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "ip": "10.20.30.55",
+            "mac": "00:1a:2b:3c:4d:5e",
+            "nt_host": "WS-ENG-0148",
+            "dns": "ws-eng-0148.contoso.com",
+            "owner": "jhalvorsen@contoso.com",
+            "priority": "medium",
+            "lat": "51.5074",
+            "long": "-0.1278",
+            "city": "London",
+            "country": "GB",
+            "bunit": "Engineering",
+            "category": "endpoint|workstation",
+            "pci_domain": "",
+            "is_expected": "true",
+            "should_timesync": "true",
+            "should_update": "true",
+            "requires_av": "true"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "asset": {
+          "$regex": "(?i)^scan-ops-01(\\.contoso\\.com)?$|^10\\.20\\.44\\.10$"
+        }
+      },
+      "response": {
+        "sid": "1789320001.30201",
+        "preview": false,
+        "fields": [
+          {
+            "name": "nt_host"
+          },
+          {
+            "name": "priority"
+          }
+        ],
+        "results": [
+          {
+            "ip": "10.20.44.10",
+            "mac": "00:2a:3b:4c:5d:6e",
+            "nt_host": "SCAN-OPS-01",
+            "dns": "scan-ops-01.contoso.com",
+            "owner": "secops@contoso.com",
+            "priority": "medium",
+            "lat": "51.5074",
+            "long": "-0.1278",
+            "city": "London",
+            "country": "GB",
+            "bunit": "Vulnerability Management",
+            "category": "server|security|scanner",
+            "pci_domain": "",
             "is_expected": "true",
             "should_timesync": "true",
             "should_update": "true",

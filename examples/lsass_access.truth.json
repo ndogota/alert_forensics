@@ -1,0 +1,135 @@
+{
+  "scenario": "lsass_access",
+  "alert_id": "da637551355667788990_-1188736503",
+  "verdict": "benign_true_positive",
+  "escalate": false,
+  "required_findings": [
+    {
+      "name": "a_process_read_lsass_memory_on_the_device",
+      "tools": [
+        "search_events",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "ws-eng-0148.contoso.com",
+          "ws-eng-0148",
+          "WS-ENG-0148"
+        ],
+        [
+          "lsass",
+          "lsass.exe",
+          "LSASS"
+        ],
+        [
+          "rt-cred.exe",
+          "rt-cred"
+        ]
+      ]
+    },
+    {
+      "name": "the_credential_read_was_blocked",
+      "tools": [
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "lsass",
+          "LSASS",
+          "credential"
+        ],
+        [
+          "blocked",
+          "prevented",
+          "denied"
+        ]
+      ]
+    },
+    {
+      "name": "the_account_is_on_the_authorised_exercise_list",
+      "tools": [
+        "search_runbook"
+      ],
+      "tokens": [
+        [
+          "svc-purpleops",
+          "purpleops"
+        ],
+        [
+          "exercise",
+          "authorised",
+          "authorized",
+          "expected",
+          "sanctioned",
+          "scope",
+          "list"
+        ]
+      ]
+    },
+    {
+      "name": "the_read_fell_inside_the_declared_exercise_window",
+      "tools": [
+        "search_runbook",
+        "search_siem"
+      ],
+      "tokens": [
+        [
+          "PT-2026-0914"
+        ],
+        [
+          "window",
+          "exercise",
+          "maintenance",
+          "scheduled"
+        ]
+      ]
+    }
+  ],
+  "missing_context": [
+    {
+      "name": "whether_credential_material_was_returned_before_the_block",
+      "tokens": [
+        [
+          "lsass",
+          "credential",
+          "credentials",
+          "memory",
+          "hash",
+          "secret"
+        ],
+        [
+          "returned",
+          "extracted",
+          "dumped",
+          "obtained",
+          "read",
+          "exposed",
+          "outcome",
+          "result"
+        ]
+      ]
+    },
+    {
+      "name": "the_exercises_rules_of_engagement",
+      "tokens": [
+        [
+          "exercise",
+          "red team",
+          "purple team",
+          "engagement",
+          "authorisation",
+          "authorization"
+        ],
+        [
+          "rules of engagement",
+          "scope",
+          "authorised",
+          "authorized",
+          "approval",
+          "record",
+          "document"
+        ]
+      ]
+    }
+  ]
+}

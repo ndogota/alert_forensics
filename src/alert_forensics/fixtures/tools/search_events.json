@@ -3,18 +3,56 @@
   "stubs": [
     {
       "scenario": "atypical_travel",
-      "match": {"query": {"$all": [{"$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"}, {"$regex": "(?i)jdoe"}]}},
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)jdoe"
+            }
+          ]
+        }
+      },
       "response": {
         "schema": [
-          {"name": "Timestamp", "type": "DateTime"},
-          {"name": "AccountUpn", "type": "String"},
-          {"name": "IPAddress", "type": "String"},
-          {"name": "Location", "type": "String"},
-          {"name": "ErrorCode", "type": "Int32"}
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "Location",
+            "type": "String"
+          },
+          {
+            "name": "ErrorCode",
+            "type": "Int32"
+          }
         ],
         "results": [
-          {"Timestamp": "2026-09-14T09:12:04.000Z", "AccountUpn": "jdoe@contoso.com", "IPAddress": "203.0.113.7", "Location": "Paris, FR", "ErrorCode": 0},
-          {"Timestamp": "2026-09-14T09:51:40.000Z", "AccountUpn": "jdoe@contoso.com", "IPAddress": "203.0.113.7", "Location": "Amsterdam, NL", "ErrorCode": 0}
+          {
+            "Timestamp": "2026-09-14T09:12:04.000Z",
+            "AccountUpn": "jdoe@contoso.com",
+            "IPAddress": "203.0.113.7",
+            "Location": "Paris, FR",
+            "ErrorCode": 0
+          },
+          {
+            "Timestamp": "2026-09-14T09:51:40.000Z",
+            "AccountUpn": "jdoe@contoso.com",
+            "IPAddress": "203.0.113.7",
+            "Location": "Amsterdam, NL",
+            "ErrorCode": 0
+          }
         ]
       }
     },
@@ -1181,6 +1219,348 @@
             "InitiatingProcessParentFileName": "services.exe",
             "InitiatingProcessParentId": 704,
             "ReportId": 4469887342
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)svc-purpleops"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "ConditionalAccessStatus",
+            "type": "String"
+          },
+          {
+            "name": "ResultType",
+            "type": "Int32"
+          },
+          {
+            "name": "Latitude",
+            "type": "String"
+          },
+          {
+            "name": "Longitude",
+            "type": "String"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T03:19:40.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "svc-purpleops@contoso.com",
+            "IPAddress": "10.44.12.9",
+            "City": "London",
+            "Country": "GB",
+            "ClientAppUsed": "Mobile Apps and Desktop clients",
+            "ConditionalAccessStatus": "success",
+            "ResultType": 0,
+            "Latitude": "51.5074",
+            "Longitude": "-0.1278"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "lsass_access",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)DeviceEvents|DeviceProcessEvents|AsrLsass|lsass"
+            },
+            {
+              "$regex": "(?i)ws-eng-0148"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "DeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "FileName",
+            "type": "String"
+          },
+          {
+            "name": "FolderPath",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessId",
+            "type": "Int64"
+          },
+          {
+            "name": "InitiatingProcessFolderPath",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessCommandLine",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessAccountName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessSHA256",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentFileName",
+            "type": "String"
+          },
+          {
+            "name": "InitiatingProcessParentId",
+            "type": "Int64"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "AdditionalFields",
+            "type": "String"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T03:23:41.000Z",
+            "DeviceName": "ws-eng-0148.contoso.com",
+            "ActionType": "AsrLsassCredentialTheftBlocked",
+            "FileName": "lsass.exe",
+            "FolderPath": "C:\\Windows\\System32",
+            "InitiatingProcessFileName": "rt-cred.exe",
+            "InitiatingProcessId": 8124,
+            "InitiatingProcessFolderPath": "C:\\ProgramData\\PurpleOps",
+            "InitiatingProcessCommandLine": "rt-cred.exe --target lsass --mode minidump --out C:\\ProgramData\\PurpleOps\\out.bin",
+            "InitiatingProcessAccountName": "svc-purpleops",
+            "InitiatingProcessSHA256": "c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f80912",
+            "InitiatingProcessParentFileName": "powershell.exe",
+            "InitiatingProcessParentId": 6620,
+            "ReportId": 90211,
+            "AdditionalFields": "{\"DesiredAccess\":\"0x1010\",\"IsAudit\":\"false\",\"RuleId\":\"9e6c4e15-1cae-4bd5-9c11-44f5cf20d02d\"}"
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)SigninLogs|AADSignInEvents|IdentityLogonEvents"
+            },
+            {
+              "$regex": "(?i)svc-vulnscan"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "IPAddress",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "ClientAppUsed",
+            "type": "String"
+          },
+          {
+            "name": "ResultType",
+            "type": "Int32"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T04:09:02.000Z",
+            "ActionType": "LogonSuccess",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "IPAddress": "10.20.44.10",
+            "City": "London",
+            "Country": "GB",
+            "ClientAppUsed": "Other clients",
+            "ResultType": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "kerberoasting",
+      "match": {
+        "query": {
+          "$all": [
+            {
+              "$regex": "(?i)IdentityDirectoryEvents|SecurityEvent|DeviceEvents|Kerberos|4769|service ?ticket|TGS|SPN"
+            },
+            {
+              "$regex": "(?i)svc-vulnscan"
+            }
+          ]
+        }
+      },
+      "response": {
+        "schema": [
+          {
+            "name": "Timestamp",
+            "type": "DateTime"
+          },
+          {
+            "name": "ActionType",
+            "type": "String"
+          },
+          {
+            "name": "AccountUpn",
+            "type": "String"
+          },
+          {
+            "name": "Protocol",
+            "type": "String"
+          },
+          {
+            "name": "TargetDeviceName",
+            "type": "String"
+          },
+          {
+            "name": "DestinationDeviceName",
+            "type": "String"
+          },
+          {
+            "name": "ReportId",
+            "type": "Int64"
+          },
+          {
+            "name": "AdditionalFields",
+            "type": "String"
+          }
+        ],
+        "results": [
+          {
+            "Timestamp": "2026-09-14T04:11:10.000Z",
+            "ActionType": "Kerberos service ticket request",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "Protocol": "Kerberos",
+            "TargetDeviceName": "db01.contoso.com",
+            "DestinationDeviceName": "dc01.contoso.com",
+            "ReportId": 70310,
+            "AdditionalFields": "{\"ServiceName\": \"MSSQLSvc/db01.contoso.com:1433\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
+          },
+          {
+            "Timestamp": "2026-09-14T04:11:11.000Z",
+            "ActionType": "Kerberos service ticket request",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "Protocol": "Kerberos",
+            "TargetDeviceName": "intranet.contoso.com",
+            "DestinationDeviceName": "dc01.contoso.com",
+            "ReportId": 70311,
+            "AdditionalFields": "{\"ServiceName\": \"HTTP/intranet.contoso.com\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
+          },
+          {
+            "Timestamp": "2026-09-14T04:11:12.000Z",
+            "ActionType": "Kerberos service ticket request",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "Protocol": "Kerberos",
+            "TargetDeviceName": "db02.contoso.com",
+            "DestinationDeviceName": "dc01.contoso.com",
+            "ReportId": 70312,
+            "AdditionalFields": "{\"ServiceName\": \"MSSQLSvc/db02.contoso.com:1433\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
+          },
+          {
+            "Timestamp": "2026-09-14T04:11:13.000Z",
+            "ActionType": "Kerberos service ticket request",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "Protocol": "Kerberos",
+            "TargetDeviceName": "fileserver01.contoso.com",
+            "DestinationDeviceName": "dc01.contoso.com",
+            "ReportId": 70313,
+            "AdditionalFields": "{\"ServiceName\": \"CIFS/fileserver01.contoso.com\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
+          },
+          {
+            "Timestamp": "2026-09-14T04:11:14.000Z",
+            "ActionType": "Kerberos service ticket request",
+            "AccountUpn": "svc-vulnscan@contoso.com",
+            "Protocol": "Kerberos",
+            "TargetDeviceName": "dc01.contoso.com",
+            "DestinationDeviceName": "dc01.contoso.com",
+            "ReportId": 70314,
+            "AdditionalFields": "{\"ServiceName\": \"LDAP/dc01.contoso.com\", \"TicketEncryptionType\": \"0x12 (AES256)\", \"TicketOptions\": \"0x40810010\", \"FailureCode\": \"0x0\"}"
           }
         ]
       }

@@ -1,0 +1,46 @@
+{
+  "id": "da637551369900112233_-1188736604",
+  "title": "Suspicious Kerberos service ticket requests, possible Kerberoasting",
+  "description": "svc-vulnscan requested service tickets for 180 distinct service principal names in 90 seconds from scan-ops-01. The volume matches Kerberoasting, where service tickets are harvested to crack service-account passwords offline.",
+  "severity": "medium",
+  "status": "new",
+  "category": "CredentialAccess",
+  "createdDateTime": "2026-09-14T04:11:58.4Z",
+  "lastUpdateDateTime": "2026-09-14T04:12:30Z",
+  "detectionSource": "microsoftDefenderForIdentity",
+  "serviceSource": "microsoftDefenderForIdentity",
+  "providerAlertId": "d90a5c27",
+  "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+  "incidentId": "74",
+  "mitreTechniques": [
+    "T1558.003"
+  ],
+  "evidence": [
+    {
+      "@odata.type": "#microsoft.graph.security.userEvidence",
+      "createdDateTime": "2026-09-14T04:11:58.4Z",
+      "verdict": "suspicious",
+      "roles": [],
+      "userAccount": {
+        "accountName": "svc-vulnscan",
+        "userPrincipalName": "svc-vulnscan@contoso.com",
+        "domainName": "CONTOSO",
+        "azureAdUserId": "5e0c9a13-7b2d-4f61-8c04-2a3d5f7b9c11"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.security.deviceEvidence",
+      "createdDateTime": "2026-09-14T04:11:58.4Z",
+      "verdict": "unknown",
+      "roles": [
+        "contextual"
+      ],
+      "deviceDnsName": "scan-ops-01.contoso.com",
+      "mdeDeviceId": "2f8a4c6e0b1d3f5a7c9e2b4d6f8091a3c5e7b9d1",
+      "osPlatform": "WindowsServer2022",
+      "healthStatus": "active",
+      "riskScore": "informational",
+      "rbacGroupName": "Security tooling"
+    }
+  ]
+}

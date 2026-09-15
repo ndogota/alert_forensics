@@ -239,6 +239,8 @@ LABELS = {
     "password_spray": ("true_positive", True),
     "forwarding_rule": ("true_positive", True),
     "encoded_powershell": ("benign_true_positive", False),
+    "lsass_access": ("benign_true_positive", False),
+    "kerberoasting": ("false_positive", False),
 }
 
 
