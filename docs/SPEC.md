@@ -128,7 +128,9 @@ RunOutcome
 ```
 
 The evaluation reports the failure rate as a first-class number beside accuracy, split
-by outcome, and a failed run scores zero on every accuracy metric. `inconclusive` is a
+by outcome, and a failed run scores zero on every accuracy metric. A run the provider
+refused to serve is not a failure of the model and is counted apart, see "A provider
+refusal is the quota's number" under "Evaluation". `inconclusive` is a
 verdict an analyst is sometimes right to give: the evidence really was insufficient and
 the missing context says why. Laundering a failure into it would destroy the meaning of
 verdict accuracy, the same way collapsing `benign_true_positive` into `false_positive`
@@ -909,10 +911,18 @@ alert-forensics eval-report results/
   alone, so `triage ... | jq` and redirection keep working. `--quiet` suppresses the
   progress. Nothing is printed between launch and the first tool call, and nothing
   between the last and the result line; that is why the model call itself is bounded.
-- The Google client logs one warning per tool, twice, for a JSON schema key it does not
-  support and ignores. The console script filters that one message at startup. It is
-  the library's note to itself, not a fault in the run, and a tool that opens with
-  twenty-two lines of it reads as broken.
+- The Google client logs notes to itself, and a tool that opens with library noise reads
+  as broken. Three messages are filtered at startup, each by the substring that
+  identifies it, on the logger that emits it, since a parent's filters do not see a
+  child's records. From `langchain_google_genai`: the JSON schema key it does not
+  support and ignores, one warning per tool, twice, twenty-two lines on a run. From
+  the `google_genai` SDK, found printed above every run of the first campaign: the
+  warning that there are non-text parts in the response, which fires once per process
+  when a response holds function calls and the SDK's text accessor is read, and the
+  advice against direct use of automatic function calling, which the LangChain
+  integration does not use and cannot act on. None is a fault in the run. Nothing else
+  is filtered: a warning that is not one of the three is printed, because the next one
+  may be real.
 - A run the provider refused to serve, a rate limit, a quota, or an overloaded model,
   after the retries were spent, ends with a message on stderr naming the provider, the
   model, and the fact that it is the provider's capacity and not a bug in the run, and
@@ -1076,6 +1086,61 @@ split by outcome and, for `failed_error`, by error kind, and it is never folded 
 accuracy and never dropped. A model that fails a third of its runs cannot show a clean
 accuracy on the rest: its accuracy denominator is all of its runs.
 
+### A provider refusal is the quota's number, not the model's
+
+The first real campaign settled this. Nineteen runs of `google_genai:gemini-3.5-flash-lite`
+on the free tier: three completed, each with the right verdict, and sixteen were refused
+with `rate_limit`, fourteen of them before any model turn, with no tool call and no usage
+at all. Under the rule above those sixteen scored zero and stayed in every denominator,
+so three cells read 0 of 3 on verdict accuracy with not one model call behind the
+number, and since a cell accumulates, no rerun could ever lift them above 50 percent
+failure. The rule for `max_corrections` decides it: a number that depends on how many
+times the harness was willing to retry is a property of the harness, not of the model,
+and a number that depends on how many calls the provider was willing to serve is a
+property of the quota. A refused run measures the provider's capacity. The console
+script already says so on its own account: exit code 3, and not 1.
+
+Decided:
+
+- **A run is refused when its error kind is `rate_limit` or `overloaded`, whatever its
+  outcome.** That is the rule `triage` exits 3 on, applied unchanged. It covers a
+  `failed_error` with no result, and a `failed_ungrounded` whose correction pass the
+  provider refused: in the second case the first pass produced an ungrounded result and
+  the loop exists to repair exactly that, so charging the model for a repair it was
+  never allowed to make would measure the quota under the name of grounding. The score
+  carries `refused`, and its validator holds the flag to the error kind in both
+  directions, so a score cannot say one thing and its artifact another.
+- **A refused run is out of every accuracy and failure denominator.** Every cell counts
+  its `served` runs, the runs the provider let run to their end, and `completed`,
+  `failed`, `failed_ungrounded`, `failed_error`, verdict accuracy, evidence recall,
+  missing-context recall and escalation precision and recall are over the served runs.
+  `refused` is its own proportion, over all runs, with its interval and its kinds by
+  count, and the cell's `error_kinds` hold only the failures the run owns. The rule that
+  a failed run scores zero and stays in every denominator is unchanged for those:
+  `failed_ungrounded`, and `failed_error` of any other kind, are the run's own, and a
+  model that fails a third of its served runs still cannot show a clean accuracy on the
+  rest. A validator on the cell holds served plus refused to the run count and every
+  accuracy denominator to served, so the two populations cannot drift apart in code.
+- **Refused before any turn and refused after work are counted apart, and both
+  leave.** The score carries `model_turns`, the usage records in its trace, and the cell
+  reports how many refusals came before any model turn and how many after one. They
+  are the same for the accuracy denominators, since neither produced a result the model
+  can be measured on, and different for the spend: a run refused after two turns and
+  four tool calls consumed tokens and wall clock that a run refused at its first call
+  did not, and "Cost and latency" says where those go. Tool calls are the one pool a
+  refused run stays in: a call the model made is the model's whatever the provider did
+  next, and a fixture gap it hit is a gap, so the tool-calls block reads every trace and
+  a refusal before any turn contributes nothing to it.
+- **The report cannot be read as a capability cell.** Every cell prints a `served`
+  line before any number: how many of its runs were served, how many refused, and that
+  every proportion below is over the served runs. A cell with no served run says on
+  that line, in words a skim cannot miss, that it measures the quota and not the model,
+  and every proportion below it reads `0/0 n/a`, because an empty denominator has no
+  estimate and no interval. Every artifact stays on disk whatever the kind, and
+  `eval-report` re-scores the campaign above from its run directories without running
+  anything: its three completed runs are their cells' whole served population, and the
+  three cells the quota emptied say so.
+
 ### Tool outcomes are reported
 
 A score used to carry one error kind, the run's own, and the cell aggregated that same
@@ -1134,6 +1199,16 @@ Both per investigation, and neither on the contracts.
   change never rewrites an artifact. A model absent from the table has no cost, and the
   report says "no price for", never zero. The scripted client is in the table at zero,
   explicitly.
+- **The one model run for real is priced from its provider's page, not from memory.**
+  `google_genai:gemini-3.5-flash-lite` is in the table from the Gemini API pricing page,
+  `https://ai.google.dev/gemini-api/docs/pricing`, read on 2026-09-15 with the page
+  dated 2026-09-11: paid tier, 0.30 input, 2.50 output including thinking tokens, 0.03
+  per cached token read, all per million. Cache writes are billed as ordinary input on
+  that API, so the row prices them at the input rate; the storage charge, 1.00 per
+  million tokens per hour, is not per token and is not carried, and the row says so.
+  The campaign ran on the free tier, which bills nothing. The cost it reports is what
+  the same tokens would cost on a billed account, which is the number a comparison
+  matrix needs; the free tier is a property of the account, not of the model.
 - **Latency** is the wall clock the harness measured around the investigation, recorded
   in the harness's own per-run file. It is not on the artifact, because a `triage` run
   answers the proposal interrupt on a terminal and its wall clock would include the
@@ -1141,6 +1216,20 @@ Both per investigation, and neither on the contracts.
   measures the investigation alone. The proposal is accepted in every run: the human
   decision is not what the harness measures, and rejecting it would change what the
   model does next.
+- **The population of each is the served runs, and the report line says so.** The first
+  campaign's kerberoasting cell read a mean wall clock of 1.55 s, over one 5.60 s
+  investigation and three 0.17 s refusals, and 2942 input tokens per run, which was
+  11768 divided by four. A refusal before any turn has a wall clock, the time the
+  provider took to say no, and it is not the latency of an investigation. So the wall
+  clock, the tokens per run and the mean cost are over the served runs, the population
+  the accuracy numbers use, and each line names it. A cell with no served run has no
+  latency, no tokens per run and no mean cost, and reports them as absent, never as
+  zero. What the refused runs spent is not dropped: the cell carries the input and
+  output tokens spent on refused runs, the report prints them beside the tokens per
+  run whenever there are any, and the cost total is over all runs, refused included,
+  because the tokens were billed whether or not the run finished. Mean per served run
+  and total over every run: what an investigation costs, and what the campaign cost.
+  `ungrounded_claim_rate` was already over the completed runs and stays so.
 
 ### The CLI
 
@@ -1165,14 +1254,24 @@ alert-forensics eval-report DIR
   run from its artifact and the current ground truth, rewrites `score.json` and
   `summary.json`, and prints the report. Cells from several sessions in one directory
   are summarised together, since the summary reads whatever is there.
+- **`--scenario` narrows what is run, never what is summarised.** The summary step of
+  `eval` loads every scenario under the scenarios directory, exactly as `eval-report`
+  does, so a directory holding earlier cells of other scenarios summarises whole. The
+  code handed the narrowed list to the summary, which then refused the whole directory
+  for holding a run of a scenario it had been given no truth for; the sentence above
+  was the spec, the code disagreed with it, and the code was wrong. What is still
+  refused: a run whose scenario has no truth under the scenarios directory at all,
+  since it cannot be scored, and a summary that skipped it would be a summary of less
+  than what is there.
 - `--scripted` runs the whole suite with no key and no network, on the built-in script,
   which is how the test suite exercises it. Its verdict is `inconclusive` by
   construction, so its verdict accuracy is zero on every scenario whose label is not
   inconclusive; that is the floor the harness measures, not a defect in it.
 - `--model` runs it for real; `--timeout`, `--max-retries`, `--max-corrections` and
-  `--role` mean what they mean for `triage`. A provider refusal is a `failed_error` run
-  with kind `rate_limit` or `overloaded`, counted like any failure; the harness goes on
-  to the next run rather than stopping, and the summary shows the kind.
+  `--role` mean what they mean for `triage`. A provider refusal is a run with error kind
+  `rate_limit` or `overloaded`, counted apart from the run's own failures and out of
+  every accuracy denominator, see "A provider refusal is the quota's number"; the
+  harness goes on to the next run rather than stopping, and the summary shows the kind.
 
 ### Scenario 1, the first ground truth
 
