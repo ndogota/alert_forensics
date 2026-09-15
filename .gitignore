@@ -10,3 +10,8 @@ gates/
 results.bak
 campaigns/
 .env
+web/node_modules/
+web/out/
+web/.next/
+web/next-env.d.ts
+web/*.tsbuildinfo
