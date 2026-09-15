@@ -55,6 +55,20 @@ PRICES: dict[str, Price] = {
     "anthropic:claude-opus-5": _anthropic(5.0, 25.0),
     "anthropic:claude-sonnet-5": _anthropic(2.0, 10.0),
     "anthropic:claude-haiku-4-5": _anthropic(1.0, 5.0),
+    "google_genai:gemini-3.5-flash-lite": Price(
+        input_per_mtok=0.30,
+        output_per_mtok=2.50,
+        cache_read_per_mtok=0.03,
+        cache_write_per_mtok=0.30,
+        source=(
+            "Gemini API pricing, https://ai.google.dev/gemini-api/docs/pricing, paid tier, "
+            "page dated 2026-09-11, read 2026-09-15; output includes thinking tokens; cache "
+            "writes are ordinary input at the input rate, and the storage charge of 1.00 USD "
+            "per million tokens per hour is not per token and is not carried; the free tier "
+            "bills nothing, so a free-tier run's cost is what its tokens would cost billed"
+        ),
+        as_of="2026-09-15",
+    ),
 }
 """Keyed by the ``provider:model`` string a run was started with. Extend it here; a
 model that is missing is reported as unpriced, never as free."""

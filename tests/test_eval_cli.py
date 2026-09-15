@@ -160,7 +160,7 @@ def test_runs_from_several_sessions_summarise_together(scenarios, tmp_path, caps
     ]
 
 
-def test_a_refusing_provider_is_counted_as_failure_and_the_suite_goes_on(
+def test_a_refusing_provider_is_counted_apart_and_the_suite_goes_on(
     scenarios, tmp_path, monkeypatch, capsys
 ):
     from langchain_core.exceptions import ModelRateLimitError
@@ -188,15 +188,35 @@ def test_a_refusing_provider_is_counted_as_failure_and_the_suite_goes_on(
     assert artifact.outcome is RunOutcome.failed_error
     assert artifact.error is not None and artifact.error.kind == "rate_limit"
     assert artifact.model_limits is not None and artifact.model_limits.max_retries == 1
+    score = RunScore.model_validate_json((cell / "1" / "score.json").read_text())
+    assert score.refused is True and score.model_turns == 0
     summary = Summary.model_validate_json((results / "summary.json").read_text())
     cell_summary = summary.cells[0]
-    assert cell_summary.failed_error.numerator == 2 and cell_summary.runs == 2
-    assert cell_summary.error_kinds == {"rate_limit": 2}
-    assert cell_summary.verdict_accuracy.numerator == 0
-    assert cell_summary.verdict_accuracy.denominator == 2
+    # Out of every accuracy and failure denominator: the quota's number, not the model's.
+    assert cell_summary.runs == 2 and cell_summary.served == 0
+    assert cell_summary.refused.numerator == 2 and cell_summary.refused_kinds == {"rate_limit": 2}
+    assert cell_summary.refused_before_any_turn == 2
+    assert cell_summary.failed_error.numerator == 0 and cell_summary.error_kinds == {}
+    assert cell_summary.verdict_accuracy.denominator == 0
     assert cell_summary.cost_note is not None and "gemini-x" in cell_summary.cost_note
-    out = capsys.readouterr().out
-    assert "rate_limit" in out and "0/2" in out
+    captured = capsys.readouterr()
+    assert "rate_limit" in captured.out and "QUOTA" in captured.out and "0/0 n/a" in captured.out
+    assert captured.err.count("refused (rate_limit)") == 2
+
+
+def test_eval_on_one_scenario_summarises_every_cell_in_the_directory(tmp_path, capsys):
+    """``--scenario`` narrows what is run, never what is summarised: a second session on
+    another scenario reports the whole directory, as ``eval-report`` does."""
+    results = tmp_path / "results"
+    argv = ["eval", "--scripted", "--runs", "1", "--results", str(results), "--scenario"]
+    assert main([*argv, "atypical_travel"]) == 0
+    capsys.readouterr()
+    assert main([*argv, "kerberoasting"]) == 0
+    captured = capsys.readouterr()
+    assert "no ground truth" not in captured.err
+    summary = Summary.model_validate_json((results / "summary.json").read_text())
+    assert sorted(c.scenario for c in summary.cells) == ["atypical_travel", "kerberoasting"]
+    assert captured.out.count("Cell:") == 2
 
 
 def test_eval_needs_a_model_or_scripted_and_a_known_scenario(scenarios, tmp_path, capsys):

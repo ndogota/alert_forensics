@@ -134,12 +134,19 @@ it. It then writes `results/summary.json` and prints the report: per cell, the c
 and failed proportions split by outcome and error kind, verdict accuracy, evidence
 recall, missing-context recall, escalation precision and recall, the ungrounded claim
 rate over completed runs, wall clock, tokens and cost, each proportion with its Wilson
-95 percent interval. `eval-report DIR` re-scores every run from its artifact and the
-current ground truth and rewrites the summary, so a corrected truth file re-scores old
-runs without a model. `--scripted` runs the suite with no key and no network; its verdict
-is `inconclusive` by construction, so its accuracy is the floor, not a result. The price
-table lives in `src/alert_forensics/evaluation/prices.py`; a model missing from it is
-reported as unpriced, never as free.
+95 percent interval. A run the provider refused, a rate limit or an overloaded model, is
+the quota's number and not the model's: it is reported apart, with how many refusals
+came before any model turn, and it is out of every accuracy and failure denominator,
+which are over the served runs; a cell with no served run says so in capitals. Wall
+clock, tokens per run and mean cost are over the served runs, the tokens the refused
+runs spent are printed beside them, and the cost total is over every run. `eval-report
+DIR` re-scores every run from its artifact and the current ground truth and rewrites the
+summary, so a corrected truth file re-scores old runs without a model. `--scenario`
+narrows what is run, never what is summarised: the report covers the whole directory.
+`--scripted` runs the suite with no key and no network; its verdict is `inconclusive` by
+construction, so its accuracy is the floor, not a result. The price table lives in
+`src/alert_forensics/evaluation/prices.py`, each row with its source and the date it was
+read; a model missing from it is reported as unpriced, never as free.
 
 ## Development
 

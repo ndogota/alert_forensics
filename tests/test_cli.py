@@ -298,7 +298,7 @@ def test_any_other_failure_keeps_exit_1(alert_file, tmp_path, monkeypatch, capsy
     assert "RuntimeError" in captured.out and "not a bug" not in captured.err
 
 
-def test_the_google_schema_warning_is_filtered_at_startup_and_nothing_else(
+def test_the_three_google_notices_are_filtered_at_startup_and_nothing_else(
     alert_file, tmp_path, caplog
 ):
     import logging
@@ -311,9 +311,21 @@ def test_the_google_schema_warning_is_filtered_at_startup_and_nothing_else(
         logger.warning("Key 'title' is not supported in schema, ignoring")
         logger.warning("something else worth reading")
         logging.getLogger("alert_forensics").warning("Key 'x' is not supported in schema")
+        # The two the SDK printed above every run of the first campaign.
+        logging.getLogger("google_genai.types").warning(
+            "Warning: there are non-text parts in the response: ['function_call'], "
+            "returning concatenated text result from text parts. Check the full "
+            "candidates.content.parts accessor to get the full model response."
+        )
+        logging.getLogger("google_genai.models").warning(
+            "Direct use of automatic function calling (AFC) in Models.generate_content "
+            "is not recommended. Instead, we recommend to use AFC in Chat.send_message."
+        )
+        logging.getLogger("google_genai.models").warning("the model is overloaded, really")
     assert [r.getMessage() for r in caplog.records] == [
         "something else worth reading",
         "Key 'x' is not supported in schema",
+        "the model is overloaded, really",
     ]
     artifact = RunArtifact.model_validate_json(out.read_text())
     assert artifact.output_binding.strategy == "provider"

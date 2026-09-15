@@ -10,6 +10,7 @@ from collections import Counter
 
 from pydantic import Field, model_validator
 
+from alert_forensics.agent.run import PROVIDER_REFUSALS
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import (
     InvestigationTrace,
@@ -149,7 +150,22 @@ class RunScore(ContractModel):
     ungrounded_facts: StrictNonNegativeInt
     error_kind: str | None
     """The run's own error kind, on a failed_error run. Tool calls are under ``calls``."""
+    refused: bool
+    """The provider would not serve the run: ``error_kind`` is ``rate_limit`` or
+    ``overloaded``, whatever the outcome, the rule ``triage`` exits 3 on. The quota's
+    number, not the model's: the cell keeps it out of every accuracy denominator."""
+    model_turns: StrictNonNegativeInt
+    """Model turns that returned, from the trace's usage: zero on a run refused before
+    any turn, so a refusal after real work is told apart from one at the first call."""
     calls: CallOutcomes
+
+    @model_validator(mode="after")
+    def _refused_follows_from_the_error_kind(self) -> "RunScore":
+        if self.refused != (self.error_kind in PROVIDER_REFUSALS):
+            raise ValueError(
+                "refused is exactly an error kind of rate_limit or overloaded, in both directions"
+            )
+        return self
 
 
 def score_run(artifact: RunArtifact, truth: GroundTruth) -> RunScore:
@@ -191,6 +207,8 @@ def score_run(artifact: RunArtifact, truth: GroundTruth) -> RunScore:
         total_facts=report.total_facts if report is not None else 0,
         ungrounded_facts=report.ungrounded_count if report is not None else 0,
         error_kind=artifact.error.kind if artifact.error is not None else None,
+        refused=artifact.error is not None and artifact.error.kind in PROVIDER_REFUSALS,
+        model_turns=len(artifact.trace.usage),
         calls=count_calls(artifact.trace),
     )
 

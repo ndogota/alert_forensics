@@ -14,7 +14,13 @@ from alert_forensics.agent.scripted import (
 )
 from alert_forensics.artifact import RunArtifact
 from alert_forensics.contracts import Alert, RunOutcome, Verdict
-from alert_forensics.evaluation import CallOutcomes, GroundTruth, contains_tokens, score_run
+from alert_forensics.evaluation import (
+    CallOutcomes,
+    GroundTruth,
+    RunScore,
+    contains_tokens,
+    score_run,
+)
 from alert_forensics.tools import (
     ANALYST_ROLE,
     TIER1_ROLE,
@@ -24,7 +30,7 @@ from alert_forensics.tools import (
     Principal,
     fixture_adapters,
 )
-from conftest import ALERT_PAYLOAD, FIXTURE_TOOLS_DIR, T0
+from conftest import ALERT_PAYLOAD, FIXTURE_TOOLS_DIR, T0, RefusingChatModel
 
 TRUTH = GroundTruth.model_validate(
     json.loads(Path("examples/atypical_travel.truth.json").read_text())
@@ -251,6 +257,81 @@ def test_a_failed_error_run_scores_zero_on_everything_and_keeps_its_kind(fixture
     assert score.escalate_predicted is None and score.escalation_correct is False
     assert score.total_facts == 0 and score.ungrounded_facts == 0
     assert score.error_kind == "ScriptExhaustedError"
+    # The run's own failure: not a refusal, and it had its turn.
+    assert score.refused is False and score.model_turns == 1
+
+
+def _refusing_run(model, fixture_set):
+    from alert_forensics.tools import fixture_adapters
+
+    alert = Alert.model_validate(ALERT_PAYLOAD)
+    return run_triage(
+        alert=alert,
+        model=model,
+        model_id="scripted:test",
+        principal=Principal(name="analyst", role=ANALYST_ROLE),
+        adapters=[
+            *fixture_adapters(fixture_set, fixture_set.in_view(alert)),
+            DispositionAdapter(clock=lambda: T0),
+        ],
+        store=InMemoryRawStore(),
+        raw_store="mem",
+        decide=lambda proposal: AnalystDecision(accept=True),
+        investigation_id="inv-refused",
+        clock=lambda: T0,
+    )
+
+
+def test_a_refusal_before_any_turn_is_marked_on_the_score_with_no_turn(fixture_set):
+    from langchain_core.exceptions import ModelRateLimitError
+
+    artifact = _refusing_run(
+        RefusingChatModel(exc=ModelRateLimitError("429 RESOURCE_EXHAUSTED")), fixture_set
+    )
+    assert artifact.outcome is RunOutcome.failed_error
+    score = score_run(artifact, TRUTH)
+    assert score.refused is True and score.error_kind == "rate_limit"
+    assert score.model_turns == 0 and score.calls.total == 0
+    # It still scores nothing: the cell decides what it is a denominator of.
+    assert score.verdict_correct is False and score.findings_reached == 0
+
+
+def test_a_refusal_after_real_work_is_marked_with_the_turns_it_got(fixture_set):
+    from langchain_core.exceptions import ModelRateLimitError
+
+    def refuse(messages):
+        raise ModelRateLimitError("429 RESOURCE_EXHAUSTED")
+
+    artifact = run([INVESTIGATION, refuse], fixture_set)
+    assert artifact.outcome is RunOutcome.failed_error
+    score = score_run(artifact, TRUTH)
+    assert score.refused is True and score.error_kind == "rate_limit"
+    assert score.model_turns == 1 and score.calls.total == 3
+
+
+def test_a_correction_pass_the_provider_refused_is_a_refusal_whatever_the_outcome(
+    fixture_set,
+):
+    from langchain_core.exceptions import ModelRateLimitError
+
+    def refuse(messages):
+        raise ModelRateLimitError("429 RESOURCE_EXHAUSTED")
+
+    facts = [(PARIS, ["tc-signins"]), (AMSTERDAM, ["tc-nope"])]
+    artifact = run([INVESTIGATION, PROPOSAL, result_turn(facts), refuse], fixture_set)
+    assert artifact.outcome is RunOutcome.failed_ungrounded
+    score = score_run(artifact, TRUTH)
+    assert score.refused is True and score.error_kind == "rate_limit"
+    assert score.model_turns == 3 and score.ungrounded_facts == 1
+
+
+def test_the_score_refuses_a_refused_flag_that_disagrees_with_the_error_kind(fixture_set):
+    artifact = run([INVESTIGATION], fixture_set)
+    honest = score_run(artifact, TRUTH)
+    with pytest.raises(ValueError, match="refused"):
+        RunScore.model_validate({**honest.model_dump(), "refused": True})
+    with pytest.raises(ValueError, match="refused"):
+        RunScore.model_validate({**honest.model_dump(), "error_kind": "overloaded"})
 
 
 def test_a_failed_ungrounded_run_scores_zero_even_where_its_words_were_right(fixture_set):

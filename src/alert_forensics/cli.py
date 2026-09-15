@@ -59,24 +59,38 @@ class CliError(Exception):
     """A usage or configuration problem, reported on stderr before anything runs."""
 
 
-class _DropSchemaKeyNotice(logging.Filter):
-    """The Google client logs, per tool and twice, a JSON schema key it ignores. It is
-    the library's note to itself; a tool that opens with twenty-two lines of it reads as
-    broken."""
+_LIBRARY_NOTICES = (
+    "is not supported in schema",
+    "there are non-text parts in the response",
+    "automatic function calling (AFC)",
+)
+"""The Google client's notes to itself, by the substring that identifies each. The
+schema key it ignores, per tool and twice; the SDK's warning that a response holding
+function calls has non-text parts; and its advice against direct use of automatic
+function calling, which the LangChain integration does not use. None is a fault in the
+run, and a tool that opens with them reads as broken. Nothing else is filtered."""
 
+
+class _DropLibraryNotices(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        return "is not supported in schema" not in record.getMessage()
+        message = record.getMessage()
+        return not any(notice in message for notice in _LIBRARY_NOTICES)
 
 
-_SCHEMA_KEY_NOTICE = _DropSchemaKeyNotice()
-_NOISY_LOGGERS = ("langchain_google_genai", "langchain_google_genai._function_utils")
+_LIBRARY_NOTICE_FILTER = _DropLibraryNotices()
+_NOISY_LOGGERS = (
+    "langchain_google_genai",
+    "langchain_google_genai._function_utils",
+    "google_genai.types",
+    "google_genai.models",
+)
 
 
 def _silence_library_noise() -> None:
     """A filter sits on the logger that emits the record: a parent's filters do not see
     a child's records, so the module logger is named as well as the package."""
     for name in _NOISY_LOGGERS:
-        logging.getLogger(name).addFilter(_SCHEMA_KEY_NOTICE)
+        logging.getLogger(name).addFilter(_LIBRARY_NOTICE_FILTER)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -400,7 +414,9 @@ def _eval(args: argparse.Namespace) -> int:
         model_limits=limits,
         on_run=None if args.quiet else _run_progress,
     )
-    return _print_report(results_dir, scenarios)
+    # --scenario narrows what is run, never what is summarised: the summary reads the
+    # whole directory and needs a truth for every scenario it finds there.
+    return _print_report(results_dir, _load_scenarios(args.scenarios, None))
 
 
 def _eval_report(args: argparse.Namespace) -> int:
@@ -427,10 +443,11 @@ def _run_progress(measurement: RunMeasurement, score: RunScore) -> None:
     """One line per run, on stderr, so stdout stays the report alone."""
     verdict = score.verdict_observed.value if score.verdict_observed else "none"
     kind = f" ({score.error_kind})" if score.error_kind else ""
+    state = "refused" if score.refused else score.outcome.value
     calls = score.calls
     gaps = f", {calls.no_fixture} no_fixture" if calls.no_fixture else ""
     print(
-        f"  {measurement.scenario}  run {measurement.index}  {score.outcome.value}{kind}  "
+        f"  {measurement.scenario}  run {measurement.index}  {state}{kind}  "
         f"verdict: {verdict}  calls {calls.total}, {calls.ok} ok{gaps}  "
         f"{measurement.wall_clock_s:.2f} s",
         file=sys.stderr,
