@@ -1372,6 +1372,18 @@ could never be read clean. Decided:
   mismatch. The default `--results results/` is unchanged, and on this repository it is
   refused until the operator names another, which is the point: the choice to start a
   new campaign is made once, in the open, rather than never.
+- **The second campaign exists, under this rule.** `campaigns/02`, ignored by git as
+  `results/` is, run on 2026-09-15 from 13:52 UTC by `google_genai:gemini-3.5-flash-lite`
+  under `analyst`, three runs per cell, on fixture digest
+  `a1861664bc5a11db2c484b92c836c382de183157f8793b27ba8e8ad41788c84e`, the fixtures of
+  commit 34bc77c, unchanged from the campaign's first command to its last. It was made
+  in three passes: one over every scenario at `--runs 3`, then two catch-up passes with
+  `--scenario` on the cells short of three served runs, each invocation asking for that
+  cell's shortfall and no more, the invocations of a pass spaced a minute apart because
+  the free tier's quota is fifteen requests a minute and a back-to-back pass spends it
+  on its second run, and the passes at least ten minutes apart. `--timeout`,
+  `--max-retries` and `--max-corrections` stayed at their defaults. Its numbers are the
+  README's, not this document's.
 
 ### Statistics
 
