@@ -403,7 +403,11 @@ def test_the_cell_holds_served_plus_refused_to_its_runs_and_every_denominator_to
         CellSummary.model_validate({**payload, "error_kinds": {"rate_limit": 1}})
 
 
-def test_the_flash_lite_row_is_priced_from_the_pricing_page_not_from_memory():
+def test_the_flash_lite_row_cites_a_url_and_a_read_date_and_its_numbers_match_this_copy():
+    """A shape check on the citation, not a check against the page. The source names a
+    URL and a read date, and the numbers here agree with the numbers in the table; an
+    invented row with the URL attached passes it. The page itself is read by a person,
+    since the suite opens no socket."""
     price = PRICES["google_genai:gemini-3.5-flash-lite"]
     assert "ai.google.dev/gemini-api/docs/pricing" in price.source
     assert price.as_of == "2026-09-15" and "2026-09-15" in price.source
@@ -436,9 +440,13 @@ PRICED_ON = "2026-09-15"
         ("anthropic:claude-sonnet-5", ANTHROPIC_PRICING, (2.0, 10.0, 0.20, 2.50)),
     ],
 )
-def test_the_probed_models_are_priced_from_their_provider_pages_not_from_memory(
+def test_a_probed_row_cites_a_url_and_a_read_date_and_its_numbers_match_this_copy(
     model, page, expected
 ):
+    """A shape check on the citation, not a check against the page. The source names the
+    page and the read date, and the numbers here agree with the numbers in the table;
+    an invented row with the URL attached passes it. The page itself is read by a person,
+    since the suite opens no socket."""
     price = PRICES[model]
     assert page in price.source and PRICED_ON in price.source
     assert price.as_of == PRICED_ON
@@ -452,6 +460,14 @@ def test_the_probed_models_are_priced_from_their_provider_pages_not_from_memory(
     assert cost_usd(records) == pytest.approx(expected[0])
     cell = summarise([scored(0, score(), model=model)]).cells[0]
     assert cell.cost_note is None and cell.cost_usd is not None
+
+
+def test_an_openai_row_says_where_on_the_page_its_model_sits():
+    """The OpenAI pricing page shows a short lineup by default and lists gpt-5-nano and
+    gpt-5-mini only under the flagship table's "All models" expander, so a person who
+    opens the page finds the row only if the source says to expand it."""
+    for model in ("openai:gpt-5-nano", "openai:gpt-5-mini"):
+        assert "All models" in PRICES[model].source, model
 
 
 def test_no_price_row_is_sourced_from_a_cached_reference():

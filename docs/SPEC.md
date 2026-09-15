@@ -1502,8 +1502,31 @@ Both per investigation, and neither on the contracts.
     corrected here and the strategy is not chosen from the page: a strategy chosen from
     what the page says rather than what the profile says is the name fallback under
     another name, and the decision under "Model independence" stands.
-  - A test holds every priced row to a URL and a read date in its source and refuses a
-    source that names a cache in place of a page.
+  - **A price row names a model the page lists, and a person opens the page.** The
+    case, on 2026-09-15: the two OpenAI rows, `gpt-5-nano` and `gpt-5-mini`, committed
+    in 83f265d with the pricing page as provenance, in the same commit that re-sourced
+    three Anthropic rows for citing a cache and added a test named `not_from_memory`,
+    were challenged the same day as rows the page does not list, the challenge naming
+    the page's lineup as gpt-6-astra, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna,
+    gpt-5.6-cyber, chat-latest, gpt-5.3-codex, gpt-rosalind-research and
+    o4-mini-2025-04-16. The page, opened in a browser by the session that took the
+    challenge, shows exactly that lineup in its default view, and lists both rows'
+    models at the rows' numbers under the flagship table's "All models" expander, with
+    gpt-5.4-nano, gpt-4.1-nano, gpt-4o-mini and the rest of the earlier catalogue. The
+    expanded table has no cache-write column at all, where 83f265d's source spoke of a
+    dash. Whether the rows were read from that expanded table or written from memory
+    and given the URL afterwards cannot be told from the tree: the numbers match the
+    page, and the source named nothing a reader of the default view could find. The
+    session that had to decide says so rather than picking the reading that clears
+    either side, and the rows stand, since the page lists them at their numbers. The
+    rule the case leaves: a price row names a model the page lists; a person opens the
+    page and reads the row from it, since the suite opens no socket; a row whose model
+    is not in the page's default view says where on the page it sits, and the two
+    OpenAI sources now do; and the test on the rows is a shape check on the citation,
+    named as one. It holds every priced row to a URL and a read date in its source,
+    refuses a source that names a cache in place of a page, and checks that the numbers
+    the test carries agree with the numbers the table carries. An invented row with a
+    URL attached passes it, which is why its name no longer says "not from memory".
 - **Latency** is the wall clock the harness measured around the investigation, recorded
   in the harness's own per-run file. It is not on the artifact, because a `triage` run
   answers the proposal interrupt on a terminal and its wall clock would include the

@@ -57,11 +57,12 @@ def _anthropic(input_per_mtok: float, output_per_mtok: float, cache_write_5m: fl
 
 
 def _openai(input_per_mtok: float, cached_input_per_mtok: float, output_per_mtok: float) -> Price:
-    """A row from the OpenAI pricing page, standard tier. The cache-write column reads a
-    dash for these models: the prompt-caching guide bills writes only from GPT-5.6 on and
-    says there is no additional cache-write charge before it, so writes are priced at
-    zero. Caching is automatic on that API and the client reports cached tokens as
-    ``cache_read``; output includes reasoning tokens."""
+    """A row from the OpenAI pricing page, standard tier. The page's default view shows
+    the current lineup; these models are listed under the flagship table's "All models"
+    expander, in a table with no cache-write column. The prompt-caching guide bills
+    writes only from GPT-5.6 on and says there is no additional cache-write charge
+    before it, so writes are priced at zero. Caching is automatic on that API and the
+    client reports cached tokens as ``cache_read``; output includes reasoning tokens."""
     return Price(
         input_per_mtok=input_per_mtok,
         output_per_mtok=output_per_mtok,
@@ -69,11 +70,12 @@ def _openai(input_per_mtok: float, cached_input_per_mtok: float, output_per_mtok
         cache_write_per_mtok=0.0,
         source=(
             f"OpenAI pricing page, {_OPENAI_PRICING}, standard tier, read {PRICED_ON}; the "
-            "page carries no date; input, cached input and output as printed; the cache-write "
-            "column is a dash for this model and the prompt-caching guide says there is no "
-            "additional cache-write charge before GPT-5.6, so writes are priced at zero; "
-            "output includes reasoning tokens; flex and batch tiers are cheaper and are not "
-            "the tier the harness calls"
+            "page carries no date; the model is not in the page's default view and sits "
+            "under the flagship table's All models expander; input, cached input and output "
+            "as printed there; that table has no cache-write column and the prompt-caching "
+            "guide says there is no additional cache-write charge before GPT-5.6, so writes "
+            "are priced at zero; output includes reasoning tokens; flex and batch tiers are "
+            "cheaper and are not the tier the harness calls"
         ),
         as_of=PRICED_ON,
     )
