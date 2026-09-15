@@ -419,3 +419,44 @@ def test_the_flash_lite_row_is_priced_from_the_pricing_page_not_from_memory():
     assert cost_usd(records) == pytest.approx(0.30)
     cell = summarise([scored(0, score(), model="google_genai:gemini-3.5-flash-lite")]).cells[0]
     assert cell.cost_note is None and cell.cost_usd is not None
+
+
+OPENAI_PRICING = "developers.openai.com/api/docs/pricing"
+ANTHROPIC_PRICING = "platform.claude.com/docs/en/about-claude/pricing"
+PRICED_ON = "2026-09-15"
+
+
+@pytest.mark.parametrize(
+    ("model", "page", "expected"),
+    [
+        # (input, output, cache read, cache write) per million, as read from the page.
+        ("openai:gpt-5-nano", OPENAI_PRICING, (0.05, 0.40, 0.005, 0.0)),
+        ("openai:gpt-5-mini", OPENAI_PRICING, (0.25, 2.00, 0.025, 0.0)),
+        ("anthropic:claude-haiku-4-5", ANTHROPIC_PRICING, (1.0, 5.0, 0.10, 1.25)),
+        ("anthropic:claude-sonnet-5", ANTHROPIC_PRICING, (2.0, 10.0, 0.20, 2.50)),
+    ],
+)
+def test_the_probed_models_are_priced_from_their_provider_pages_not_from_memory(
+    model, page, expected
+):
+    price = PRICES[model]
+    assert page in price.source and PRICED_ON in price.source
+    assert price.as_of == PRICED_ON
+    assert (
+        price.input_per_mtok,
+        price.output_per_mtok,
+        price.cache_read_per_mtok,
+        price.cache_write_per_mtok,
+    ) == expected
+    records = usage(model, n=1, input_tokens=1_000_000, output_tokens=0)
+    assert cost_usd(records) == pytest.approx(expected[0])
+    cell = summarise([scored(0, score(), model=model)]).cells[0]
+    assert cell.cost_note is None and cell.cost_usd is not None
+
+
+def test_no_price_row_is_sourced_from_a_cached_reference():
+    for model, price in PRICES.items():
+        if model.startswith("scripted:"):
+            continue
+        assert "cached" not in price.source.split("read")[0], model
+        assert "https://" in price.source, model
