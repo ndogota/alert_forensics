@@ -474,11 +474,14 @@ def _show(args: argparse.Namespace) -> int:
 
 def _replay(args: argparse.Namespace) -> int:
     """A recording is replayed only after its raw store verifies against the recorded
-    hashes: a tampered artifact is detected, not printed as if it were the run."""
+    hashes: a tampered artifact is detected, not printed as if it were the run. A run
+    in which the model called no tool refers to no raw response, so there is nothing
+    to verify and no directory for it; the store is required only when a reference
+    must resolve."""
     path: Path = args.run
     artifact = _load_artifact(path)
     raw_dir = path.parent / artifact.raw_store
-    if not raw_dir.is_dir():
+    if artifact.trace.records and not raw_dir.is_dir():
         raise CliError(f"the raw store {raw_dir} is missing; the recording cannot be verified")
     store = DirectoryRawStore(raw_dir)
     for record in artifact.trace.records:
@@ -492,7 +495,10 @@ def _replay(args: argparse.Namespace) -> int:
     print(f"Recording of a run by {artifact.model} on {date}.")
     if artifact.model.startswith(SCRIPTED_MODEL_ID.split(":")[0] + ":"):
         print("This run used the scripted client: it is a plumbing check, not a model run.")
-    print(f"{len(artifact.trace.records)} raw responses verified against the recorded hashes.")
+    if artifact.trace.records:
+        print(f"{len(artifact.trace.records)} raw responses verified against the recorded hashes.")
+    else:
+        print("The model made no tool call: there is no raw response to verify.")
     print()
     print(render(artifact))
     return EXIT_OK

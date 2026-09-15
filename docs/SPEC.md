@@ -535,8 +535,9 @@ Decisions the pipeline rests on:
   every committed recording to every stub that does not serve that recording's
   scenario, as the request was sent, through the same matcher the adapter uses; a
   stub that would answer is a collision, named with the recording it came from. The
-  corpus was one run when this was written and is ten recordings across six scenarios
-  as of 2026-09-15; it grows with every recording, which is the point: a
+  corpus was one run when this was written and is twelve recordings across eight
+  scenarios as of 2026-09-15, one of them holding no request at all; it grows with
+  every recording, which is the point: a
   scenario is checked against the questions real models asked about every other one,
   and a stub that widens later is checked against every question already on file. A
   recording whose directory names no scenario present cannot be attributed and fails
@@ -940,22 +941,44 @@ alert-forensics eval-report results/
   recording holding `run.json` and `run.raw/`, and each is a recording of a real model
   run, never of the scripted client: a recording of the scripted client would be a
   fake demo, which is worse than none. A test refuses a committed recording whose model
-  is the scripted client, and one that holds no tool call.
+  is the scripted client, and one the provider served no model turn of.
+- **A recording is a served run, and a served run may hold no tool call.** The test
+  used to refuse a recording that held no tool call, as a proxy for a run the provider
+  refused before any turn, which holds nothing to replay. Scenario 7's real run showed
+  the proxy wrong: the provider served it two model turns, and the model chose to call
+  nothing and answer from the alert. That decision is the run, and for scenario 7 it is
+  the trap closing, so a contract that could not hold it would refuse the one recording
+  the scenario exists to show. Decided: what separates a recording from a refusal is
+  the model turn, not the tool call. A run refused before any turn holds no usage, no
+  request and no reading, and is not a recording; a served run holds at least the usage
+  of the turn that answered, and what the model did with it is what the recording
+  shows, whether that is nine calls or none. Such a recording has no raw store: the
+  trace refers to nothing, the harness wrote no file, and git keeps no empty directory,
+  so `run.raw/` is absent beside it. `replay` verifies every raw response the trace
+  refers to, which for such a run is none, and requires the store directory only when
+  there is a reference to resolve; a recording with references and no directory is
+  still refused, as before. It says on its first lines that the model made no tool
+  call, so the absence reads as the run's and not as a missing file. The recording
+  probe reads it and finds no request, which is the truth of it. The first such
+  recording is `runs/rmm_block/campaign-0/`, and scenario 7's section cites it.
 - **Which runs are committed is a rule, not a choice.** A recording belongs under
   `runs/` when a decision in this document cites it, or when it is the scenario's
-  demonstration run: the first completed run of the first real campaign on the
-  scenario, in index order, whatever it scored. The results directory is not committed,
-  so a run this document cites must be under `runs/` to be replayable by a reader, and
-  the demonstration run is chosen by rule so that it is not the best one. A run the
-  provider refused before any turn holds no request and no reading and is not a
-  recording. The first recording, made before the `no_fixture` rule, the whole-word
-  tokens and the label binding, stays as `runs/atypical_travel/defaults-2026-09-14/`:
-  it is the run that found the default defect, and scenario 1's section cites it. Ten
-  recordings across six scenarios are committed as of 2026-09-15, each listed in
-  `runs/README.md` with its model, its date, the campaign index it was copied from and
-  what it shows; the ones with `campaign-` in the name are copies of run directories
-  of the 2026-09-15 campaign, artifact and raw store unchanged. `eval` and `eval-report` are described under
-  "Evaluation"; the viewer over the same artifacts is the next slice.
+  demonstration run: the first completed real run on the scenario in the order the
+  runs were made, the gate run of "One real run before a cell is paid for" included,
+  whatever it scored. The results directory is not committed, so a run this document
+  cites must be under `runs/` to be replayable by a reader, and the demonstration run
+  is chosen by rule so that it is not the best one. A run the provider refused before
+  any turn holds no request and no reading and is not a recording; a served run that
+  made no tool call is one, see above. The first recording, made before the
+  `no_fixture` rule, the whole-word tokens and the label binding, stays as
+  `runs/atypical_travel/defaults-2026-09-14/`: it is the run that found the default
+  defect, and scenario 1's section cites it. Twelve recordings across eight scenarios
+  are committed as of 2026-09-15, each listed in `runs/README.md` with its model, its
+  date, the run index it was copied from and what it shows; the ones with `campaign-`
+  in the name are copies of run directories of the results directory of 2026-09-15,
+  artifact and raw store unchanged, and for scenarios 7 and 8 that run directory is
+  the gate run, the only real run each has had. `eval` and `eval-report` are described
+  under "Evaluation"; the viewer over the same artifacts is the next slice.
 - The model is chosen with `--model provider:name` through `init_chat_model`, so any
   provider works, and so does a local model through Ollama.
 - `--timeout SECONDS` (default 60) and `--max-retries N` (default 1) bound every model
@@ -1971,7 +1994,8 @@ technique the investigation resolves, already in the packaged excerpt, so
   rule is that a scenario is not measured until a real model has asked it questions
   once and the author has read them; this one asked none, so no stub of this scenario
   has met a model's question yet, and no cell is paid for until a real run has asked
-  at least one. The recording is committed because this section cites it.
+  at least one. The recording is committed because this section cites it, under the
+  contract in "Using it" for a served run that holds no tool call.
 
 ### Scenario 8, the reverse trap: 6.2 GB to personal cloud storage by a leaver
 

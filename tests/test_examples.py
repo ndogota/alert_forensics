@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from alert_forensics.artifact import RunArtifact
 from alert_forensics.cli import default_adapters
 from alert_forensics.contracts import Alert, ToolOutcome
 from alert_forensics.evaluation import fixture_collisions, load_scenarios, stale_labels
@@ -156,10 +157,16 @@ def test_a_collision_from_the_alert_is_labelled_as_such(tmp_path):
 
 def test_recorded_requests_are_every_request_of_every_committed_recording():
     assert RECORDINGS, "the corpus must not be empty"
-    assert {r.scenario for r in RECORDINGS} == {
-        p.parent.parent.name for p in RUNS.glob("*/*/run.json")
-    }
-    assert {r.recording for r in RECORDINGS} == {str(p) for p in RUNS.glob("*/*/run.json")}
+    # A served run that called no tool is a recording and contributes no request, which
+    # is the truth of it; every recording that holds a request is in the corpus.
+    with_requests = [
+        p
+        for p in RUNS.glob("*/*/run.json")
+        if RunArtifact.model_validate_json(p.read_text()).trace.records
+    ]
+    assert {r.scenario for r in RECORDINGS} == {p.parent.parent.name for p in with_requests}
+    assert {r.recording for r in RECORDINGS} == {str(p) for p in with_requests}
+    assert len(with_requests) == len(list(RUNS.glob("*/*/run.json"))) - 1
     travel = [r for r in RECORDINGS if "defaults-2026-09-14" in r.recording]
     assert [r.tool for r in travel] == [
         "search_events",

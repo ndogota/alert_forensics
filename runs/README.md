@@ -7,14 +7,18 @@ store and prints the run.
 
 Every recording here is a real model run. The artifact states the model (`model`) and
 the date (`trace.started_at`). The test suite refuses a recording made with the scripted
-client, and one that holds no tool call. Which runs are committed is a rule, stated in
+client, and one the provider served no model turn of. A served run in which the model
+called no tool is a recording: it refers to no raw response, so no `run.raw/` sits
+beside it, and `replay` says so. Which runs are committed is a rule, stated in
 `docs/SPEC.md` under "Using it": a run the spec cites, or the scenario's demonstration
-run, the first completed run of the first real campaign on the scenario in index order.
-A recording named `campaign-<k>` is the run directory `<k>` of the campaign of
-2026-09-15 under `results/google_genai-gemini-3.5-flash-lite/analyst/<scenario>/`,
-artifact and raw store copied unchanged; the results directory itself is not committed.
+run, the first completed real run on the scenario in the order the runs were made.
+A recording named `campaign-<k>` is the run directory `<k>` of 2026-09-15 under
+`results/google_genai-gemini-3.5-flash-lite/analyst/<scenario>/`, artifact and raw
+store copied unchanged; the results directory itself is not committed. For scenarios 7
+and 8 that run directory is the gate run of "One real run before a cell is paid for",
+the only real run each has had.
 
-All ten are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role.
+All twelve are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` role.
 
 - `runs/atypical_travel/defaults-2026-09-14/`: the first recording, 2026-09-14, made
   before the `no_fixture` rule, the whole-word tokens and the label binding. Completed,
@@ -24,6 +28,12 @@ All ten are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` rol
 - `runs/atypical_travel/campaign-0/`: the demonstration run, 2026-09-15. Completed,
   verdict right, evidence recall 1 of 3: one fact for both sign-ins, naming neither
   city.
+- `runs/cloud_upload/campaign-0/`: the demonstration run, and the gate run, 12:26 UTC.
+  Completed, verdict `benign_true_positive` against `false_positive`, evidence recall
+  0 of 5, missing context 0 of 2. Three tool calls: one hunting query for dlarsen's
+  cloud-app events, answered; the ATT&CK lookup; the proposal. It never queried the
+  SIEM, the identity or the runbook, so four of the five findings rested on readings it
+  never asked for.
 - `runs/encoded_powershell/campaign-3/`: the demonstration run. Completed, verdict
   right, evidence recall 2 of 4, two tool calls.
 - `runs/forwarding_rule/campaign-3/`: the demonstration run. Completed, verdict right,
@@ -48,6 +58,11 @@ All ten are runs of `google_genai:gemini-3.5-flash-lite` under the `analyst` rol
 - `runs/password_spray/campaign-5/`: cited for the address pivot. Completed, verdict
   right, evidence recall 1 of 4. Asked the hunting API twice what `192.0.2.44` had done
   and was refused both times.
+- `runs/rmm_block/campaign-0/`: cited for the silence rule and for the gate, 12:25
+  UTC. `failed_ungrounded` in 2.35 seconds with zero tool calls: the model read the
+  alert, asked nothing, and asserted `benign_true_positive` at confidence 0.8 with no
+  observed fact. There is no `run.raw/`: the trace refers to nothing. It is the trap
+  the scenario is written for, closed in seconds rather than ninety.
 
 The gaps named above are closed since 2026-09-15 and each refused request is replayed
 from the recording in `tests/test_fixtures.py`, so the check cannot drift from the run.

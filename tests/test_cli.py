@@ -156,6 +156,64 @@ def test_replay_of_a_missing_raw_store_says_so(alert_file, tmp_path, capsys):
     assert "raw store" in capsys.readouterr().err
 
 
+def test_replay_of_a_run_that_made_no_tool_call_needs_no_raw_store(trace, tmp_path, capsys):
+    """A served run in which the model asked nothing refers to no raw response, so there
+    is nothing to verify and no directory for it: the harness wrote none and git keeps
+    no empty directory. Replay says so rather than refusing."""
+    from alert_forensics.contracts import MissingContext, TriageResult, Verdict
+    from alert_forensics.grounding import validate_grounding
+
+    silent = trace.model_copy(update={"records": []})
+    result = TriageResult(
+        verdict=Verdict.inconclusive,
+        confidence=0.2,
+        mitre_techniques=[],
+        observed_facts=[],
+        assumptions=[],
+        missing_context=[
+            MissingContext(
+                what="Any reading at all",
+                why_it_matters="Nothing was asked of any system.",
+                how_to_obtain="Query the hunting API and the SIEM.",
+            )
+        ],
+        recommended_action="Investigate before deciding.",
+        escalate=False,
+    )
+    report = validate_grounding(result, silent)
+    assert report.is_grounded
+    artifact = RunArtifact.model_validate(
+        {
+            "investigation_id": silent.investigation_id,
+            "outcome": "completed",
+            "model": "google_genai:gemini-x",
+            "model_limits": {"timeout_s": 60, "max_retries": 1},
+            "output_binding": {
+                "strategy": "tool",
+                "profile_declared": True,
+                "structured_output": False,
+            },
+            "role": "analyst",
+            "adapters": {"search_events": "fixture"},
+            "fixture_labels": ["rmm_block", "shared"],
+            "trace": silent,
+            "report": report,
+            "passes": 1,
+            "corrections": [],
+            "decisions": [],
+            "error": None,
+            "raw_store": "run.raw",
+        }
+    )
+    out = tmp_path / "run.json"
+    out.write_text(artifact.model_dump_json(indent=2))
+    assert not (tmp_path / "run.raw").exists()
+    assert main(["replay", str(out)]) == 0
+    text = capsys.readouterr().out
+    assert "google_genai:gemini-x" in text and "no tool call" in text
+    assert "Tool calls: 0" in text
+
+
 # --- Bounded model calls, progress on stderr, provider refusals ----------------------
 
 

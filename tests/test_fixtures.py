@@ -1407,3 +1407,20 @@ def test_stub_counts_per_label_are_what_the_spec_says(fixture_set):
         "cloud_upload": 13,
         "shared": 6,
     }
+
+
+def test_scenario_8_answers_the_one_question_its_real_run_asked(fixture_set):
+    """The gate run asked the hunting API for dlarsen's CloudAppEvents and nothing else
+    of any fixture; the question hit, and still hits when replayed from the recording,
+    so the check cannot drift from the run."""
+    upload = bound_runner(fixture_set, {"cloud_upload"}, "inv-upload-replay")
+    replayed = replay(
+        upload,
+        "runs/cloud_upload/campaign-0/run.json",
+        {"search_events", "search_siem", "get_identity", "search_runbook", "get_asset"},
+    )
+    assert [record.tool_name for _, record in replayed] == ["search_events"]
+    ((arguments, record),) = replayed
+    assert "dlarsen" in arguments["query"] and "CloudAppEvents" in arguments["query"]
+    assert record.outcome is ToolOutcome.ok
+    assert record.redacted_response["row_count"] >= 1

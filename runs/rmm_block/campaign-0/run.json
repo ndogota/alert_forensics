@@ -1,0 +1,247 @@
+{
+  "investigation_id": "inv-8680f743e930",
+  "outcome": "failed_ungrounded",
+  "model": "google_genai:gemini-3.5-flash-lite",
+  "model_limits": {
+    "timeout_s": 60.0,
+    "max_retries": 6
+  },
+  "output_binding": {
+    "strategy": "provider",
+    "profile_declared": true,
+    "structured_output": true
+  },
+  "role": "analyst",
+  "adapters": {
+    "search_events": "fixture",
+    "search_siem": "fixture",
+    "get_identity": "fixture",
+    "get_asset": "fixture",
+    "lookup_ioc": "fixture",
+    "get_related_alerts": "fixture",
+    "get_process_tree": "fixture",
+    "search_runbook": "fixture",
+    "get_attack_technique": "live",
+    "propose_alert_disposition": "local"
+  },
+  "fixture_labels": [
+    "rmm_block",
+    "shared"
+  ],
+  "trace": {
+    "investigation_id": "inv-8680f743e930",
+    "alert": {
+      "id": "da637551384455667788_-1188736705",
+      "title": "Remote management tool blocked on endpoint",
+      "description": "Microsoft Defender Antivirus blocked RemoteSupport.Agent.exe, a remote management and monitoring agent classified as a potentially unwanted application, on ws-fin-0042. The agent was launched from the user's local application data folder by RemoteSupport.ClientSetup.exe running as pnovak. The binary is signed by RemoteSupport Software Ltd.",
+      "severity": "medium",
+      "status": "new",
+      "category": "CommandAndControl",
+      "createdDateTime": "2026-09-14T08:47:31.400000Z",
+      "lastUpdateDateTime": "2026-09-14T08:48:02Z",
+      "detectionSource": "microsoftDefenderForEndpoint",
+      "serviceSource": "microsoftDefenderForEndpoint",
+      "providerAlertId": "e7a24c19",
+      "tenantId": "b3c1c5fc-1f6e-4a2c-9b6a-2c0d8c0f4a11",
+      "incidentId": "79",
+      "mitreTechniques": [
+        "T1219"
+      ],
+      "evidence": [
+        {
+          "@odata.type": "#microsoft.graph.security.deviceEvidence",
+          "createdDateTime": "2026-09-14T08:47:31.400000Z",
+          "verdict": "unknown",
+          "roles": [
+            "contextual"
+          ],
+          "deviceDnsName": "ws-fin-0042.contoso.com",
+          "mdeDeviceId": "0b7d3e9a2c5f4816a9e3d1c7b5f2a8e4c6d0b3a1",
+          "osPlatform": "Windows11",
+          "healthStatus": "active",
+          "riskScore": "medium",
+          "rbacGroupName": "Finance workstations"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.userEvidence",
+          "createdDateTime": "2026-09-14T08:47:31.400000Z",
+          "verdict": "unknown",
+          "roles": [],
+          "userAccount": {
+            "accountName": "pnovak",
+            "domainName": "CONTOSO",
+            "userPrincipalName": "pnovak@contoso.com",
+            "azureAdUserId": "5e8d1c3a-7b2f-4a9e-8c6d-1f0b3a5e7c91"
+          }
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.processEvidence",
+          "createdDateTime": "2026-09-14T08:47:31.400000Z",
+          "verdict": "suspicious",
+          "roles": [],
+          "processId": 5088,
+          "parentProcessId": 4530,
+          "processCommandLine": "RemoteSupport.Agent.exe --relay relay.example.net --unattended",
+          "processCreationDateTime": "2026-09-14T08:47:16Z",
+          "parentProcessCreationDateTime": "2026-09-14T08:41:15Z",
+          "imageFile": {
+            "fileName": "RemoteSupport.Agent.exe",
+            "filePath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+            "fileSize": 8421376,
+            "filePublisher": "RemoteSupport Software Ltd",
+            "sha256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "issuer": "Example Code Signing CA G2",
+            "signer": "RemoteSupport Software Ltd"
+          },
+          "parentProcessImageFile": {
+            "fileName": "RemoteSupport.ClientSetup.exe",
+            "filePath": "C:\\Users\\pnovak\\AppData\\Local\\Temp",
+            "fileSize": 23068672,
+            "filePublisher": "RemoteSupport Software Ltd",
+            "sha256": "3f5a9c1e7b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f1a3c5e7b9d1f3a",
+            "issuer": "Example Code Signing CA G2",
+            "signer": "RemoteSupport Software Ltd"
+          },
+          "userAccount": {
+            "accountName": "pnovak",
+            "domainName": "CONTOSO",
+            "userSid": "S-1-5-21-1004336348-1177238915-682003330-5102"
+          },
+          "detectionStatus": "prevented"
+        },
+        {
+          "@odata.type": "#microsoft.graph.security.fileEvidence",
+          "createdDateTime": "2026-09-14T08:47:31.400000Z",
+          "verdict": "suspicious",
+          "roles": [],
+          "fileDetails": {
+            "fileName": "RemoteSupport.Agent.exe",
+            "filePath": "C:\\Users\\pnovak\\AppData\\Local\\RemoteSupport",
+            "fileSize": 8421376,
+            "filePublisher": "RemoteSupport Software Ltd",
+            "sha1": "7e2c9b4a1d6f8e0c3a5b7d9f1e3c5a7b9d1f3e5c",
+            "sha256": "a7c3e9f1b5d2486a0c4e8f2b6d1a3c5e7f9b0d2a4c6e8f1b3d5a7c9e0f2b4d6a",
+            "issuer": "Example Code Signing CA G2",
+            "signer": "RemoteSupport Software Ltd"
+          },
+          "detectionStatus": "prevented"
+        }
+      ]
+    },
+    "started_at": "2026-09-15T12:25:35.145081Z",
+    "records": [],
+    "usage": [
+      {
+        "step": 0,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 3039,
+        "output_tokens": 264,
+        "total_tokens": 3303,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      },
+      {
+        "step": 1,
+        "model": "google_genai:gemini-3.5-flash-lite",
+        "input_tokens": 129,
+        "output_tokens": 6,
+        "total_tokens": 135,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 0
+        }
+      }
+    ]
+  },
+  "report": {
+    "result": {
+      "verdict": "benign_true_positive",
+      "confidence": 0.8,
+      "mitre_techniques": [
+        "T1219"
+      ],
+      "observed_facts": [],
+      "assumptions": [
+        {
+          "statement": "The user pnovak executed the remote support setup tool for legitimate administrative or support purposes.",
+          "why_unverified": "No tool was called to interview the user or confirm IT support ticket context."
+        }
+      ],
+      "missing_context": [
+        {
+          "what": "Helpdesk ticket or IT change request corresponding to RemoteSupport installation",
+          "why_it_matters": "Distinguishes authorized remote assistance from unauthorized shadow IT or potential risk.",
+          "how_to_obtain": "Check ServiceNow or IT service management systems for tickets associated with user pnovak or device ws-fin-0042."
+        }
+      ],
+      "recommended_action": "Verify with user pnovak if remote support software was installed intentionally for an active IT support session. If unauthorized, ensure binaries are removed and review software policy.",
+      "escalate": false
+    },
+    "facts": [],
+    "total_facts": 0,
+    "grounded_count": 0,
+    "ungrounded_count": 0,
+    "no_facts": true,
+    "ungrounded_claim_rate": 1.0,
+    "is_grounded": false
+  },
+  "passes": 2,
+  "corrections": [
+    {
+      "instruction": {
+        "offending": [],
+        "present_calls": []
+      },
+      "repairs": {
+        "repairs": []
+      },
+      "report_before": {
+        "result": {
+          "verdict": "benign_true_positive",
+          "confidence": 0.8,
+          "mitre_techniques": [
+            "T1219"
+          ],
+          "observed_facts": [],
+          "assumptions": [
+            {
+              "statement": "The user pnovak executed the remote support setup tool for legitimate administrative or support purposes.",
+              "why_unverified": "No tool was called to interview the user or confirm IT support ticket context."
+            }
+          ],
+          "missing_context": [
+            {
+              "what": "Helpdesk ticket or IT change request corresponding to RemoteSupport installation",
+              "why_it_matters": "Distinguishes authorized remote assistance from unauthorized shadow IT or potential risk.",
+              "how_to_obtain": "Check ServiceNow or IT service management systems for tickets associated with user pnovak or device ws-fin-0042."
+            }
+          ],
+          "recommended_action": "Verify with user pnovak if remote support software was installed intentionally for an active IT support session. If unauthorized, ensure binaries are removed and review software policy.",
+          "escalate": false
+        },
+        "facts": [],
+        "total_facts": 0,
+        "grounded_count": 0,
+        "ungrounded_count": 0,
+        "no_facts": true,
+        "ungrounded_claim_rate": 1.0,
+        "is_grounded": false
+      }
+    }
+  ],
+  "decisions": [],
+  "error": null,
+  "raw_store": "run.raw"
+}

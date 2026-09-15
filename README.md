@@ -84,7 +84,8 @@ the recorded hashes, states the model and the date, and prints the result: verdi
 grounded facts with their citations, assumptions, missing context, human decisions.
 What it prints is a recording of a real model run, not a live one: nothing is called,
 nothing is generated. The recordings under `runs/<scenario>/<recording>/` are real
-model runs, ten across six scenarios, each listed in `runs/README.md` with what it shows;
+model runs, twelve across eight scenarios, each listed in `runs/README.md` with what it
+shows;
 which runs are committed is a rule in the spec, not a choice. A recording of the
 scripted client is refused by the test suite: a fake demo is worse than none.
 

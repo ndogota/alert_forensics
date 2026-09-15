@@ -1,0 +1,308 @@
+{
+ "results": [
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4471.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 3145728,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4471.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4471.jpg"
+   },
+   "ReportId": 93000,
+   "Timestamp": "2026-09-14T09:12:03.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4472.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 2998272,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4472.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4472.jpg"
+   },
+   "ReportId": 93001,
+   "Timestamp": "2026-09-14T09:12:05.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/heic",
+     "Name": "IMG_4473.HEIC",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 2411520,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4473.HEIC",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4473.HEIC"
+   },
+   "ReportId": 93002,
+   "Timestamp": "2026-09-14T09:12:08.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/heic",
+     "Name": "IMG_4474.HEIC",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 2506752,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4474.HEIC",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4474.HEIC"
+   },
+   "ReportId": 93003,
+   "Timestamp": "2026-09-14T09:12:11.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4475.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 3276800,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4475.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4475.jpg"
+   },
+   "ReportId": 93004,
+   "Timestamp": "2026-09-14T09:12:14.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "video/quicktime",
+     "Name": "IMG_4476.MOV",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 48234496,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4476.MOV",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4476.MOV"
+   },
+   "ReportId": 93005,
+   "Timestamp": "2026-09-14T09:12:19.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4477.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 3014656,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4477.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4477.jpg"
+   },
+   "ReportId": 93006,
+   "Timestamp": "2026-09-14T09:12:31.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4478.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 2883584,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4478.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4478.jpg"
+   },
+   "ReportId": 93007,
+   "Timestamp": "2026-09-14T09:12:34.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/heic",
+     "Name": "IMG_4479.HEIC",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 2359296,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4479.HEIC",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4479.HEIC"
+   },
+   "ReportId": 93008,
+   "Timestamp": "2026-09-14T09:12:37.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  },
+  {
+   "AccountObjectId": "9b4e2f7c-3d1a-4c8e-b6f0-2a5d7e9c1b34",
+   "AccountUpn": "dlarsen@contoso.com",
+   "ActionType": "FileUploaded",
+   "ActivityObjects": [
+    {
+     "ContentType": "image/jpeg",
+     "Name": "IMG_4480.jpg",
+     "Type": "File"
+    }
+   ],
+   "Application": "PhotoDrive",
+   "FileSize": 3080192,
+   "IPAddress": "10.20.61.117",
+   "ObjectName": "IMG_4480.jpg",
+   "ObjectType": "File",
+   "RawEventData": {
+    "ClientIP": "10.20.61.117",
+    "Operation": "FileUploaded",
+    "SourcePath": "C:\\Users\\dlarsen\\Pictures\\Camera Roll\\IMG_4480.jpg"
+   },
+   "ReportId": 93009,
+   "Timestamp": "2026-09-14T09:12:40.000Z",
+   "UrlDomain": "upload.photodrive.example"
+  }
+ ],
+ "schema": [
+  {
+   "name": "Timestamp",
+   "type": "DateTime"
+  },
+  {
+   "name": "ActionType",
+   "type": "String"
+  },
+  {
+   "name": "Application",
+   "type": "String"
+  },
+  {
+   "name": "AccountUpn",
+   "type": "String"
+  },
+  {
+   "name": "AccountObjectId",
+   "type": "String"
+  },
+  {
+   "name": "IPAddress",
+   "type": "String"
+  },
+  {
+   "name": "ObjectName",
+   "type": "String"
+  },
+  {
+   "name": "ObjectType",
+   "type": "String"
+  },
+  {
+   "name": "FileSize",
+   "type": "Int64"
+  },
+  {
+   "name": "UrlDomain",
+   "type": "String"
+  },
+  {
+   "name": "ActivityObjects",
+   "type": "Dynamic"
+  },
+  {
+   "name": "ReportId",
+   "type": "Int64"
+  },
+  {
+   "name": "RawEventData",
+   "type": "Dynamic"
+  }
+ ]
+}
