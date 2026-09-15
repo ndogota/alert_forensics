@@ -1452,6 +1452,58 @@ Both per investigation, and neither on the contracts.
   The campaign ran on the free tier, which bills nothing. The cost it reports is what
   the same tokens would cost on a billed account, which is the number a comparison
   matrix needs; the free tier is a property of the account, not of the model.
+- **The two other providers are priced from their pages, on 2026-09-15, before any
+  matrix is paid for.** "Cost discipline" says one cell is measured on real usage and
+  the full cost extrapolated before the comparison matrix, and the price table is where
+  the extrapolation gets its rates. Three Anthropic rows sat in the table priced "as
+  cached in the claude-api reference on 2026-06-24", which is a price from memory under
+  another name: a cached table is not the provider's page, and a row that names no URL
+  cannot be checked. They are replaced. Decided:
+  - The chosen tier per provider is the cheapest on the provider's pricing page that
+    supports tool calling and structured output, and the next tier up is priced beside
+    it so the matrix can be costed at both. OpenAI: `gpt-5-nano`, then `gpt-5-mini`;
+    each model's page lists `function_calling` and `structured_outputs`. Anthropic:
+    Claude Haiku 4.5, then Claude Sonnet 5; the structured-outputs page lists both, and
+    the models page says every current model supports tool use.
+  - OpenAI rows, from `https://developers.openai.com/api/docs/pricing`, standard tier,
+    read 2026-09-15; the page carries no date. `gpt-5-nano`: 0.05 input, 0.005 cached
+    input, 0.40 output. `gpt-5-mini`: 0.25, 0.025, 2.00. The cache-write column reads a
+    dash for both: the prompt-caching guide bills cache writes only from GPT-5.6 on and
+    says "no additional cache-write charge" for earlier models, so the rows price cache
+    writes at zero and the source says why. Caching is automatic on that API; the client
+    reports cached tokens as `cache_read`, and `cache_creation` only when a response
+    carries `cache_write_tokens`, which these models' responses do not. Output includes
+    reasoning tokens, as on Gemini. The flex and batch tiers are cheaper and are not the
+    tier the harness calls.
+  - Anthropic rows, from `https://platform.claude.com/docs/en/about-claude/pricing`,
+    read 2026-09-15; the page carries no date. Haiku 4.5: 1 input, 1.25 five-minute
+    cache write, 2 one-hour cache write, 0.10 cache read, 5 output. Sonnet 5: 2, 2.50,
+    4, 0.20, 10. Opus 5 stays in the table, re-sourced from the same page: 5, 6.25, 10,
+    0.50, 25. Each row prices cache writes at the five-minute rate, the default TTL,
+    and a one-hour write is under-priced by the row, said so in the source. What the
+    client does with a write, read in `langchain-anthropic` 1.7.2 and not exercised:
+    when a response carries the per-TTL breakdown it zeroes `cache_creation`, files the
+    counts under `ephemeral_5m_input_tokens` and `ephemeral_1h_input_tokens`, keys the
+    trace's usage record does not read, and adds them to `input_tokens`; so a cache
+    write on this provider reaches the cost as fresh input, at the input rate and not
+    1.25x. The harness sets no `cache_control`, so no write occurs on its runs; the day
+    caching is turned on for this provider, the usage record reads those keys first.
+    Not fixed here, since this session prices and probes. The rows
+    are keyed on the API alias, `claude-haiku-4-5` and `claude-sonnet-5`, which the
+    models page lists beside the pinned ids, since the alias is what a run is started
+    with and the key is the string the run was started with.
+  - **The Haiku 4.5 alias and its pinned id bind differently**, seen offline with no
+    key: `langchain-anthropic` 1.7.2 declares `structured_output` true for
+    `claude-haiku-4-5`, through an override in its own profile data, and false for
+    `claude-haiku-4-5-20251001`, which has no override, while the provider's
+    structured-outputs page lists the pinned id as supported. The same model under two
+    strings is recorded with two `output_binding`s, which is what the field exists to
+    show. The probe uses the alias, and the artifact says so. The profile is not
+    corrected here and the strategy is not chosen from the page: a strategy chosen from
+    what the page says rather than what the profile says is the name fallback under
+    another name, and the decision under "Model independence" stands.
+  - A test holds every priced row to a URL and a read date in its source and refuses a
+    source that names a cache in place of a page.
 - **Latency** is the wall clock the harness measured around the investigation, recorded
   in the harness's own per-run file. It is not on the artifact, because a `triage` run
   answers the proposal interrupt on a terminal and its wall clock would include the
