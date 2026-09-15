@@ -1264,9 +1264,10 @@ model has asked it questions once and the author has read them. Decided, in orde
 
 1. The scripted suite over the scenario is green: every call hits a stub, and the
    projection test holds every listed tool's reading to the findings' words.
-2. One real run, on the cheapest model available, with `--runs 1`. It costs one
-   investigation, and the campaign showed what skipping it costs: three runs each on two
-   scenarios before anyone read a trace.
+2. One real run, on the cheapest model available, with `--runs 1`, into a directory of
+   its own and not the campaign's, see "A campaign is one fixture revision". It costs
+   one investigation, and the campaign showed what skipping it costs: three runs each
+   on two scenarios before anyone read a trace.
 3. Every `no_fixture` call in its trace is read with its arguments and decided, one by
    one: a question the fixture should answer, closed by a stub keyed on the entity the
    question named, with the request replayed from the artifact in a test so the check
@@ -1278,9 +1279,85 @@ model has asked it questions once and the author has read them. Decided, in orde
 
 What this cost on the first campaign, stated: scenarios 2 and 5 were run at three runs
 each before step 3, and the evidence recall of `lsass_access` is a floor under seven
-refused calls that step 3 has since closed. The cells stand, since a cell accumulates;
-the closed gaps are on record in the scenarios' sections beside them, and a rerun
-measures the model.
+refused calls that step 3 has since closed. The cells stand as they are; the closed
+gaps are on record in the scenarios' sections beside them, and a rerun measures the
+model in a new campaign, under the rule decided next, so that it does not pool with
+these.
+
+### A campaign is one fixture revision
+
+A cell accumulates, and the first campaign showed what that pools. Its results
+directory holds 37 runs made between 10:16 and 11:41 UTC on 2026-09-15 under the
+fixtures before commit 6e4ff06, which then closed scenario 5's runbook refusals and
+scenario 2's address refusals, and two gate runs made at 12:25 and 12:26 UTC under the
+fixtures after it. The harness continues the numbering of whatever a cell holds, so a
+rerun into that directory would have put post-fix runs beside pre-fix ones in the same
+cell, and the cell's recall would be one number over two harnesses: the floor scenario
+5's section describes, and whatever the closed gaps now allow. The `no_fixture` count
+marks the recall line, as decided under "Tool outcomes are reported", and it does not
+say which runs were handed which stubs. And the two gate runs are not cell runs, by
+the rule above, yet they sit in their cells' directories at index 0, so those two cells
+could never be read clean. Decided:
+
+- **The fixture set a run was handed is on record, as a digest.** `fixture_digest` is
+  the SHA-256 over the fixture directory as the loader reads it: every `*.json` file at
+  its top level, the manifest included, in sorted name order, each contributed as its
+  name and its bytes with their lengths in front, so that no two directories collide by
+  concatenation. It is the fixture revision and nothing else: a stub added, widened or
+  narrowed changes it; a change to the prompts, the code or a truth file does not. A
+  truth change re-scores without a rerun, as decided under "Scorers"; a prompt or code
+  change is a different question, versioned by the commit, and a digest that tried to
+  cover it would be a second git. The digest sits on every run's `eval.json`, beside the
+  wall clock, since it is what only the harness knew.
+- **A results directory is one campaign, and a campaign is one fixture revision.** The
+  first `eval` into a directory writes `campaign.json` at its root: the digest, the
+  fixture directory as given, and the time. Every later `eval` into it compares the
+  current digest with the recorded one before any run and refuses a mismatch, naming
+  both digests and asking for another `--results` directory, with exit code 2 and no
+  run made. Within one revision a cell still accumulates: a second invocation continues
+  the numbering, and nothing measured is lost. Across revisions nothing pools: the old
+  campaign stays whole under its digest and the new one starts empty under its own.
+  The guarantee is the harness's, not a convention's: the check runs on every
+  invocation, before the first run directory is made.
+- **A directory of runs that carries no `campaign.json` is refused for new runs.** Such
+  a directory is a campaign from before this rule; its runs carry no digest, so the
+  harness cannot say what they were handed and cannot say whether the current fixtures
+  are the same. `results/` as it stands on 2026-09-15 is that directory, and it is the
+  case this rule was written on: it is the first campaign, closed, and the next `eval`
+  refuses it rather than adding a neighbour to its pre-fix runs. It can still be
+  re-scored: `eval-report` reads runs without a digest as they are and says, above the
+  cells, that the campaign is from before fixtures were versioned and the fixtures its
+  runs were handed are not on record. Its cell numbers are read as scenario 5's section
+  already reads them, as a floor under gaps since closed, and its two gate runs are
+  read by index and time in scenarios 7 and 8's sections. Nothing in it is moved or
+  deleted: the results directory is not committed, and every artifact stays on disk
+  whatever its kind.
+- **`eval-report` refuses a directory whose runs disagree.** The summary reads whatever
+  run directories are there, so a directory assembled by hand from two campaigns would
+  pool them at report time. The report reads every run's digest and the `campaign.json`
+  if present, and refuses when together they name more than one revision, listing
+  them. A run without a digest is not held against the others, since it cannot be; a
+  directory holding any such run is reported as from before the rule, and the header
+  says so. The summary carries the digest when every run does, and the printed report
+  opens with it, so a number cannot be read without the fixtures it was measured under.
+- **Where the gate run goes.** The gate run of step 2 above is one run whose purpose is
+  to be read, and step 3 may change the stubs after it. It is made with `--results`
+  naming a directory that is not the campaign's, `gates/` in this repository. When
+  step 3 closes a gap the digest changes, and the harness refuses the cell into the
+  gate's directory and the gate run into the cell's whichever way the operator points,
+  so the separation holds by structure. When the gate closes nothing, as scenario 8's
+  did, the fixtures are the same and only the directory keeps them apart; that is a
+  convention, and it is said so, because the harness cannot tell a gate run from a cell
+  run by looking at it and a flag that said "this is a gate" would be the operator's
+  word in a file. The demonstration-run rule under "Using it" reads across both
+  directories in the order the runs were made, which is why it no longer says "index
+  order".
+- **What it costs, stated.** `--results` gains a rule: a directory is a campaign and a
+  campaign is one fixture revision, so a fixture fix means a new directory. The name is
+  the operator's choice; the harness records what matters, the digest, and refuses the
+  mismatch. The default `--results results/` is unchanged, and on this repository it is
+  refused until the operator names another, which is the point: the choice to start a
+  new campaign is made once, in the open, rather than never.
 
 ### Statistics
 
@@ -1355,13 +1432,18 @@ alert-forensics eval-report DIR
   model string is made a directory name by replacing the characters a path cannot carry.
   Every run keeps its artifact, whatever its outcome, so a failed run is inspectable,
   and a second invocation into the same directory continues the numbering rather than
-  overwriting: a cell accumulates, and nothing measured is lost to a rerun.
+  overwriting: a cell accumulates, and nothing measured is lost to a rerun, within one
+  fixture revision. The directory carries `campaign.json`, every `eval.json` carries
+  `fixture_digest`, and an invocation under other fixtures, or into a directory of
+  runs that carries no `campaign.json`, is refused before any run, see "A campaign is
+  one fixture revision".
 - After the runs it writes `DIR/summary.json`, one `CellSummary` per cell found under
   the directory, and prints the report. The summary is derived from the run directories
   and can be recomputed at any time; `eval-report DIR` recomputes it, re-scoring every
   run from its artifact and the current ground truth, rewrites `score.json` and
   `summary.json`, and prints the report. Cells from several sessions in one directory
-  are summarised together, since the summary reads whatever is there.
+  are summarised together, since the summary reads whatever is there, provided they
+  name one fixture revision; a directory whose runs name two is refused.
 - **`--scenario` narrows what is run, never what is summarised.** The summary step of
   `eval` loads every scenario under the scenarios directory, exactly as `eval-report`
   does, so a directory holding earlier cells of other scenarios summarises whole. The
