@@ -22,13 +22,15 @@ execution and the first arrived from `mshta.exe` launched by the mail client six
 minutes earlier.
 
 Seven real runs of `google_genai:gemini-3.5-flash-lite` have been made on it across the
-three campaigns: one, then three, then three. All seven closed with zero tool calls and
-zero observed facts and asserted `benign_true_positive` against the `true_positive`
-truth, at confidence 0.8, 0.85, 0.9, 1.0, 0.9, 0.9 and 0.9. All seven were refused by
-the silence rule, under which a result with no observed facts is grounded only when its
-verdict is `inconclusive` and its missing context says what could not be established.
-All seven are counted `failed_ungrounded`, and none was laundered into `inconclusive`.
-The three of campaign 03 closed in 2.1 to 3.2 seconds.
+three campaigns: one, then three, then three, under three fixture revisions. All seven
+closed with zero tool calls and zero observed facts and asserted `benign_true_positive`
+against the `true_positive` truth, at confidence 0.8, 0.85, 1.0, 0.9, 0.9, 0.9 and 0.9
+in the order they were made. All seven were refused by the silence rule, under which a
+result with no observed facts is grounded only when its verdict is `inconclusive` and
+its missing context says what could not be established. All seven are counted
+`failed_ungrounded`, and none was laundered into `inconclusive`. The three of campaign
+03 closed in 2.1 to 3.2 seconds. The fixture revision made no difference to a run that
+asked for no fixture: no stub reached any of the seven.
 
 Beside it, in campaign 03, `anthropic:claude-sonnet-5` made eight to ten tool calls in
 each of its three runs on the same alert and the same fixtures, ten, ten and eight,
@@ -38,11 +40,15 @@ missing-context entries in every run, and escalated every time. Same alert, oppo
 verdicts, and the gap is the tool calls: one model read the alert and answered from
 it, the other asked the tools what the alert did not say.
 
-The first of the seven is committed and replays with no API key:
+All seven have a committed source. The first four, the gate run and the three of
+campaign 02, are recordings under [runs/rmm_block/](runs/README.md) and replay with no
+API key; the three of campaign 03 are the `per_run` rows of that cell in
+[reports/model-matrix.json](reports/model-matrix.json).
 
 ```
 uv sync
 uv run alert-forensics replay runs/rmm_block/campaign-0/run.json
+uv run alert-forensics replay runs/rmm_block/campaign-02-4/run.json
 ```
 
 ## The method
@@ -146,7 +152,7 @@ through an in-memory transport, see [tests/recorded/README.md](tests/recorded/RE
 
 ## Using it, and the recordings
 
-Fifteen real model runs are committed under `runs/<scenario>/<recording>/`, across all
+Eighteen real model runs are committed under `runs/<scenario>/<recording>/`, across all
 eight scenarios, each replayable with no API key:
 
 ```
@@ -230,9 +236,7 @@ The test suite never opens a socket and never needs a key.
 - The numbers above come from `campaigns/03`, a results directory on the author's disk
   that is not committed, as no results directory is. What is committed is the derived
   view, [reports/model-matrix.json](reports/model-matrix.json), regenerated from that
-  directory with the project's own scorer and no model call, and the fifteen
+  directory with the project's own scorer and no model call, and the eighteen
   recordings. A reader of this repository verifies the method, the test suite, the
-  matrix file's contract and the fifteen recordings, and not the campaign.
-- Campaign 02, the earlier single-model campaign, ran under a different fixture
-  revision and is superseded; its numbers are not repeated here, and the three
-  scenario 7 confidences it contributed above are the only numbers taken from it.
+  matrix file's contract and the eighteen recordings, and not the campaign. Every
+  number in this file is in one of those two places.
