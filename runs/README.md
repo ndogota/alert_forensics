@@ -7,9 +7,10 @@ store and prints the run.
 
 Every recording here is a real model run. The artifact states the model (`model`) and
 the date (`trace.started_at`). The test suite refuses a recording made with the scripted
-client, and one the provider served no model turn of. A served run in which the model
-called no tool is a recording: it refers to no raw response, so no `run.raw/` sits
-beside it, and `replay` says so. Which runs are committed is a rule, stated in
+client, one the provider refused, before any turn or after work, which the artifact
+says as `refused`, and one with no model turn. A served run in which the model called
+no tool is a recording: it refers to no raw response, so no `run.raw/` sits beside it,
+and `replay` says so. Which runs are committed is a rule, stated in
 `docs/SPEC.md` under "Using it": a run the spec cites, or the scenario's demonstration
 run, the first completed real run on the scenario in the order the runs were made.
 A recording named `campaign-<k>` is the run directory `<k>` of 2026-09-15 under

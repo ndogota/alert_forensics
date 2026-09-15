@@ -948,11 +948,25 @@ alert-forensics eval-report results/
   the proxy wrong: the provider served it two model turns, and the model chose to call
   nothing and answer from the alert. That decision is the run, and for scenario 7 it is
   the trap closing, so a contract that could not hold it would refuse the one recording
-  the scenario exists to show. Decided: what separates a recording from a refusal is
-  the model turn, not the tool call. A run refused before any turn holds no usage, no
-  request and no reading, and is not a recording; a served run holds at least the usage
-  of the turn that answered, and what the model did with it is what the recording
-  shows, whether that is nine calls or none. Such a recording has no raw store: the
+  the scenario exists to show. Decided: a recording is a served run, and served is the
+  one definition under "A provider refusal is the quota's number": a run whose error
+  kind is not `rate_limit` or `overloaded`, whatever its outcome and however many
+  turns it made, and one that holds at least one model turn, since a run that failed
+  at its first call on its own account holds nothing to show. What the model did with
+  its turns is what the recording shows, whether that is nine calls or none. The first
+  version of this sentence said the model turn separated a recording from a refusal,
+  and it did not: a run refused after work holds every turn it made before the
+  provider said no. The test written on that sentence read `trace.usage`, and run 2 of
+  scenario 1's cell in the results directory, `failed_error` of kind `rate_limit`
+  after two turns and two tool calls, passed it when copied under `runs/`. What is
+  structural and what is not, stated: the predicate is on the artifact type,
+  `RunArtifact.refused`, derived from the error kind by the one rule the scorer, the
+  summary and `triage`'s exit code already read, so no two places can disagree on what
+  a refusal is and the test asserts the property rather than restating the rule. That
+  no refused run and no scripted run sits under `runs/` is held by the test over the
+  directory and cannot be structural: a directory is not a type, an artifact cannot
+  know where it was copied to, and nothing the code runs sees a copy before it is
+  committed. Said so, beside the part that is. Such a recording has no raw store: the
   trace refers to nothing, the harness wrote no file, and git keeps no empty directory,
   so `run.raw/` is absent beside it. `replay` verifies every raw response the trace
   refers to, which for such a run is none, and requires the store directory only when
@@ -967,9 +981,9 @@ alert-forensics eval-report results/
   runs were made, the gate run of "One real run before a cell is paid for" included,
   whatever it scored. The results directory is not committed, so a run this document
   cites must be under `runs/` to be replayable by a reader, and the demonstration run
-  is chosen by rule so that it is not the best one. A run the provider refused before
-  any turn holds no request and no reading and is not a recording; a served run that
-  made no tool call is one, see above. The first recording, made before the
+  is chosen by rule so that it is not the best one. A run the provider refused is not
+  a recording, before any turn or after work; a served run that made no tool call is
+  one, see above. The first recording, made before the
   `no_fixture` rule, the whole-word tokens and the label binding, stays as
   `runs/atypical_travel/defaults-2026-09-14/`: it is the run that found the default
   defect, and scenario 1's section cites it. Twelve recordings across eight scenarios
