@@ -1476,6 +1476,141 @@ cut verbatim from the same cached bundle on the same day and recorded in
 - The scripted cell is a plumbing check on the same terms as scenario 3's. No real
   model has run it yet.
 
+### Scenario 5, LSASS access blocked
+
+Checked against the table under "Scenarios". The signal is a process that opened LSASS
+with read access and was blocked: what the rule's logic measured, and true. The
+assertion is that a process attempted to read credentials from LSASS memory, at the
+granularity of T1003.001. It is true: the attempt was made and the attack surface
+reduction rule prevented it. Intent decides between `true_positive` and
+`benign_true_positive`, as it did for scenario 4, because the assertion is true: the read
+was attempted by `svc-purpleops`, an account on the exercise list, from `ws-eng-0148`, a
+host on the exercise list, inside the declared window of the purple team exercise
+`PT-2026-0914`, and the runbook says credential-access techniques against LSASS are in
+scope for it. The assertion is true and the intent is authorised. Label
+`benign_true_positive`, no escalation. Five is scenario 4's shape on the credential-access
+axis: the technique the rule names did occur, an LSASS read was attempted, and intent
+decides, exactly as encoded PowerShell did run and intent decided there. It is not
+scenario 6, where the technique the rule names did not occur. The action the table names,
+confirm the block held and the prevention worked, belongs to `recommended_action`, and no
+verdict definition carries an action.
+
+- Required findings, four. The access: the device, one of `lsass` or `lsass.exe`, and
+  one of `rt-cred.exe` or `rt-cred`, cited from the hunting API or the SIEM, since both
+  readings carry those words. The block: one of `lsass`, `LSASS` or `credential`, and one
+  of `blocked`, `prevented` or `denied`, cited from the SIEM alone. Checked against the
+  fixtures under whole-word matching: the Defender `DeviceEvents` reading names the
+  event through `ActionType`, whose value `AsrLsassCredentialTheftBlocked` is one word the
+  whole-word rule cannot split into `blocked`, so the hunting view carries the access but
+  not the outcome as a citable word; the CIM-normalised SIEM carries the block as
+  `action` `blocked` and a `signature` that says LSASS credential theft was blocked, so
+  the block is carried by the SIEM alone, the way scenario 1's gateway is carried by the
+  runbook alone. The sanction and the exercise list: one of `svc-purpleops` or
+  `purpleops`, and one of the runbook's words for authorisation, `exercise`, `authorised`,
+  `expected`, `sanctioned`, `scope`, `list`, cited from the runbook alone, since only the
+  runbook says the account is on the exercise list. The window: `PT-2026-0914`, and one of
+  `window`, `exercise`, `maintenance`, `scheduled`, cited from the runbook or the SIEM's
+  exercise calendar, both of which name the exercise.
+- Scenario 5 does not claim the `ws-fin-0042` process tree stub, which stays `test`. That
+  stub is an `outlook.exe` to `mshta.exe` to `powershell.exe` and `RemoteSupport` lineage,
+  scenario 7's initial-access chain on a finance workstation; it is not an LSASS read on a
+  red team target and it names neither `ws-eng-0148` nor `svc-purpleops`, so it does not
+  fit and is not relabelled. Scenario 5's LSASS access is an `OpenProcess`-style API call,
+  not a spawned child, so its evidence is a `DeviceEvents` block row and the SIEM, and
+  `get_process_tree` carries no scenario 5 stub. The `ws-fin-0042` tree remains the one
+  `test` stub, relabelled when scenario 7 arrives.
+- Stubs, all labelled `lsass_access`, keyed on the entities of the rows they return: the
+  device's LSASS block on the device, in the hunting API and the SIEM; the operator's
+  sign-ins on `svc-purpleops`; the operator's identity on `svc-purpleops`; the device's
+  asset record on the device; the red team tool's hash on VirusTotal, which has never
+  seen it; the prior exercise alert on the operator's UPN and on the incident; the SIEM's
+  exercise calendar on the exercise or the device; and the runbook on the alert type, the
+  exercise, the account, the device or T1003. The `DeviceEvents` block stub is keyed on
+  the device, which is the principal entity of its rows, so a block query about another
+  device is a `no_fixture` error. `AdditionalFields` on the block row carries the desired
+  access mask and is dropped by the projection, the way scenario 4's decoded commands are.
+- Expected missing context, two: whether any credential material was returned before the
+  block, which no view carries because the block's result payload is not projected, and
+  which is why confirming the prevention worked is the recommended action rather than a
+  fact; and the exercise's rules of engagement, the authorisation record that scopes this
+  specific action, which no tool reaches.
+- The techniques the alert declares are `T1003.001` alone, already in the packaged
+  excerpt, so the excerpt gains nothing and `tests/recorded/README.md` is unchanged. No
+  follow-on technique is expected of the investigation.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
+  model has run it yet.
+
+### Scenario 6, apparent Kerberoasting
+
+Checked against the table under "Scenarios". The signal is one account requesting service
+tickets for 180 service principal names in 90 seconds: what the rule's logic measured, and
+true. The assertion is that service tickets were harvested to crack service-account
+passwords offline, at the granularity of T1558.003. It is false: the account is
+`svc-vulnscan`, the credentialed vulnerability scanner, which obtains service tickets to
+authenticate to the services it scans; the tickets were AES256, not the RC4 downgrade
+Kerberoasting relies on, and nothing was harvested for cracking. The technique the rule is
+named for did not occur, so the assertion is false and intent does not enter. Label
+`false_positive`, no escalation. Six is the shape of eight: a sanctioned actor produced
+the exact volume the rule measures without performing the technique the rule is named for.
+They part on the action axis, not the truth axis. The spec's action for six, requalify
+this as a tuning exclusion for the scanner's account rather than close it again, belongs to
+`recommended_action`; the verdict is `false_positive`, and the finding that the runbook
+prescribes the exclusion is an observed fact about the runbook, not the verdict.
+
+- Required findings, three. The scale: `180`, one of `SPN`, `service ticket`,
+  `service tickets`, `Kerberos` or `4769`, and one of `svc-vulnscan` or `vulnscan`, cited
+  from the SIEM alone. Checked against the fixtures under whole-word matching: in Defender
+  hunting the service name and the ticket options sit in `AdditionalFields`, which the
+  projection drops, so the hunting view shows that service tickets were requested but not
+  the distinct count of service names; the CIM-normalised SIEM exposes the service as the
+  allowlisted `object` field, so `dc(object)` reads `180` in the view and the SIEM carries
+  the scale, the way scenario 5's block is carried by the SIEM alone. The identity: one of
+  `svc-vulnscan`, `vulnscan` or `scanner`, and one of `scanner` or `vulnerability`, cited
+  from `get_identity` or the runbook, since the identity's business unit is Vulnerability
+  Management and its category is scanner, and the runbook names the scanner. The
+  requalification: one of `svc-vulnscan` or `scanner`, and one of `exclude`, `exclusion`,
+  `tune`, `tuning`, `requalify`, `expected` or `known`, cited from the runbook alone, since
+  only the runbook prescribes the tuning.
+- **How the scanner's account is kept from the wrong account, and the limit of it.** The
+  aggregate that reads 180 is about one account, unlike scenario 2's tenant-wide spray
+  aggregate, which is about 137 accounts with no entity to key on. So scenario 6 keys its
+  Kerberos stubs on the scanner: the match requires both a Kerberos or service-ticket term
+  and `svc-vulnscan`. A Kerberos query that names a different account and not the scanner
+  therefore falls through to a `no_fixture` error, which is the case this matters for: a
+  fact about another account's ticket requests inside scenario 6's run would be grounded
+  and wrong, and the entity key stops it. What the entity key cannot do is honour the role
+  the account name plays in the query. A regex matcher is a substring test over the query
+  text; it cannot parse KQL or SPL. It can require that `svc-vulnscan` appear somewhere in
+  the query, which excludes a query that names only another account, but it cannot tell an
+  inclusion filter from an exclusion filter, so a query such as
+  `SecurityEvent | where EventID == 4769 | where Account != "svc-vulnscan"` still matches
+  and is answered with the scanner's rows. This is the within-scenario looseness the tool
+  layer describes, and it is stated here beside the rule rather than implied away: a regex
+  matcher cannot honour a filter, only the presence of a token. The run-time binding
+  confines the looseness to scenario 6's own run; within that run, a query that both names
+  the scanner and asks about another account gets the scanner's rows. The entity-rule test
+  asserts both halves: a Kerberos query naming only another account is `no_fixture`, and
+  the exclusion query above still returns the scanner's rows, so the limit is on record.
+- Stubs, all labelled `kerberoasting`. Keyed on the scanner or on the scanner's host: the
+  scanner's sign-ins on `svc-vulnscan`, in the hunting API and the SIEM; the ticket-request
+  detail and, in the SIEM, the distinct-service-name aggregate, both keyed on the scanner
+  and a Kerberos term, with the aggregate stub before the detail stub in file order so a
+  `stats` query reads the count; the scanner's identity on `svc-vulnscan`; the scanner
+  host's asset record on `scan-ops-01`; the prior Kerberoasting alerts closed as false
+  positives on the scanner's UPN and on the incident; and the runbook on the alert type,
+  the scanner, the host or T1558. The alert carries no external indicator, so there is no
+  `lookup_ioc` stub; a lookup of the scanner's internal address is a `no_fixture` error,
+  which is honest, since VirusTotal has no useful reading of a private address.
+- Expected missing context, two: whether the requested tickets were followed by
+  authentication to the services, the correlation that separates a scanner from a harvester,
+  which no tool provides; and the scanner's own scan record, the job that ties this burst to
+  a scheduled scan, which no tool reaches.
+- The techniques the alert declares are `T1558.003` alone, already in the packaged excerpt,
+  so the excerpt gains nothing and `tests/recorded/README.md` is unchanged. No follow-on
+  technique is expected of the investigation.
+- The scripted cell is a plumbing check on the same terms as scenario 3's. No real
+  model has run it yet.
+
 ## Cost discipline
 
 The build runs entirely against the scripted client, so development costs nothing.
