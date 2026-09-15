@@ -1,0 +1,5723 @@
+{
+  "metadata": {
+    "models": [
+      "anthropic:claude-haiku-4-5",
+      "anthropic:claude-sonnet-5",
+      "google_genai:gemini-3.5-flash-lite",
+      "openai:gpt-5-nano"
+    ],
+    "runs_per_cell": 3,
+    "scenario_ids": [
+      "atypical_travel",
+      "cloud_upload",
+      "encoded_powershell",
+      "forwarding_rule",
+      "kerberoasting",
+      "lsass_access",
+      "password_spray",
+      "rmm_block"
+    ],
+    "scenarios": [
+      {
+        "name": "atypical_travel",
+        "title": "Atypical travel",
+        "verdict": "false_positive",
+        "escalate": false,
+        "required_findings": 3,
+        "missing_context": 2
+      },
+      {
+        "name": "cloud_upload",
+        "title": "Mass upload to personal cloud storage by a user on the leaver watchlist",
+        "verdict": "false_positive",
+        "escalate": false,
+        "required_findings": 5,
+        "missing_context": 2
+      },
+      {
+        "name": "encoded_powershell",
+        "title": "Encoded PowerShell command on a production server",
+        "verdict": "benign_true_positive",
+        "escalate": false,
+        "required_findings": 4,
+        "missing_context": 2
+      },
+      {
+        "name": "forwarding_rule",
+        "title": "Suspicious inbox forwarding rule to an external address",
+        "verdict": "true_positive",
+        "escalate": true,
+        "required_findings": 5,
+        "missing_context": 2
+      },
+      {
+        "name": "kerberoasting",
+        "title": "Suspicious Kerberos service ticket requests, possible Kerberoasting",
+        "verdict": "false_positive",
+        "escalate": false,
+        "required_findings": 3,
+        "missing_context": 2
+      },
+      {
+        "name": "lsass_access",
+        "title": "LSASS credential memory access blocked",
+        "verdict": "benign_true_positive",
+        "escalate": false,
+        "required_findings": 4,
+        "missing_context": 2
+      },
+      {
+        "name": "password_spray",
+        "title": "Password spray",
+        "verdict": "true_positive",
+        "escalate": true,
+        "required_findings": 4,
+        "missing_context": 2
+      },
+      {
+        "name": "rmm_block",
+        "title": "Remote management tool blocked on endpoint",
+        "verdict": "true_positive",
+        "escalate": true,
+        "required_findings": 4,
+        "missing_context": 2
+      }
+    ],
+    "role": "analyst",
+    "fixture_digest": "1a25e478dbab26d5a511364faecd6d450abd7dd633d962fa0ad063181130dff4",
+    "campaign_started_at": "2026-09-15T17:36:49.658517Z",
+    "generated_at": "2026-09-15T19:20:14.455508Z",
+    "judge_model": null,
+    "judge_note": "Every number here comes from deterministic scorers, a verdict compared exactly and a finding matched by the tool a fact cites and whole-word tokens; no model judges any run."
+  },
+  "cells": [
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 8,
+        "denominator": 9,
+        "estimate": 0.8888888888888888,
+        "low": 0.5650002944233439,
+        "high": 0.9801091123614551
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 24,
+        "ok": 23,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 45.52271222233927,
+        "min": 41.954524541972205,
+        "max": 50.554586917045526
+      },
+      "cost_usd": {
+        "mean": 0.035918,
+        "total": 0.107754
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "atypical_travel",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.92,
+          "escalate": false,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 41.954524541972205
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.92,
+          "escalate": false,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 44.059025208000094
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.75,
+          "escalate": false,
+          "tool_calls": 8,
+          "ok_calls": 7,
+          "no_fixture": 1,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 50.554586917045526
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 4,
+        "denominator": 15,
+        "estimate": 0.26666666666666666,
+        "low": 0.10897453325692374,
+        "high": 0.5195043405598057
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 22,
+        "ok": 20,
+        "error": 2,
+        "denied": 0,
+        "no_fixture": 2,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 44.68546669433514,
+        "min": 37.73783466592431,
+        "max": 55.19384750002064
+      },
+      "cost_usd": {
+        "mean": 0.042714,
+        "total": 0.128142
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "cloud_upload",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.0,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 5,
+          "no_fixture": 2,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 41.12471791706048
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.5,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 37.73783466592431
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 10,
+          "ok_calls": 10,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 55.19384750002064
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "failed": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed_ungrounded": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "evidence_recall": {
+        "numerator": 5,
+        "denominator": 12,
+        "estimate": 0.4166666666666667,
+        "low": 0.19326031365875665,
+        "high": 0.6804886874504503
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 18,
+        "ok": 18,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 50.452012958315514,
+        "min": 28.626860499964096,
+        "max": 61.62849412497599
+      },
+      "cost_usd": {
+        "mean": 0.037772,
+        "total": 0.113316
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "encoded_powershell",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.98,
+          "escalate": false,
+          "tool_calls": 9,
+          "ok_calls": 9,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 61.62849412497599
+        },
+        {
+          "index": 1,
+          "outcome": "failed_ungrounded",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.85,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 28.626860499964096
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.92,
+          "escalate": false,
+          "tool_calls": 9,
+          "ok_calls": 9,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 61.10068425000645
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 15,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.20388330103584862
+      },
+      "missing_context_recall": {
+        "numerator": 5,
+        "denominator": 6,
+        "estimate": 0.8333333333333334,
+        "low": 0.43649717781352987,
+        "high": 0.9699466302516935
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 37,
+        "ok": 34,
+        "error": 3,
+        "denied": 0,
+        "no_fixture": 3,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 43.61646729199371,
+        "min": 38.45593958394602,
+        "max": 52.635809584055096
+      },
+      "cost_usd": {
+        "mean": 0.045811333333333336,
+        "total": 0.137434
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "forwarding_rule",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 11,
+          "ok_calls": 11,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 39.757652707980014
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.98,
+          "escalate": true,
+          "tool_calls": 13,
+          "ok_calls": 11,
+          "no_fixture": 2,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 52.635809584055096
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 13,
+          "ok_calls": 12,
+          "no_fixture": 1,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 38.45593958394602
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 4,
+        "denominator": 9,
+        "estimate": 0.4444444444444444,
+        "low": 0.18877852109766452,
+        "high": 0.733348706504507
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 17,
+        "ok": 17,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 22.120857610677678,
+        "min": 21.503615458030254,
+        "max": 22.84494895802345
+      },
+      "cost_usd": {
+        "mean": 0.026002333333333332,
+        "total": 0.07800699999999999
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "kerberoasting",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 22.014008415979333
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 22.84494895802345
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 21.503615458030254
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 9,
+        "denominator": 12,
+        "estimate": 0.75,
+        "low": 0.46769466506643426,
+        "high": 0.9110583316059453
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 28,
+        "ok": 24,
+        "error": 3,
+        "denied": 1,
+        "no_fixture": 3,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 50.53094877799352,
+        "min": 40.60122787498403,
+        "max": 57.31996291701216
+      },
+      "cost_usd": {
+        "mean": 0.04151166666666666,
+        "total": 0.12453499999999999
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "lsass_access",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 10,
+          "ok_calls": 8,
+          "no_fixture": 1,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 53.671655541984364
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 40.60122787498403
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 10,
+          "ok_calls": 8,
+          "no_fixture": 2,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 57.31996291701216
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 2,
+        "denominator": 12,
+        "estimate": 0.16666666666666666,
+        "low": 0.04696514218385378,
+        "high": 0.4480308622529734
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 24,
+        "ok": 24,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 55.415338597027585,
+        "min": 39.96330491604749,
+        "max": 64.56432074995246
+      },
+      "cost_usd": {
+        "mean": 0.038807666666666664,
+        "total": 0.116423
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "password_spray",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.98,
+          "escalate": true,
+          "tool_calls": 9,
+          "ok_calls": 9,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 64.56432074995246
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 61.718390125082806
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 39.96330491604749
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "failed": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "error_kinds": {
+        "AnthropicInvalidRequestError": 1
+      },
+      "verdict_accuracy": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "evidence_recall": {
+        "numerator": 2,
+        "denominator": 12,
+        "estimate": 0.16666666666666666,
+        "low": 0.04696514218385378,
+        "high": 0.4480308622529734
+      },
+      "missing_context_recall": {
+        "numerator": 2,
+        "denominator": 6,
+        "estimate": 0.3333333333333333,
+        "low": 0.09677141110578041,
+        "high": 0.700006684861608
+      },
+      "escalation_precision": {
+        "numerator": 2,
+        "denominator": 2,
+        "estimate": 1.0,
+        "low": 0.34238022750665303,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "calls": {
+        "total": 20,
+        "ok": 20,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 35.45830808304405,
+        "min": 18.641318166046403,
+        "max": 53.11920870805625
+      },
+      "cost_usd": {
+        "mean": 0.024268333333333333,
+        "total": 0.072805
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "scenario": "rmm_block",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.92,
+          "escalate": true,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 53.11920870805625
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 34.61439737502951
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": false,
+          "error_kind": "AnthropicInvalidRequestError",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 18.641318166046403
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 9,
+        "denominator": 9,
+        "estimate": 1.0,
+        "low": 0.7008549515804559,
+        "high": 1.0
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 21,
+        "ok": 21,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 41.65281794433637,
+        "min": 37.032996624941006,
+        "max": 49.396234667045064
+      },
+      "cost_usd": {
+        "mean": 0.09623533333333334,
+        "total": 0.288706
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "atypical_travel",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 49.396234667045064
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 37.032996624941006
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 38.529222541023046
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 8,
+        "denominator": 15,
+        "estimate": 0.5333333333333333,
+        "low": 0.30116980025498397,
+        "high": 0.7519046463426261
+      },
+      "missing_context_recall": {
+        "numerator": 2,
+        "denominator": 6,
+        "estimate": 0.3333333333333333,
+        "low": 0.09677141110578041,
+        "high": 0.700006684861608
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 30,
+        "ok": 21,
+        "error": 9,
+        "denied": 0,
+        "no_fixture": 9,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 61.75851049995981,
+        "min": 43.46186908392701,
+        "max": 82.13804354099557
+      },
+      "cost_usd": {
+        "mean": 0.183858,
+        "total": 0.551574
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "cloud_upload",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.72,
+          "escalate": false,
+          "tool_calls": 13,
+          "ok_calls": 7,
+          "no_fixture": 6,
+          "findings_reached": 2,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 82.13804354099557
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.75,
+          "escalate": false,
+          "tool_calls": 10,
+          "ok_calls": 7,
+          "no_fixture": 3,
+          "findings_reached": 2,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 59.675618874956854
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.88,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 4,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 43.46186908392701
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 8,
+        "denominator": 12,
+        "estimate": 0.6666666666666666,
+        "low": 0.39062208887279953,
+        "high": 0.8618799089087867
+      },
+      "missing_context_recall": {
+        "numerator": 2,
+        "denominator": 6,
+        "estimate": 0.3333333333333333,
+        "low": 0.09677141110578041,
+        "high": 0.700006684861608
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 18,
+        "ok": 18,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 67.47174913897955,
+        "min": 42.94958662497811,
+        "max": 107.17123066703789
+      },
+      "cost_usd": {
+        "mean": 0.10418933333333334,
+        "total": 0.312568
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "encoded_powershell",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 107.17123066703789
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 4,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 52.294430124922656
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.92,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 42.94958662497811
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 9,
+        "denominator": 15,
+        "estimate": 0.6,
+        "low": 0.357468301206246,
+        "high": 0.8017550385865841
+      },
+      "missing_context_recall": {
+        "numerator": 5,
+        "denominator": 6,
+        "estimate": 0.8333333333333334,
+        "low": 0.43649717781352987,
+        "high": 0.9699466302516935
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 32,
+        "ok": 29,
+        "error": 3,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 53.65335424997223,
+        "min": 48.25383045792114,
+        "max": 63.974593541934155
+      },
+      "cost_usd": {
+        "mean": 0.13838733333333333,
+        "total": 0.41516200000000003
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "forwarding_rule",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 9,
+          "ok_calls": 9,
+          "no_fixture": 0,
+          "findings_reached": 4,
+          "findings_required": 5,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 48.25383045792114
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.94,
+          "escalate": true,
+          "tool_calls": 13,
+          "ok_calls": 12,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 63.974593541934155
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.93,
+          "escalate": true,
+          "tool_calls": 10,
+          "ok_calls": 8,
+          "no_fixture": 1,
+          "findings_reached": 4,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 48.73163875006139
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "evidence_recall": {
+        "numerator": 4,
+        "denominator": 9,
+        "estimate": 0.4444444444444444,
+        "low": 0.18877852109766452,
+        "high": 0.733348706504507
+      },
+      "missing_context_recall": {
+        "numerator": 4,
+        "denominator": 6,
+        "estimate": 0.6666666666666666,
+        "low": 0.299993315138392,
+        "high": 0.9032285888942195
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 18,
+        "ok": 18,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 29.376721680668805,
+        "min": 23.746415583998896,
+        "max": 33.94741283298936
+      },
+      "cost_usd": {
+        "mean": 0.07256866666666666,
+        "total": 0.21770599999999998
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "kerberoasting",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.85,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 33.94741283298936
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 23.746415583998896
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.9,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 30.436336625018157
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 6,
+        "denominator": 12,
+        "estimate": 0.5,
+        "low": 0.2537815976337061,
+        "high": 0.7462184023662939
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 20,
+        "ok": 20,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 37.57013631934145,
+        "min": 34.27163462503813,
+        "max": 43.39412566705141
+      },
+      "cost_usd": {
+        "mean": 0.087918,
+        "total": 0.263754
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "lsass_access",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.93,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 43.39412566705141
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.92,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 34.27163462503813
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.93,
+          "escalate": false,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 35.0446486659348
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 3,
+        "denominator": 12,
+        "estimate": 0.25,
+        "low": 0.08894166839405471,
+        "high": 0.5323053349335657
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 24,
+        "ok": 22,
+        "error": 2,
+        "denied": 0,
+        "no_fixture": 2,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 64.71861723600887,
+        "min": 48.97561287495773,
+        "max": 88.02976883307565
+      },
+      "cost_usd": {
+        "mean": 0.12451400000000001,
+        "total": 0.37354200000000004
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "password_spray",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 9,
+          "ok_calls": 8,
+          "no_fixture": 1,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 57.15046999999322
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.9,
+          "escalate": true,
+          "tool_calls": 9,
+          "ok_calls": 8,
+          "no_fixture": 1,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 88.02976883307565
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.96,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 48.97561287495773
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 9,
+        "denominator": 12,
+        "estimate": 0.75,
+        "low": 0.46769466506643426,
+        "high": 0.9110583316059453
+      },
+      "missing_context_recall": {
+        "numerator": 6,
+        "denominator": 6,
+        "estimate": 1.0,
+        "low": 0.6096657120978346,
+        "high": 1.0
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 28,
+        "ok": 28,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 60.10647552766992,
+        "min": 55.34479274996556,
+        "max": 63.490000167046674
+      },
+      "cost_usd": {
+        "mean": 0.14941066666666666,
+        "total": 0.448232
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "scenario": "rmm_block",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.93,
+          "escalate": true,
+          "tool_calls": 10,
+          "ok_calls": 10,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 55.34479274996556
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.93,
+          "escalate": true,
+          "tool_calls": 10,
+          "ok_calls": 10,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 61.484633665997535
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.93,
+          "escalate": true,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 4,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 63.490000167046674
+        }
+      ]
+    },
+    {
+      "runs": 4,
+      "served": 3,
+      "refused": {
+        "numerator": 1,
+        "denominator": 4,
+        "estimate": 0.25,
+        "low": 0.04558726080970055,
+        "high": 0.6993581574175981
+      },
+      "refused_kinds": {
+        "rate_limit": 1
+      },
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 1,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 9,
+        "denominator": 9,
+        "estimate": 1.0,
+        "low": 0.7008549515804559,
+        "high": 1.0
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 17,
+        "ok": 17,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 7.492821833351627,
+        "min": 7.056741125066765,
+        "max": 8.09908970806282
+      },
+      "cost_usd": {
+        "mean": 0.007186199999999999,
+        "total": 0.0230889
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "atypical_travel",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 7.322634666925296
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 7.056741125066765
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 1.695721417083405
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 3,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 8.09908970806282
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "evidence_recall": {
+        "numerator": 2,
+        "denominator": 15,
+        "estimate": 0.13333333333333333,
+        "low": 0.03736125910306537,
+        "high": 0.37881982832322364
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 1,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.7934506856227626
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 15,
+        "ok": 13,
+        "error": 2,
+        "denied": 0,
+        "no_fixture": 2,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 6.926651791979869,
+        "min": 5.614013292011805,
+        "max": 8.513751666992903
+      },
+      "cost_usd": {
+        "mean": 0.007924466666666666,
+        "total": 0.0237734
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "cloud_upload",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18876137502957135
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.17039745894726366
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18338770791888237
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 5,
+          "no_fixture": 1,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 6.6521904169349
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.99,
+          "escalate": false,
+          "tool_calls": 5,
+          "ok_calls": 4,
+          "no_fixture": 1,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.614013292011805
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 4,
+          "ok_calls": 4,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 8.513751666992903
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 3,
+        "denominator": 12,
+        "estimate": 0.25,
+        "low": 0.08894166839405471,
+        "high": 0.5323053349335657
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 8,
+        "ok": 7,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 5.371862444328144,
+        "min": 4.549057292053476,
+        "max": 6.71821695799008
+      },
+      "cost_usd": {
+        "mean": 0.005644433333333333,
+        "total": 0.0169333
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "encoded_powershell",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18797970889136195
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18132266600150615
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.24542912503238767
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 4,
+          "ok_calls": 3,
+          "no_fixture": 1,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 6.71821695799008
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 4.549057292053476
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 4.8483130829408765
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 8,
+        "denominator": 15,
+        "estimate": 0.5333333333333333,
+        "low": 0.30116980025498397,
+        "high": 0.7519046463426261
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 13,
+        "ok": 12,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 8.0226925133029,
+        "min": 5.2452745829941705,
+        "max": 12.905771415913478
+      },
+      "cost_usd": {
+        "mean": 0.0070137,
+        "total": 0.0210411
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "forwarding_rule",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18529383302666247
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.1923364580143243
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.1680242920992896
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "escalate": true,
+          "tool_calls": 4,
+          "ok_calls": 4,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.917031541001052
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "escalate": true,
+          "tool_calls": 4,
+          "ok_calls": 3,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.2452745829941705
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 5,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 12.905771415913478
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 5,
+        "denominator": 9,
+        "estimate": 0.5555555555555556,
+        "low": 0.26665129349549305,
+        "high": 0.8112214789023355
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 9,
+        "ok": 9,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 6.116791458645214,
+        "min": 5.260357541963458,
+        "max": 7.266915209009312
+      },
+      "cost_usd": {
+        "mean": 0.005051133333333333,
+        "total": 0.015153400000000001
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "kerberoasting",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.19477795902639627
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.17279937502462417
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.1896967919310555
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 3,
+          "ok_calls": 3,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.823101624962874
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 3,
+          "ok_calls": 3,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 7.266915209009312
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 3,
+          "ok_calls": 3,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.260357541963458
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 6,
+        "denominator": 12,
+        "estimate": 0.5,
+        "low": 0.2537815976337061,
+        "high": 0.7462184023662939
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 6,
+        "ok": 6,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 4.871456986332002,
+        "min": 4.635037667001598,
+        "max": 5.1904970000032336
+      },
+      "cost_usd": {
+        "mean": 0.004695433333333333,
+        "total": 0.0140863
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "lsass_access",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.1840297500602901
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.24182820797432214
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.18405379098840058
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 4.788836291991174
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 5.1904970000032336
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 1.0,
+          "escalate": false,
+          "tool_calls": 2,
+          "ok_calls": 2,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 4.635037667001598
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 3,
+        "denominator": 12,
+        "estimate": 0.25,
+        "low": 0.08894166839405471,
+        "high": 0.5323053349335657
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 15,
+        "ok": 15,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 6.758473096958672,
+        "min": 5.645087832934223,
+        "max": 8.126749749993905
+      },
+      "cost_usd": {
+        "mean": 0.007095333333333333,
+        "total": 0.021286
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "password_spray",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.4243070420343429
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.19819733290933073
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.2710425000404939
+        },
+        {
+          "index": 3,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 4,
+          "ok_calls": 4,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 6.5035817079478875
+        },
+        {
+          "index": 4,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.95,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 5.645087832934223
+        },
+        {
+          "index": 5,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 1.0,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 8.126749749993905
+        }
+      ]
+    },
+    {
+      "runs": 6,
+      "served": 3,
+      "refused": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "refused_kinds": {
+        "rate_limit": 3
+      },
+      "refused_before_any_turn": 3,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed_ungrounded": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 12,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.24249400665524085
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "calls": {
+        "total": 0,
+        "ok": 0,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 2.4960402226618803,
+        "min": 2.0901553339790553,
+        "max": 3.178519458975643
+      },
+      "cost_usd": {
+        "mean": 0.0016437333333333335,
+        "total": 0.0049312
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "scenario": "rmm_block",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.16388899995945394
+        },
+        {
+          "index": 1,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.20579866599291563
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": true,
+          "error_kind": "rate_limit",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 0.15433391695842147
+        },
+        {
+          "index": 3,
+          "outcome": "failed_ungrounded",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.9,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 3.178519458975643
+        },
+        {
+          "index": 4,
+          "outcome": "failed_ungrounded",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.9,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 2.0901553339790553
+        },
+        {
+          "index": 5,
+          "outcome": "failed_ungrounded",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.9,
+          "escalate": null,
+          "tool_calls": 0,
+          "ok_calls": 0,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 2.2194458750309423
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 2,
+        "denominator": 9,
+        "estimate": 0.2222222222222222,
+        "low": 0.06322510711784671,
+        "high": 0.5474110308930111
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 19,
+        "ok": 19,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 132.46321987504294,
+        "min": 109.37119437509682,
+        "max": 147.60532791598234
+      },
+      "cost_usd": {
+        "mean": 0.006496073333333334,
+        "total": 0.01948822
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "atypical_travel",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.58,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 109.37119437509682
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.78,
+          "escalate": true,
+          "tool_calls": 7,
+          "ok_calls": 7,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 147.60532791598234
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.7,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 140.41313733404968
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 15,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.20388330103584862
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 14,
+        "ok": 14,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 127.44136225032464,
+        "min": 120.5734852500027,
+        "max": 132.06102958403062
+      },
+      "cost_usd": {
+        "mean": 0.0063927466666666675,
+        "total": 0.019178240000000003
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "cloud_upload",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.78,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 129.68957191694062
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.85,
+          "escalate": true,
+          "tool_calls": 4,
+          "ok_calls": 4,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 132.06102958403062
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.9,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 120.5734852500027
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 2,
+        "denominator": 12,
+        "estimate": 0.16666666666666666,
+        "low": 0.04696514218385378,
+        "high": 0.4480308622529734
+      },
+      "missing_context_recall": {
+        "numerator": 3,
+        "denominator": 6,
+        "estimate": 0.5,
+        "low": 0.1876163064826506,
+        "high": 0.8123836935173494
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 18,
+        "ok": 16,
+        "error": 2,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 154.31595620831163,
+        "min": 129.07517674996052,
+        "max": 179.7160602089716
+      },
+      "cost_usd": {
+        "mean": 0.008308020000000001,
+        "total": 0.024924060000000005
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "encoded_powershell",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.75,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 154.1566316660028
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.6,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 5,
+          "no_fixture": 1,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 129.07517674996052
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.58,
+          "escalate": true,
+          "tool_calls": 7,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 2,
+          "findings_required": 4,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 179.7160602089716
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "failed": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "error_kinds": {
+        "OpenAITimeoutError": 1
+      },
+      "verdict_accuracy": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 15,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.20388330103584862
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 2,
+        "denominator": 2,
+        "estimate": 1.0,
+        "low": 0.34238022750665303,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "calls": {
+        "total": 28,
+        "ok": 27,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 175.61089765296006,
+        "min": 117.99498970899731,
+        "max": 240.70105820789468
+      },
+      "cost_usd": {
+        "mean": 0.0059291633333333335,
+        "total": 0.01778749
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "forwarding_rule",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_error",
+          "refused": false,
+          "error_kind": "OpenAITimeoutError",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 10,
+          "ok_calls": 10,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 240.70105820789468
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.92,
+          "escalate": true,
+          "tool_calls": 10,
+          "ok_calls": 9,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 117.99498970899731
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.85,
+          "escalate": true,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 5,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 168.13664504198823
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 9,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.2991450484195441
+      },
+      "missing_context_recall": {
+        "numerator": 2,
+        "denominator": 6,
+        "estimate": 0.3333333333333333,
+        "low": 0.09677141110578041,
+        "high": 0.700006684861608
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 1,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.7934506856227626
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 17,
+        "ok": 16,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 145.0718727360169,
+        "min": 128.00540783302858,
+        "max": 156.24014650005847
+      },
+      "cost_usd": {
+        "mean": 0.007129473333333334,
+        "total": 0.021388420000000002
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "kerberoasting",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "benign_true_positive",
+          "confidence": 0.65,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 5,
+          "no_fixture": 1,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 156.24014650005847
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.55,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 150.97006387496367
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "false_positive",
+          "confidence": 0.8,
+          "escalate": false,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 3,
+          "context_named": 2,
+          "context_expected": 2,
+          "wall_clock_s": 128.00540783302858
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed": {
+        "numerator": 2,
+        "denominator": 3,
+        "estimate": 0.6666666666666666,
+        "low": 0.2076596008020477,
+        "high": 0.9385080552796037
+      },
+      "failed_ungrounded": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "failed_error": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "error_kinds": {
+        "OpenAITimeoutError": 2
+      },
+      "verdict_accuracy": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 12,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.24249400665524085
+      },
+      "missing_context_recall": {
+        "numerator": 0,
+        "denominator": 6,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.3903342879021653
+      },
+      "escalation_precision": {
+        "numerator": 0,
+        "denominator": 1,
+        "estimate": 0.0,
+        "low": 0.0,
+        "high": 0.7934506856227626
+      },
+      "escalation_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "calls": {
+        "total": 20,
+        "ok": 16,
+        "error": 4,
+        "denied": 0,
+        "no_fixture": 4,
+        "runs_with_gaps": 2
+      },
+      "wall_clock_s": {
+        "mean": 186.9971083336665,
+        "min": 142.85398529202212,
+        "max": 232.97104470897466
+      },
+      "cost_usd": {
+        "mean": 0.005923713333333334,
+        "total": 0.01777114
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "lsass_access",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "failed_ungrounded",
+          "refused": false,
+          "error_kind": "OpenAITimeoutError",
+          "verdict": "benign_true_positive",
+          "confidence": 0.75,
+          "escalate": null,
+          "tool_calls": 9,
+          "ok_calls": 6,
+          "no_fixture": 3,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 232.97104470897466
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.8,
+          "escalate": true,
+          "tool_calls": 5,
+          "ok_calls": 5,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 142.85398529202212
+        },
+        {
+          "index": 2,
+          "outcome": "failed_error",
+          "refused": false,
+          "error_kind": "OpenAITimeoutError",
+          "verdict": null,
+          "confidence": null,
+          "escalate": null,
+          "tool_calls": 6,
+          "ok_calls": 5,
+          "no_fixture": 1,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 185.16629500000272
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "evidence_recall": {
+        "numerator": 0,
+        "denominator": 12,
+        "estimate": 0.0,
+        "low": 2.7755575615628914e-17,
+        "high": 0.24249400665524085
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 6,
+        "estimate": 0.16666666666666666,
+        "low": 0.030053369748306635,
+        "high": 0.5635028221864702
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 19,
+        "ok": 18,
+        "error": 1,
+        "denied": 0,
+        "no_fixture": 1,
+        "runs_with_gaps": 1
+      },
+      "wall_clock_s": {
+        "mean": 100.48097319431447,
+        "min": 90.57268133293837,
+        "max": 117.60194133303594
+      },
+      "cost_usd": {
+        "mean": 0.005584290000000001,
+        "total": 0.016752870000000003
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "password_spray",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.85,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 93.26829691696912
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.75,
+          "escalate": true,
+          "tool_calls": 7,
+          "ok_calls": 6,
+          "no_fixture": 1,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 90.57268133293837
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.83,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 117.60194133303594
+        }
+      ]
+    },
+    {
+      "runs": 3,
+      "served": 3,
+      "refused": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 3,
+        "estimate": 0.0,
+        "low": 5.551115123125783e-17,
+        "high": 0.5614970317550454
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 1,
+        "denominator": 3,
+        "estimate": 0.3333333333333333,
+        "low": 0.06149194472039621,
+        "high": 0.7923403991979522
+      },
+      "evidence_recall": {
+        "numerator": 1,
+        "denominator": 12,
+        "estimate": 0.08333333333333333,
+        "low": 0.014865094404917095,
+        "high": 0.35387991114111694
+      },
+      "missing_context_recall": {
+        "numerator": 2,
+        "denominator": 6,
+        "estimate": 0.3333333333333333,
+        "low": 0.09677141110578041,
+        "high": 0.700006684861608
+      },
+      "escalation_precision": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 3,
+        "denominator": 3,
+        "estimate": 1.0,
+        "low": 0.4385029682449546,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 27,
+        "ok": 27,
+        "error": 0,
+        "denied": 0,
+        "no_fixture": 0,
+        "runs_with_gaps": 0
+      },
+      "wall_clock_s": {
+        "mean": 182.3785269583653,
+        "min": 119.04235445801169,
+        "max": 216.982972583035
+      },
+      "cost_usd": {
+        "mean": 0.00804494,
+        "total": 0.02413482
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "scenario": "rmm_block",
+      "per_run": [
+        {
+          "index": 0,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.63,
+          "escalate": true,
+          "tool_calls": 13,
+          "ok_calls": 13,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 0,
+          "context_expected": 2,
+          "wall_clock_s": 119.04235445801169
+        },
+        {
+          "index": 1,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "true_positive",
+          "confidence": 0.72,
+          "escalate": true,
+          "tool_calls": 8,
+          "ok_calls": 8,
+          "no_fixture": 0,
+          "findings_reached": 1,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 216.982972583035
+        },
+        {
+          "index": 2,
+          "outcome": "completed",
+          "refused": false,
+          "error_kind": null,
+          "verdict": "inconclusive",
+          "confidence": 0.58,
+          "escalate": true,
+          "tool_calls": 6,
+          "ok_calls": 6,
+          "no_fixture": 0,
+          "findings_reached": 0,
+          "findings_required": 4,
+          "context_named": 1,
+          "context_expected": 2,
+          "wall_clock_s": 211.11025383404922
+        }
+      ]
+    }
+  ],
+  "by_model": [
+    {
+      "runs": 24,
+      "served": 24,
+      "refused": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 22,
+        "denominator": 24,
+        "estimate": 0.9166666666666666,
+        "low": 0.741511978067893,
+        "high": 0.9768411847029567
+      },
+      "failed": {
+        "numerator": 2,
+        "denominator": 24,
+        "estimate": 0.08333333333333333,
+        "low": 0.023158815297043306,
+        "high": 0.25848802193210685
+      },
+      "failed_ungrounded": {
+        "numerator": 1,
+        "denominator": 24,
+        "estimate": 0.041666666666666664,
+        "low": 0.0073934561655057685,
+        "high": 0.20241806478655938
+      },
+      "failed_error": {
+        "numerator": 1,
+        "denominator": 24,
+        "estimate": 0.041666666666666664,
+        "low": 0.0073934561655057685,
+        "high": 0.20241806478655938
+      },
+      "error_kinds": {
+        "AnthropicInvalidRequestError": 1
+      },
+      "verdict_accuracy": {
+        "numerator": 13,
+        "denominator": 24,
+        "estimate": 0.5416666666666666,
+        "low": 0.3507486535891948,
+        "high": 0.72108666268789
+      },
+      "evidence_recall": {
+        "numerator": 34,
+        "denominator": 96,
+        "estimate": 0.3541666666666667,
+        "low": 0.2657984032143951,
+        "high": 0.4537569765774271
+      },
+      "missing_context_recall": {
+        "numerator": 18,
+        "denominator": 48,
+        "estimate": 0.375,
+        "low": 0.25215266760868205,
+        "high": 0.5163723648078473
+      },
+      "escalation_precision": {
+        "numerator": 8,
+        "denominator": 8,
+        "estimate": 1.0,
+        "low": 0.6755924351161198,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 8,
+        "denominator": 9,
+        "estimate": 0.8888888888888888,
+        "low": 0.5650002944233439,
+        "high": 0.9801091123614551
+      },
+      "calls": {
+        "total": 190,
+        "ok": 180,
+        "error": 9,
+        "denied": 1,
+        "no_fixture": 9,
+        "runs_with_gaps": 6
+      },
+      "wall_clock_s": {
+        "mean": 43.47526402946581,
+        "min": 18.641318166046403,
+        "max": 64.56432074995246
+      },
+      "cost_usd": {
+        "mean": 0.03660066666666666,
+        "total": 0.878416
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-haiku-4-5",
+      "cells": 8
+    },
+    {
+      "runs": 24,
+      "served": 24,
+      "refused": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 24,
+        "denominator": 24,
+        "estimate": 1.0,
+        "low": 0.8620237953250198,
+        "high": 1.0
+      },
+      "failed": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "failed_ungrounded": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 23,
+        "denominator": 24,
+        "estimate": 0.9583333333333334,
+        "low": 0.7975819352134406,
+        "high": 0.9926065438344942
+      },
+      "evidence_recall": {
+        "numerator": 56,
+        "denominator": 96,
+        "estimate": 0.5833333333333334,
+        "low": 0.48336967940369446,
+        "high": 0.6768843892866933
+      },
+      "missing_context_recall": {
+        "numerator": 26,
+        "denominator": 48,
+        "estimate": 0.5416666666666666,
+        "low": 0.40291074545649797,
+        "high": 0.6742475770713254
+      },
+      "escalation_precision": {
+        "numerator": 9,
+        "denominator": 9,
+        "estimate": 1.0,
+        "low": 0.7008549515804559,
+        "high": 1.0
+      },
+      "escalation_recall": {
+        "numerator": 9,
+        "denominator": 9,
+        "estimate": 1.0,
+        "low": 0.7008549515804559,
+        "high": 1.0
+      },
+      "calls": {
+        "total": 191,
+        "ok": 177,
+        "error": 14,
+        "denied": 0,
+        "no_fixture": 12,
+        "runs_with_gaps": 5
+      },
+      "wall_clock_s": {
+        "mean": 52.038547824617126,
+        "min": 23.746415583998896,
+        "max": 107.17123066703789
+      },
+      "cost_usd": {
+        "mean": 0.11963516666666667,
+        "total": 2.871244
+      },
+      "cost_note": null,
+      "model": "anthropic:claude-sonnet-5",
+      "cells": 8
+    },
+    {
+      "runs": 46,
+      "served": 24,
+      "refused": {
+        "numerator": 22,
+        "denominator": 46,
+        "estimate": 0.4782608695652174,
+        "low": 0.34124689434045685,
+        "high": 0.6186258692719597
+      },
+      "refused_kinds": {
+        "rate_limit": 22
+      },
+      "refused_before_any_turn": 21,
+      "refused_after_a_turn": 1,
+      "completed": {
+        "numerator": 21,
+        "denominator": 24,
+        "estimate": 0.875,
+        "low": 0.6899611872949993,
+        "high": 0.9565566591987655
+      },
+      "failed": {
+        "numerator": 3,
+        "denominator": 24,
+        "estimate": 0.125,
+        "low": 0.04344334080123444,
+        "high": 0.31003881270500067
+      },
+      "failed_ungrounded": {
+        "numerator": 3,
+        "denominator": 24,
+        "estimate": 0.125,
+        "low": 0.04344334080123444,
+        "high": 0.31003881270500067
+      },
+      "failed_error": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "error_kinds": {},
+      "verdict_accuracy": {
+        "numerator": 19,
+        "denominator": 24,
+        "estimate": 0.7916666666666666,
+        "low": 0.5952954674681133,
+        "high": 0.9075517464714814
+      },
+      "evidence_recall": {
+        "numerator": 36,
+        "denominator": 96,
+        "estimate": 0.375,
+        "low": 0.2847260813834063,
+        "high": 0.47489281558101265
+      },
+      "missing_context_recall": {
+        "numerator": 1,
+        "denominator": 48,
+        "estimate": 0.020833333333333332,
+        "low": 0.003687110977510649,
+        "high": 0.10899217995251861
+      },
+      "escalation_precision": {
+        "numerator": 6,
+        "denominator": 7,
+        "estimate": 0.8571428571428571,
+        "low": 0.4868721707256811,
+        "high": 0.9743203756552565
+      },
+      "escalation_recall": {
+        "numerator": 6,
+        "denominator": 9,
+        "estimate": 0.6666666666666666,
+        "low": 0.3542021355803963,
+        "high": 0.879416181613089
+      },
+      "calls": {
+        "total": 83,
+        "ok": 79,
+        "error": 4,
+        "denied": 0,
+        "no_fixture": 3,
+        "runs_with_gaps": 3
+      },
+      "wall_clock_s": {
+        "mean": 6.007098793445039,
+        "min": 2.0901553339790553,
+        "max": 12.905771415913478
+      },
+      "cost_usd": {
+        "mean": 0.005781804166666667,
+        "total": 0.1402936
+      },
+      "cost_note": null,
+      "model": "google_genai:gemini-3.5-flash-lite",
+      "cells": 8
+    },
+    {
+      "runs": 24,
+      "served": 24,
+      "refused": {
+        "numerator": 0,
+        "denominator": 24,
+        "estimate": 0.0,
+        "low": 1.3877787807814457e-17,
+        "high": 0.13797620467498017
+      },
+      "refused_kinds": {},
+      "refused_before_any_turn": 0,
+      "refused_after_a_turn": 0,
+      "completed": {
+        "numerator": 21,
+        "denominator": 24,
+        "estimate": 0.875,
+        "low": 0.6899611872949993,
+        "high": 0.9565566591987655
+      },
+      "failed": {
+        "numerator": 3,
+        "denominator": 24,
+        "estimate": 0.125,
+        "low": 0.04344334080123444,
+        "high": 0.31003881270500067
+      },
+      "failed_ungrounded": {
+        "numerator": 1,
+        "denominator": 24,
+        "estimate": 0.041666666666666664,
+        "low": 0.0073934561655057685,
+        "high": 0.20241806478655938
+      },
+      "failed_error": {
+        "numerator": 2,
+        "denominator": 24,
+        "estimate": 0.08333333333333333,
+        "low": 0.023158815297043306,
+        "high": 0.25848802193210685
+      },
+      "error_kinds": {
+        "OpenAITimeoutError": 3
+      },
+      "verdict_accuracy": {
+        "numerator": 7,
+        "denominator": 24,
+        "estimate": 0.2916666666666667,
+        "low": 0.14914648196960875,
+        "high": 0.49167693664496637
+      },
+      "evidence_recall": {
+        "numerator": 5,
+        "denominator": 96,
+        "estimate": 0.052083333333333336,
+        "low": 0.02244960047424143,
+        "high": 0.11618478031492638
+      },
+      "missing_context_recall": {
+        "numerator": 12,
+        "denominator": 48,
+        "estimate": 0.25,
+        "low": 0.1492063367379791,
+        "high": 0.3878437280950796
+      },
+      "escalation_precision": {
+        "numerator": 8,
+        "denominator": 19,
+        "estimate": 0.42105263157894735,
+        "low": 0.23141891282454238,
+        "high": 0.6372409646574496
+      },
+      "escalation_recall": {
+        "numerator": 8,
+        "denominator": 9,
+        "estimate": 0.8888888888888888,
+        "low": 0.5650002944233439,
+        "high": 0.9801091123614551
+      },
+      "calls": {
+        "total": 162,
+        "ok": 153,
+        "error": 9,
+        "denied": 0,
+        "no_fixture": 7,
+        "runs_with_gaps": 5
+      },
+      "wall_clock_s": {
+        "mean": 150.5949896511253,
+        "min": 90.57268133293837,
+        "max": 240.70105820789468
+      },
+      "cost_usd": {
+        "mean": 0.0067260525,
+        "total": 0.16142526000000001
+      },
+      "cost_note": null,
+      "model": "openai:gpt-5-nano",
+      "cells": 8
+    }
+  ]
+}
